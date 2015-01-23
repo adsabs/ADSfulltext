@@ -2,3 +2,4 @@
 logs/*
 *.sublime*
 .vagrant
+local_settings.py
