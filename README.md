@@ -2,8 +2,6 @@
 
 Article full text exctraction pipeline based on advanced messaging queing protocol.
 
-python package and script for management of ads metadata
-
 dev setup - vagrant (virtualbox)
 ================================
 
