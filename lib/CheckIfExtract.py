@@ -50,3 +50,6 @@ def meta_output_exists(file_input):
 
 def check_file_exists(file_input):
 	return 0
+
+def check_if_extract(file_input):
+	return 0
