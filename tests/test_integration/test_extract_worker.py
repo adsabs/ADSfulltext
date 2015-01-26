@@ -1,15 +1,19 @@
 import unittest
+import time
 from lib import CheckIfExtract
 from settings import PROJ_HOME
 from pipeline import psettings
 from pipeline.workers import RabbitMQWorker, CheckIfExtractWorker
+from pipeline.ADSfulltext import TaskMaster
 from run import publish, read_links_from_file
 
 class TestExtractWorker(unittest.TestCase):
 
 	def setUp(self):
 		# Load the extraction worker
-		self.worker = CheckIfExtractWorker()
+		params = psettings.WORKERS['CheckIfExtractWorker']
+		params['RABBITMQ_URL'] = psettings.RABBITMQ_URL
+		self.worker = CheckIfExtractWorker(params=params)
 
 	def test_extraction_of_non_extracted(self):
 
@@ -22,18 +26,23 @@ class TestExtractWorker(unittest.TestCase):
 		records.make_payload()
 		self.assertTrue(len(records.payload)>0)
 
+		# Queues and routes are started
+		TM = TaskMaster(psettings.RABBITMQ_URL, psettings.RABBITMQ_ROUTES, psettings.WORKERS)
+		TM.initialize_rabbitmq()
+
 		# The worker connects to the queue
 		publish_worker = RabbitMQWorker()
 		ret_queue = publish_worker.connect(psettings.RABBITMQ_URL)
 		self.assertTrue(ret_queue)
 
-
 		# External worker publishes to the rabbitmq queue
-		# For the testing, passive should be False, i.e., we want it to create the queue
-		ret = publish(publish_worker, records.payload, exchange='FulltextExtractionExchange', routing_key='CheckIfExtractQueue', passive=False)
+		ret = publish(publish_worker, records.payload, exchange='FulltextExtractionExchange', routing_key='CheckIfExtractRoute')
 		self.assertTrue(ret)
 
-		# Worker receives packet of information
+		# Worker receives packet of information and checks to see if it needs to be updated
+		time.sleep(5)
+		self.worker.run()
+		self.assertEqual(self.worker.results, 'result')
 
 		# Worker checks to see if this full text needs to be updated
 		# extract = self.extraction_worker.f()

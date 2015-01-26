@@ -7,46 +7,81 @@ These are the functions for the CheckIfExtract class. This worker should determi
 import os
 from settings import config
 
-class FileInputStream(object):
-
-	def __init__(self, input_stream, stream_format="txt"):
-		self.input_stream = input_stream
-		self.bibcode = ""
-		self.full_text_path = ""
-		self.provider = ""
-		self.stream_format = stream_format
-
-	def extract(self):
-
-		if self.stream_format == "txt":
-			try:
-				self.bibcode, self.full_text_path, self.provider = [i.strip() for i in self.input_stream.split(" ") if i != ""]
-			except ValueError:
-				pass
-			except:
-				pass
-
-		return self.bibcode, self.full_text_path, self.provider
+def file_last_modified_time(file_input):
+    """
+    stat a file to get last mod time
+    """
+    mtime = os.stat(file_input)[ST_MTIME]
+    return datetime.fromtimestamp(mtime)
 
 
-def create_meta_path(file_input):
+def create_meta_path(file_input, extract_key="FULLTEXT_EXTRACT_PATH"):
 
 	import ptree
-	ptree = ptree.id2ptree(file_input.bibcode)
-	extract_path = os.path.join(config["FULLTEXT_EXTRACT_PATH"] + ptree, 'meta.json')
-
+	ptr = ptree.id2ptree(file_input.bibcode)
+	extract_path = config[extract_key] + ptr + "meta.json"
+	
 	return extract_path
 
-def meta_output_exists(file_input):
+def meta_output_exists(file_input, extract_key="FULLTEXT_EXTRACT_PATH"):
 
-	meta_full_path = create_meta_path(file_input)
-
-	print meta_full_path
+	meta_full_path = create_meta_path(file_input, extract_key)
 
 	if os.path.isfile(meta_full_path):
 		return True
 	else:
 		return False
+
+def load_meta_file(file_input, extract_key="FULLTEXT_EXTRACT_PATH"):
+
+	import json
+	from dateutil.parser import parse
+	meta_full_path = create_meta_path(file_input, extract_key)
+
+	content = None
+	
+	try:
+		with open(meta_full_path) as f:
+			content = json.loads(f.read())
+	except IOError:
+		print "IOError: Json content could not be loaded", meta_full_path
+	except:
+		print "Unexpected error"
+
+	return content
+
+def meta_needs_update(file_input, extract_key="FULLTEXT_EXTRACT_PATH"):
+
+	if file_input.stream_format != "file": raise IOError
+
+	
+	
+	# # # Obtain the indexed date within the meta file
+	# # try:
+	# # 	meta_date = parse(content["index_date"])
+	# # except KeyError:
+	# # 	print "Malformed meta-file"
+	# # except:
+	# # 	print "Unexpected error", sys.exc_info()
+
+	# # # Content is considered 'stale'
+	# # if file_input.stream_format == "file":
+	# # 	offset = datetime.utcnow() - datetime.now()
+	# # 	file_last_modified_time(file_input.input_stream)
+	# # 	print file_last_modified_time
+
+
+	# # # No extraction exists
+	# # if 'ft_source' not in content:
+	# # 	return True
+
+	# # # File has been modified
+	# # if content['ft_source'] != file_input.full_text_path:
+	# # 	return True
+
+
+
+	# # return False
 
 def check_file_exists(file_input):
 	return 0

@@ -7,6 +7,7 @@ Same schema is used as defined within ADSImportpipeline
 '''
 
 import pika
+import json
 
 class RabbitMQWorker(object):
 	'''
@@ -34,6 +35,17 @@ class RabbitMQWorker(object):
 			print sys.exc_info()
 			return False
 
+	def subscribe(self, callback, **kwargs):
+		#Note that the same callback will be called for every entry in subscribe.
+		for e in self.params['subscribe']:
+			self.channel.basic_consume(callback, queue=e['queue'], **kwargs)
+			# self.channel.start_consuming()
+
+	def declare_all(self, exchanges, queues, bindings):
+		[self.channel.exchange_declare(**e) for e in exchanges]
+		[self.channel.queue_declare(**q) for q in queues]
+		[self.channel.queue_bind(**b) for b in bindings]
+
 class CheckIfExtractWorker(RabbitMQWorker):
 	'''
 	Check if extractor work. Checks if the file needs to be extracted and pushes to the correct following queue.
@@ -44,3 +56,20 @@ class CheckIfExtractWorker(RabbitMQWorker):
 		from lib import CheckIfExtract
 		self.f = CheckIfExtract.check_if_extract
 
+ 	def on_message(self, channel, method_frame, header_frame, body):
+		message = json.loads(body)
+		try:
+			self.results = self.f(message)
+			# self.publish(json.dumps(results, default=date_handler))
+
+		except Exception, e:
+			self.results = 'fail'
+			self.logger.warning("Offloading to ErrorWorker due to exception: %s" % e.message)
+			self.publish_to_error_queue(json.dumps({self.__class__.__name__:message}),header_frame=header_frame)
+		
+		# Send delivery acknowledgement
+		self.channel.basic_ack(delivery_tag=method_frame.delivery_tag)
+
+	def run(self):
+		self.connect(self.params['RABBITMQ_URL'])
+		self.subscribe(self.on_message)

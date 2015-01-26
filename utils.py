@@ -6,6 +6,7 @@ class FileInputStream(object):
 
 	def __init__(self, input_stream, stream_format="txt"):
 		self.input_stream = input_stream
+		self.raw = ""
 		self.bibcode = ""
 		self.full_text_path = ""
 		self.provider = ""
@@ -15,11 +16,11 @@ class FileInputStream(object):
 
 		if self.stream_format == "txt":
 			try:
-				self.bibcode, self.full_text_path, self.provider = [i.strip() for i in self.input_stream.split(" ") if i != ""]
+				self.bibcode, self.full_text_path, self.provider = [i.strip() for i in self.input_stream.split("\t") if i != ""]
 			except ValueError:
-				print self.input_stream, sys.exc_info()
+				print "Value error (most likely not tab delimited), traceback:", self.input_stream, sys.exc_info()
 			except:
-				pass
+				print "Unexpected error", sys.exc_info()
 
 		if self.stream_format == "file":
 
@@ -56,5 +57,5 @@ class FileInputStream(object):
 		import json
 		# self.payload = zip(self.bibcode, self.full_text_path, self.provider)
 		self.payload = json.dumps(self.raw)
-		
+
 		return self.payload
