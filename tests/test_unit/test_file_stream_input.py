@@ -39,9 +39,9 @@ class TestFileStreamInput(unittest.TestCase):
 		self.assertEqual(FileInputStream.full_text_path, "")
 		self.assertEqual(FileInputStream.provider, "")
 
-	# def test_file_stream_input_extract_file(self):
+	def test_file_stream_input_extract_file(self):
 
-	# 	FileInputStream = utils.FileInputStream(self.test_file, stream_format="file")
-	# 	ext = FileInputStream.extract()
+		FileInputStream = utils.FileInputStream(self.test_file, stream_format="file")
+		ext = FileInputStream.extract()
 
-	# 	self.assertEqual(len(FileInputStream.bibcode), 3, "Did not extract the correct number of records from the input file")
+		self.assertEqual(len(FileInputStream.bibcode), 3, "Did not extract the correct number of records from the input file")
