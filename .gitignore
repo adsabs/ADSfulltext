@@ -3,5 +3,6 @@ logs/*
 *.sublime*
 .vagrant
 local_settings.py
+pipeline/local_psettings.py
 .profile
 .bashrc
