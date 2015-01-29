@@ -39,7 +39,7 @@ class RabbitMQWorker(object):
 		#Note that the same callback will be called for every entry in subscribe.
 		for e in self.params['subscribe']:
 			self.channel.basic_consume(callback, queue=e['queue'], **kwargs)
-			self.channel.start_consuming()
+			# self.channel.start_consuming()
 
 	def declare_all(self, exchanges, queues, bindings):
 		[self.channel.exchange_declare(**e) for e in exchanges]

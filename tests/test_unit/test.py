@@ -103,15 +103,8 @@ class TestCheckIfExtracted(unittest.TestCase):
 
 class TestFileStreamInput(unittest.TestCase):
 
-
-	def setUp(self):
-		self.test_input = "2015MNRAS.446.4239E\t" + PROJ_HOME + "/test/data/test.pdf\tMNRAS"
-		self.test_input_wrong = "2015MNRAS.446.4239E\t" + PROJ_HOME + "/test/data/test.pdf"
-		self.test_file = "tests/test_integration/stub_data/fulltext.links"
-
-
 	def test_file_stream_input_extract_string(self):
-		FileInputStream = utils.FileInputStream(self.test_input, stream_format="txt")
+		FileInputStream = utils.FileInputStream(test_input, stream_format="txt")
 		FileInputStream.extract()
 
 		self.assertEqual(FileInputStream.bibcode, "2015MNRAS.446.4239E")
@@ -120,7 +113,7 @@ class TestFileStreamInput(unittest.TestCase):
 
 
 	def test_file_stream_input_wrong_style(self):
-		FileInputStream = utils.FileInputStream(self.test_input_wrong)
+		FileInputStream = utils.FileInputStream(test_input_wrong)
 		ret = FileInputStream.extract()
 
 		self.assertEqual(FileInputStream.bibcode, "")
@@ -130,7 +123,7 @@ class TestFileStreamInput(unittest.TestCase):
 
 	def test_file_stream_input_extract_file(self):
 
-		FileInputStream = utils.FileInputStream(self.test_file, stream_format="file")
+		FileInputStream = utils.FileInputStream(test_file, stream_format="file")
 		ext = FileInputStream.extract()
 
 		self.assertEqual(len(FileInputStream.bibcode), 3, "Did not extract the correct number of records from the input file")
