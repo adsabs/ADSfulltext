@@ -103,6 +103,7 @@ class TestCheckIfExtracted(unittest.TestCase):
 
 class TestFileStreamInput(unittest.TestCase):
 
+
 	def test_file_stream_input_extract_string(self):
 		FileInputStream = utils.FileInputStream(test_input, stream_format="txt")
 		FileInputStream.extract()
@@ -128,6 +129,7 @@ class TestFileStreamInput(unittest.TestCase):
 
 		self.assertEqual(len(FileInputStream.bibcode), 3, "Did not extract the correct number of records from the input file")
 
+
 	def test_file_stream_input_extract_list(self):
 
 		FileInputStream = utils.FileInputStream(test_list, stream_format='list')
@@ -136,7 +138,6 @@ class TestFileStreamInput(unittest.TestCase):
 		self.assertEqual(FileInputStream.bibcode, "2015MNRAS.446.4239E")
 		self.assertEqual(FileInputStream.full_text_path, "/vagrant/test/data/test.pdf")
 		self.assertEqual(FileInputStream.provider, "MNRAS")
-
 
 
 if __name__ == '__main__':

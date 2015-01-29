@@ -23,10 +23,10 @@ RABBITMQ_ROUTES = {
     #   'queue': 'PDFFileExtractorQueue',
     #   'durable': True,
     # },
-    # {
-    #   'queue': 'StandardFileExtractorQueue',
-    #   'durable': True,
-    # },
+     {
+       'queue': 'StandardFileExtractorQueue',
+       'durable': True,
+     },
     # {
     #   'queue': 'WriteMetaFileQueue',
     #   'durable': True,
@@ -47,11 +47,11 @@ RABBITMQ_ROUTES = {
     #   'exchange':     'FulltextExtractionExchange',
     #   'routing_key':  'PDFFileExtractorRoute',
     # },
-    # {
-    #   'queue':        'StandardFileExtractorQueue',
-    #   'exchange':     'FulltextExtractionExchange',
-    #   'routing_key':  'StandardFileExtractorRoute',
-    # },
+     {
+       'queue':        'StandardFileExtractorQueue',
+       'exchange':     'FulltextExtractionExchange',
+       'routing_key':  'StandardFileExtractorRoute',
+     },
     # {
     #   'queue':        'WriteMetaFileQueue',
     #   'exchange':     'FulltextExtractionExchange',

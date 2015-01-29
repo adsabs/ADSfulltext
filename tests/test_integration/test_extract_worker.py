@@ -14,6 +14,7 @@ class TestExtractWorker(unittest.TestCase):
 		# Load the extraction worker
 		params = psettings.WORKERS['CheckIfExtractWorker']
 		params['RABBITMQ_URL'] = psettings.RABBITMQ_URL
+		params['extract_key'] = "FULLTEXT_EXTRACT_PATH_UNITTEST"
 		self.worker = CheckIfExtractWorker(params=params)
 
 	def test_extraction_of_non_extracted(self):
@@ -47,6 +48,17 @@ class TestExtractWorker(unittest.TestCase):
 		time.sleep(10)
 
 		# Check to see if the correct number of updates got published to the next queue
+		# Re-declare the queue with passive flag
+		queue = self.worker.channel.queue_declare(
+	        queue="StandardFileExtractorQueue",
+	        passive=True
+    		)
+
+		self.assertEqual(self.worker.results, 'pass')
+		self.assertTrue(queue.method.message_count==1, "Should be 1, but it is: %d" % queue.method.message_count)
+
+		# Clean-up for next test: should be removed when next queue implemented
+		self.worker.channel.queue_purge(queue="StandardFileExtractorQueue")
 
 		# Worker checks to see if this full text needs to be updated
 		# extract = self.extraction_worker.f()
