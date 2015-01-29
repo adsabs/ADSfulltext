@@ -12,17 +12,24 @@ class FileInputStream(object):
 		self.provider = ""
 		self.stream_format = stream_format
 
+	def print_info(self):
+		print "Bibcode: %s" % self.bibcode
+		print "Full text path: %s" % self.full_text_path
+		print "Provider: %s" % self.provider
+		print "Raw content: %s" % self.raw
+
 	def extract(self):
 
 		if self.stream_format == "txt":
 			try:
 				self.bibcode, self.full_text_path, self.provider = [i.strip() for i in self.input_stream.split("\t") if i != ""]
+				self.raw = self.input_stream
 			except ValueError:
 				print "Value error (most likely not tab delimited), traceback:", self.input_stream, sys.exc_info()
 			except:
 				print "Unexpected error", sys.exc_info()
 
-		if self.stream_format == "file":
+		elif self.stream_format == "file":
 
 			in_file = PROJ_HOME + "/" + self.input_stream
 			try:
@@ -45,6 +52,16 @@ class FileInputStream(object):
 
 			except IOError:
 				print in_file, sys.exc_info()
+
+		elif self.stream_format == 'list':
+			try:
+				self.bibcode, self.full_text_path, self.provider = self.input_stream
+				self.raw = '\t'.join(self.input_stream)
+			except:
+				raise IOError('Wrong format given: %s' % (self.input_stream))
+
+		else:
+			raise KeyError
 
 		return self.bibcode, self.full_text_path, self.provider, self.raw
 

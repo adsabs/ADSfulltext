@@ -7,14 +7,16 @@ import utils
 from settings import PROJ_HOME
 from lib import CheckIfExtract as check
 
-test_input = "2015MNRAS.446.4239E     " + PROJ_HOME + "/test/data/test.pdf     MNRAS"
-test_input_wrong = "2015MNRAS.446.4239E     " + PROJ_HOME + "/test/data/test.pdf"
-test_input_exists = "2015MNRAS.446.4239E     " + PROJ_HOME + "/tests"
-test_stub = "test	" + PROJ_HOME + "/tests/test_unit/stub_data/te/st/test.pdf	TEST"
+test_input = "2015MNRAS.446.4239E\t" + PROJ_HOME + "/test/data/test.pdf\tMNRAS"
+test_input_wrong = "2015MNRAS.446.4239E\t" + PROJ_HOME + "/test/data/test.pdf"
+test_input_exists = "2015MNRAS.446.4239E\t" + PROJ_HOME + "/tests"
+test_stub = "test\t" + PROJ_HOME + "/tests/test_unit/stub_data/te/st/test.pdf\tTEST"
 test_file = 'tests/test_integration/stub_data/fulltext.links'
+test_list = test_input.split("\t")
 
 
 class TestCheckIfExtracted(unittest.TestCase):
+
 
 	def test_file_not_extracted_before(self):
 
@@ -23,6 +25,7 @@ class TestCheckIfExtracted(unittest.TestCase):
 		exists = check.meta_output_exists(FileInputStream, extract_key="FULLTEXT_EXTRACT_PATH_UNITTEST")
 
 		self.assertEqual(exists, False)
+
 
 	def test_file_extracted_before(self):
 
@@ -34,18 +37,6 @@ class TestCheckIfExtracted(unittest.TestCase):
 		self.assertEqual(exists, True, "Could not establish that this file has been extracted before")
 
 
-	# def test_file_should_be_updated_exit_if_not_file(self):
-	# 	FileInputStream = utils.FileInputStream(test_stub, stream_format='txt')
-	# 	FileInputStream.extract()
-
-	# 	try:
-	# 		updated = check.meta_needs_update(FileInputStream, extract_key="FULLTEXT_EXTRACT_PATH_UNITTEST")
-	# 	except IOError:
-	# 		updated = -1
-
-	# 	self.assertEqual(updated, -1, "It should exit if the input is not a file")
-
-
 	def test_file_extract_meta(self):
 
 		FileInputStream = utils.FileInputStream(test_stub, stream_format='txt')
@@ -54,6 +45,7 @@ class TestCheckIfExtracted(unittest.TestCase):
 		content = check.load_meta_file(FileInputStream, extract_key="FULLTEXT_EXTRACT_PATH_UNITTEST")
 
 		self.assertTrue(len(content)>0, "Did not extract the meta data correctly")
+
 
 	def test_file_should_be_updated_if_missing_fulltext(self):
 
@@ -71,6 +63,7 @@ class TestCheckIfExtracted(unittest.TestCase):
 	 	self.assertEqual(updated, 'MISSING_FULL_TEXT', "The ft_source should need updating, not %s" % updated)
 
 
+
 	def test_file_should_be_updated_if_content_differs_to_input(self):
  		
  		FileInputStream = utils.FileInputStream(test_stub, stream_format='txt')
@@ -83,6 +76,7 @@ class TestCheckIfExtracted(unittest.TestCase):
 
 	 	self.assertEqual(updated, 'DIFFERING_FULL_TEXT', "The ft_source should need updating, not %s" % updated)
 
+
 	def test_file_should_be_updated_if_content_is_stale(self):
 
  		FileInputStream = utils.FileInputStream(test_stub, stream_format='txt')
@@ -94,29 +88,61 @@ class TestCheckIfExtracted(unittest.TestCase):
 
 	 	self.assertEqual(updated, 'STALE_CONTENT', "The file content should be stale, not %s" % updated)
 
-	def test_file_should_not_be_updated_if_everything_is_fine(self):
 
-	# def test_file_should_not_be_updated(self):
+	def test_file_should_be_extracted(self):
 
-	# 	FileInputStream = utils.FileInputStream(test_stub, stream_format='txt')
-	# 	FileInputStream.extract()
+	 	FileInputStream = utils.FileInputStream(test_file, stream_format='file')
+	 	FileInputStream.extract()
+	 	rabbitmq_input = zip(FileInputStream.bibcode, FileInputStream.full_text_path, FileInputStream.provider)
+	 	FileInputStream.make_payload()
 
-	# 	updated = check.meta_needs_update(FileInputStream, extract_key="FULLTEXT_EXTRACT_PATH_UNITTEST")
+	 	payload = check.check_if_extract(rabbitmq_input, extract_key="FULLTEXT_EXTRACT_PATH_UNITTEST")
 
-	# 	self.assertEqual(updated, False, "It should not need updating")
+		self.assertEqual(payload, FileInputStream.payload)
 
 
-	# def test_file_should_be_extracted(self):
+class TestFileStreamInput(unittest.TestCase):
 
-	# 	FileInputStream = utils.FileInputStream(test_stub, stream_format='txt')
-	# 	FileInputStream.extract()
 
-	# 	extract = check.check_if_extract()
+	def setUp(self):
+		self.test_input = "2015MNRAS.446.4239E\t" + PROJ_HOME + "/test/data/test.pdf\tMNRAS"
+		self.test_input_wrong = "2015MNRAS.446.4239E\t" + PROJ_HOME + "/test/data/test.pdf"
+		self.test_file = "tests/test_integration/stub_data/fulltext.links"
 
-	# 	FileInputStream = chk.FileInputStream(test_input)
-	# 	FileInputStream.extract()
-	#  	extract = chk.check_if_extract(FileInputStream)
 
+	def test_file_stream_input_extract_string(self):
+		FileInputStream = utils.FileInputStream(self.test_input, stream_format="txt")
+		FileInputStream.extract()
+
+		self.assertEqual(FileInputStream.bibcode, "2015MNRAS.446.4239E")
+		self.assertEqual(FileInputStream.full_text_path, "/vagrant/test/data/test.pdf")
+		self.assertEqual(FileInputStream.provider, "MNRAS")
+
+
+	def test_file_stream_input_wrong_style(self):
+		FileInputStream = utils.FileInputStream(self.test_input_wrong)
+		ret = FileInputStream.extract()
+
+		self.assertEqual(FileInputStream.bibcode, "")
+		self.assertEqual(FileInputStream.full_text_path, "")
+		self.assertEqual(FileInputStream.provider, "")
+
+
+	def test_file_stream_input_extract_file(self):
+
+		FileInputStream = utils.FileInputStream(self.test_file, stream_format="file")
+		ext = FileInputStream.extract()
+
+		self.assertEqual(len(FileInputStream.bibcode), 3, "Did not extract the correct number of records from the input file")
+
+	def test_file_stream_input_extract_list(self):
+
+		FileInputStream = utils.FileInputStream(test_list, stream_format='list')
+		ext = FileInputStream.extract()
+
+		self.assertEqual(FileInputStream.bibcode, "2015MNRAS.446.4239E")
+		self.assertEqual(FileInputStream.full_text_path, "/vagrant/test/data/test.pdf")
+		self.assertEqual(FileInputStream.provider, "MNRAS")
 
 
 

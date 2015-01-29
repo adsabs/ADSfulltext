@@ -5,6 +5,8 @@ These are the functions for the CheckIfExtract class. This worker should determi
 """
 
 import os
+import utils
+import json
 from datetime import datetime
 from settings import config
 
@@ -36,7 +38,6 @@ def meta_output_exists(file_input, extract_key="FULLTEXT_EXTRACT_PATH"):
 
 def load_meta_file(file_input, extract_key="FULLTEXT_EXTRACT_PATH"):
 
-	import json
 	from dateutil.parser import parse
 	meta_full_path = create_meta_path(file_input, extract_key)
 
@@ -46,7 +47,7 @@ def load_meta_file(file_input, extract_key="FULLTEXT_EXTRACT_PATH"):
 		with open(meta_full_path) as f:
 			content = json.loads(f.read())
 	except IOError:
-		print "IOError: Json content could not be loaded", meta_full_path
+		raise IOError("IOError: Json content could not be loaded: \n%s, \n%s" % (meta_full_path, file_input.raw))
 	except:
 		print "Unexpected error"
 
@@ -65,7 +66,6 @@ def meta_needs_update(file_input, meta_content, extract_key="FULLTEXT_EXTRACT_PA
 	except:
 		print "Unexpected error", sys.exc_info()
 
-	print meta_content
 	# No extraction exists
 	if 'ft_source' not in meta_content:
 		return 'MISSING_FULL_TEXT'
@@ -77,7 +77,6 @@ def meta_needs_update(file_input, meta_content, extract_key="FULLTEXT_EXTRACT_PA
 	# Content is considered 'stale'
 	delta_comp_time = datetime.utcnow() - datetime.now()
 	
-	print meta_content
 	ft_source_last_modified = file_last_modified_time(meta_content['ft_source'])
 	ft_source_last_modified += delta_comp_time
 
@@ -89,11 +88,20 @@ def meta_needs_update(file_input, meta_content, extract_key="FULLTEXT_EXTRACT_PA
 	if ft_source_last_modified > meta_json_last_modified:
 		return 'STALE_CONTENT'
 
+def check_if_extract(message_list, extract_key="FULLTEXT_EXTRACT_PATH"):
+	
+	NEEDS_UPDATE = ["MISSING_FULL_TEXT", "DIFFERING_FULL_TEXT", "STALE_CONTENT"]
 
-	# # return False
+	file_list = [utils.FileInputStream(i, stream_format='list') for i in message_list]
+	publish_list = []
 
-def check_file_exists(file_input):
-	return 0
+	for message in message_list:
+		file_ = utils.FileInputStream(message, stream_format='list')
+		file_.extract()
+	 	meta_content = load_meta_file(file_, extract_key=extract_key)
+	 	update = meta_needs_update(file_, meta_content, extract_key="FULLTEXT_EXTRACT_PATH")
 
-def check_if_extract(file_input):
-	return 0
+	 	if update in NEEDS_UPDATE:
+	 		publish_list.append([file_.bibcode, file_.full_text_path, file_.provider])
+
+	return json.dumps(publish_list)
