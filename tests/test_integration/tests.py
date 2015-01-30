@@ -50,31 +50,42 @@ class TestExtractWorker(unittest.TestCase):
 
 		# Check to see if the correct number of updates got published to the next queue
 		# Re-declare the queue with passive flag
-		queue = self.worker.channel.queue_declare(
+		standard_queue = self.worker.channel.queue_declare(
 	        queue="StandardFileExtractorQueue",
 	        passive=True
     		)
 
+		pdf_queue = self.worker.channel.queue_declare(
+	        queue="PDFFileExtractorQueue",
+	        passive=True
+    		)
 
 		# results = json.loads(self.worker.results)
 		# self.assertIn('STALE_CONTENT', results, "Result was different to what was expected: %s" % results)
 
-		expected_results = [{"bibcode": "test", "ft_source": "/vagrant/tests/test_unit/stub_data/te/st/test.pdf", "provider": "MNRAS", \
+		pdf_expected = [{"bibcode": "test", "ft_source": "/vagrant/tests/test_unit/stub_data/te/st/test.pdf", "provider": "MNRAS", \
 								"UPDATE": "STALE_CONTENT"},
 							{"bibcode": "test", "ft_source": "tests/test_unit/stub_data/te/st/test.pdf", "provider": "MNRAS", \
 								"UPDATE": "DIFFERING_FULL_TEXT"},
-							{"bibcode": "test1", "ft_source": "tests/test_unit/stub_data/te/st/test.ocr", "provider": "MNRAS", \
-								"UPDATE": "NOT_EXTRACTED_BEFORE"},
 							{"bibcode": "test3", "ft_source": "/vagrant/tests/test_unit/stub_data/te/st/test.pdf", "provider": "MNRAS", \
 								"UPDATE": "MISSING_FULL_TEXT"},
 							]
 
-		self.assertEqual(json.loads(self.worker.results), expected_results, 'Type of output: %s, type of expected: %s' % (type(self.worker.results), type(expected_results)))
+		standard_expected = [{"bibcode": "test1", "ft_source": "tests/test_unit/stub_data/te/st/test.ocr", "provider": "MNRAS", \
+								"UPDATE": "NOT_EXTRACTED_BEFORE"},
+							]
+
+		pdf_res, standard_res = json.loads(self.worker.results["PDF"]), json.loads(self.worker.results["Standard"])
+
+		self.assertEqual(pdf_res, pdf_expected)
+		self.assertEqual(standard_res, standard_expected)
 		# self.assertEqual(self.worker.results, 'pass')
-		self.assertTrue(queue.method.message_count==1, "Should be 1, but it is: %d" % queue.method.message_count)
+		self.assertTrue(standard_queue.method.message_count==1, "Standard queue should have 1 message, but it has: %d" % standard_queue.method.message_count)
+		self.assertTrue(pdf_queue.method.message_count==1, "PDF queue should have 1 message, but it has: %d" % pdf_queue.method.message_count)
 
 		# Clean-up for next test: should be removed when next queue implemented
 		self.worker.channel.queue_purge(queue="StandardFileExtractorQueue")
+		self.worker.channel.queue_purge(queue="PDFFileExtractorQueue")
 
 		# There should be no errors at this stage
 		queue_error = self.worker.channel.queue_declare(

@@ -92,7 +92,8 @@ def check_if_extract(message_list, extract_key="FULLTEXT_EXTRACT_PATH"):
 	
 	NEEDS_UPDATE = ["MISSING_FULL_TEXT", "DIFFERING_FULL_TEXT", "STALE_CONTENT", "NOT_EXTRACTED_BEFORE"]
 
-	publish_list_of_dictionaries = []
+	publish_list_of_standard_dictionaries = []
+	publish_list_of_pdf_dictionaries = []
 
 	for message in message_list:
 
@@ -103,8 +104,13 @@ def check_if_extract(message_list, extract_key="FULLTEXT_EXTRACT_PATH"):
 	 	else:
 	 		update = "NOT_EXTRACTED_BEFORE"
 
-	 	if update in NEEDS_UPDATE:
+	 	if update in NEEDS_UPDATE and message['ft_source'].lower().endswith('.pdf'):
 	 		message['UPDATE'] = update
-	 		publish_list_of_dictionaries.append(message)
+	 		publish_list_of_pdf_dictionaries.append(message)
 
-	return json.dumps(publish_list_of_dictionaries)
+	 	elif update in NEEDS_UPDATE:
+	 		message['UPDATE'] = update
+	 		publish_list_of_standard_dictionaries.append(message)
+
+	return {"Standard": json.dumps(publish_list_of_standard_dictionaries), 
+			"PDF": json.dumps(publish_list_of_pdf_dictionaries)}

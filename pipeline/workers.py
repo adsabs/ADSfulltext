@@ -36,17 +36,24 @@ class RabbitMQWorker(object):
 			print sys.exc_info()
 			return False
 
- 	def publish(self, message, **kwargs):
-		for e in self.params['publish']:
-			self.channel.basic_publish(e['exchange'], e['routing_key'], message)
-
-	def subscribe(self, callback, topic=None, **kwargs):
-		#Note that the same callback will be called for every entry in subscribe.
-		params = self.params['subscribe']
+ 	def publish(self, message, topic=False, **kwargs):
+		
 		if topic:
-			params = params['topic']
+			self.logger.debug('Using topic in publish')
+			for key in self.params['publish'].keys():
+				self.logger.debug('Using key: %s' % key)
 
-		for e in params:
+				for e in self.params['publish'][key]:
+					self.logger.debug("Using exchange: %s" % e)
+					self.channel.basic_publish(e['exchange'], e['routing_key'], message[key])
+		else:
+			for e in self.params['publish']:
+				self.logger.debug('Basic publish')
+				self.channel.basic_publish(e['exchange'], e['routing_key'], message)
+
+	def subscribe(self, callback, **kwargs):
+		#Note that the same callback will be called for every entry in subscribe.
+		for e in self.params['subscribe']:
 			self.channel.basic_consume(callback, queue=e['queue'], **kwargs)
 			# self.channel.start_consuming()
 
@@ -73,12 +80,13 @@ class CheckIfExtractWorker(RabbitMQWorker):
 		message = json.loads(body)
 		try:
 			self.results = self.f(message, self.params['extract_key'])
-			self.publish(self.results)
+			self.publish(self.results, topic=True)
 
 		except Exception, e:
+			import traceback
 			self.results = "Offloading to ErrorWorker due to exception: %s" % e.message
-			self.logger.warning("Offloading to ErrorWorker due to exception: %s" % e.message)
-			# self.publish_to_error_queue(json.dumps({self.__class__.__name__:message}),header_frame=header_frame)
+			self.logger.warning("Offloading to ErrorWorker due to exception: %s (%s)" % (e.message, traceback.format_exc()))
+			#self.publish_to_error_queue(json.dumps({self.__class__.__name__:message}),header_frame=header_frame)
 		
 		# Send delivery acknowledgement
 		self.channel.basic_ack(delivery_tag=method_frame.delivery_tag)

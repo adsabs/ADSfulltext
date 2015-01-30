@@ -19,10 +19,10 @@ RABBITMQ_ROUTES = {
       'queue': 'CheckIfExtractQueue',
       'durable': True,
     },
-    # {
-    #   'queue': 'PDFFileExtractorQueue',
-    #   'durable': True,
-    # },
+    {
+      'queue': 'PDFFileExtractorQueue',
+      'durable': True,
+    },
     {
       'queue': 'StandardFileExtractorQueue',
       'durable': True,
@@ -42,11 +42,11 @@ RABBITMQ_ROUTES = {
       'exchange':     'FulltextExtractionExchange',
       'routing_key':  'CheckIfExtractRoute',
     },
-    # {
-    #   'queue':        'PDFFileExtractorQueue',
-    #   'exchange':     'FulltextExtractionExchange',
-    #   'routing_key':  'PDFFileExtractorRoute',
-    # },
+    {
+      'queue':        'PDFFileExtractorQueue',
+      'exchange':     'FulltextExtractionExchange',
+      'routing_key':  'PDFFileExtractorRoute',
+    },
      {
        'queue':        'StandardFileExtractorQueue',
        'exchange':     'FulltextExtractionExchange',
@@ -69,9 +69,10 @@ WORKERS = {
 
   'CheckIfExtractWorker': { 
     'concurrency': 1,
-    'publish': [
-      {'exchange': 'FulltextExtractionExchange', 'routing_key': 'StandardFileExtractorRoute',},
-    ],
+    'publish': {
+      'PDF': [{'exchange': 'FulltextExtractionExchange', 'routing_key': 'PDFFileExtractorRoute',}],
+      'Standard': [{'exchange': 'FulltextExtractionExchange', 'routing_key': 'StandardFileExtractorRoute',}],
+      },
     'subscribe': [
       {'queue': 'CheckIfExtractQueue',},
     ],
