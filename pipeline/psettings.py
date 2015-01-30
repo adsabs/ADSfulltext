@@ -23,18 +23,18 @@ RABBITMQ_ROUTES = {
     #   'queue': 'PDFFileExtractorQueue',
     #   'durable': True,
     # },
-     {
-       'queue': 'StandardFileExtractorQueue',
-       'durable': True,
-     },
+    {
+      'queue': 'StandardFileExtractorQueue',
+      'durable': True,
+    },
     # {
     #   'queue': 'WriteMetaFileQueue',
     #   'durable': True,
     # },
-    # {
-    #   'queue': 'ErrorHandlerQueue',
-    #   'durable': True,
-    # },     
+    {
+      'queue': 'ErrorHandlerQueue',
+      'durable': True,
+    },     
   ],
   'BINDINGS':[
     {
@@ -57,23 +57,15 @@ RABBITMQ_ROUTES = {
     #   'exchange':     'FulltextExtractionExchange',
     #   'routing_key':  'WriteMetaFileRoute',
     # },
-    # {
-    #   'queue':        'ErrorHandlerQueue',
-    #   'exchange':     'FulltextExtractionExchange',
-    #   'routing_key':  'ErrorHandlerRoute',
-    # },
+    {
+      'queue':        'ErrorHandlerQueue',
+      'exchange':     'FulltextExtractionExchange',
+      'routing_key':  'ErrorHandlerRoute',
+    },
   ],
 }
 
 WORKERS = {
-#   'ErrorHandlerWorker': { 
-#     'concurrency': 2,
-#     'publish': [
-#     ],
-#     'subscribe': [
-#       {'queue': 'ErrorHandlerQueue',},
-#     ],
-#   },
 
   'CheckIfExtractWorker': { 
     'concurrency': 1,
@@ -85,6 +77,14 @@ WORKERS = {
     ],
   },
 
+  'ErrorHandlerWorker': { 
+    'concurrency': 1,
+    'publish': [
+    ],
+    'subscribe': [
+      {'queue': 'ErrorHandlerQueue',},
+    ],
+  },
 #   'ReadRecordsWorker': { 
 #     'concurrency': 4,
 #     'publish': [

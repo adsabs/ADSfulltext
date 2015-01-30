@@ -76,6 +76,14 @@ class TestExtractWorker(unittest.TestCase):
 		# Clean-up for next test: should be removed when next queue implemented
 		self.worker.channel.queue_purge(queue="StandardFileExtractorQueue")
 
+		# There should be no errors at this stage
+		queue_error = self.worker.channel.queue_declare(
+	        queue="ErrorHandlerQueue",
+	        passive=True
+    		)
+		self.assertTrue(queue_error.method.message_count==0, "Should be 0, but it is: %d" % queue_error.method.message_count)
+
+
 		# Worker checks to see if this full text needs to be updated
 		# extract = self.extraction_worker.f()
 

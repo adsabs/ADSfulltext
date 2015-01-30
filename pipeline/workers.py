@@ -40,9 +40,13 @@ class RabbitMQWorker(object):
 		for e in self.params['publish']:
 			self.channel.basic_publish(e['exchange'], e['routing_key'], message)
 
-	def subscribe(self, callback, **kwargs):
+	def subscribe(self, callback, topic=None, **kwargs):
 		#Note that the same callback will be called for every entry in subscribe.
-		for e in self.params['subscribe']:
+		params = self.params['subscribe']
+		if topic:
+			params = params['topic']
+
+		for e in params:
 			self.channel.basic_consume(callback, queue=e['queue'], **kwargs)
 			# self.channel.start_consuming()
 
@@ -73,7 +77,7 @@ class CheckIfExtractWorker(RabbitMQWorker):
 
 		except Exception, e:
 			self.results = "Offloading to ErrorWorker due to exception: %s" % e.message
-			# self.logger.warning("Offloading to ErrorWorker due to exception: %s" % e.message)
+			self.logger.warning("Offloading to ErrorWorker due to exception: %s" % e.message)
 			# self.publish_to_error_queue(json.dumps({self.__class__.__name__:message}),header_frame=header_frame)
 		
 		# Send delivery acknowledgement
