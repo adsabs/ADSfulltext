@@ -6,7 +6,7 @@ import unittest
 import utils
 from settings import PROJ_HOME
 from lib import CheckIfExtract as check
-
+from lib import StandardFileExtract as std_extract
 test_file = 'tests/test_integration/stub_data/fulltext.links'
 test_file_stub = 'tests/test_integration/stub_data/fulltext_stub.links'
 test_file_wrong = 'tests/test_integration/stub_data/fulltext_wrong.links'
@@ -135,6 +135,12 @@ class TestFileStreamInput(unittest.TestCase):
 		self.assertIn("/vagrant/test/data/test.pdf", FileInputStream.full_text_path)
 		self.assertIn("MNRAS", FileInputStream.provider)
 
+
+class TestStandardFileExtract(unittest.TestCase):
+
+	def test_that_the_extractor_can_extract_xml_content(self):
+		
+		return 0
 
 if __name__ == '__main__':
 	unittest.main()

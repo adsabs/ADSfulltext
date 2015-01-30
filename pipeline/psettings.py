@@ -1,6 +1,6 @@
-'''
+"""
 Settings for the rabbitMQ/ADSfulltext
-'''
+"""
 
 RABBITMQ_URL = 'amqp://username:password@localhost:5672/%2F' #?socket_timeout=10&backpressure_detection=t' #Max message size = 500kb
 
@@ -77,7 +77,32 @@ WORKERS = {
       {'queue': 'CheckIfExtractQueue',},
     ],
   },
-
+  'StandardFileExtractWorker': { 
+    'concurrency': 1,
+    'publish': [
+      {'exchange': 'FulltextExtractionExchange', 'routing_key': 'WriteMetaFileQueue',},
+    ],
+    'subscribe': [
+      {'queue': 'StandardFileExtractorQueue',},
+    ],
+  },
+  # 'PDFFileExtractorWorker': { 
+  #   'concurrency': 1,
+  #   'publish': [
+  #     {'exchange': 'FulltextExtractionExchange', 'routing_key': 'WriteMetaFileQueue',},
+  #   ],
+  #   'subscribe': [
+  #     {'queue': 'ReadRecordsQueue',},
+  #   ],
+  # },
+  #   'WriteMetalFileExtractorWorker': { 
+  #   'concurrency': 1,
+  #   'publish': [
+  #   ],
+  #   'subscribe': [
+  #     {'queue': 'ReadRecordsQueue',},
+  #   ],
+  # },
   'ErrorHandlerWorker': { 
     'concurrency': 1,
     'publish': [
@@ -86,51 +111,6 @@ WORKERS = {
       {'queue': 'ErrorHandlerQueue',},
     ],
   },
-#   'ReadRecordsWorker': { 
-#     'concurrency': 4,
-#     'publish': [
-#       {'exchange': 'MergerPipelineExchange', 'routing_key': 'UpdateRecordsRoute',},
-#     ],
-#     'subscribe': [
-#       {'queue': 'ReadRecordsQueue',},
-#     ],
-#   },
-
-#   'UpdateRecordsWorker': {
-#     'concurrency': 2,
-#     'publish': [
-#       {'exchange': 'MergerPipelineExchange','routing_key': 'MongoWriteRoute',},
-#     ],
-#     'subscribe': [
-#       {'queue': 'UpdateRecordsQueue',},
-#     ],
-#   },
-  
-#   'MongoWriteWorker': {
-#     'concurrency': 1,
-#     'publish': [
-#       {'exchange': 'MergerPipelineExchange','routing_key': 'SolrUpdateRoute',},
-#     ],
-#     'subscribe': [
-#       {'queue':'MongoWriteQueue',},
-#     ],
-#   },
-
-#   'SolrUpdateWorker': {
-#     'concurrency': 7,
-#     'publish': [],
-#     'subscribe': [
-#       {'queue':'SolrUpdateQueue',},
-#     ],
-#   }, 
-
-#   'DeletionWorker': {
-#     'concurrency': 1,
-#     'publish': [],
-#     'subscribe': [
-#       {'queue':'DeletionQueue',},
-#     ],
-#   }, 
 }
 
 
