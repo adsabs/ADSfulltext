@@ -2,3 +2,5 @@ pika
 nose
 ptree
 ConcurrentLogHandler
+lxml
+BeautifulSoup

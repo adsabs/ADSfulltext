@@ -14,6 +14,14 @@ config = {
     "FULLTEXT_EXTRACT_PATH_UNITTEST": PROJ_HOME + "/" + FULLTEXT_EXTRACT_PATH_UNITTEST, \
 }
 
+META_CONTENT = {
+    "XML": {
+        "body": ['//body','//section[@type="body"]', '//journalarticle-body'],
+        "ack": ['//ack', '//section[@type="acknowledgments"]', '//subsection[@type="acknowledgement" or @type="acknowledgment"]'],
+        "dataset": ['//named-content[@content-type="dataset"]'],
+    }
+}
+
 
 # For production/testing environment
 try:
