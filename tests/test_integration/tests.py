@@ -1,5 +1,6 @@
 import unittest
 import time
+import json
 from lib import CheckIfExtract
 from settings import PROJ_HOME
 from pipeline import psettings
@@ -21,8 +22,8 @@ class TestExtractWorker(unittest.TestCase):
 
 		# user loads the list of full text files
 		test_publish = 'tests/test_integration/stub_data/fulltext.links'
-		records = read_links_from_file(test_publish, stream_format='file')
-		self.assertEqual(len(records.bibcode), 3)
+		records = read_links_from_file(test_publish)
+		self.assertEqual(len(records.bibcode), 5)
 
 		# Converts the input into a user defined payload
 		records.make_payload()
@@ -54,7 +55,22 @@ class TestExtractWorker(unittest.TestCase):
 	        passive=True
     		)
 
-		self.assertEqual(self.worker.results, 'pass')
+
+		# results = json.loads(self.worker.results)
+		# self.assertIn('STALE_CONTENT', results, "Result was different to what was expected: %s" % results)
+
+		expected_results = [{"bibcode": "test", "ft_source": "/vagrant/tests/test_unit/stub_data/te/st/test.pdf", "provider": "MNRAS", \
+								"UPDATE": "STALE_CONTENT"},
+							{"bibcode": "test", "ft_source": "tests/test_unit/stub_data/te/st/test.pdf", "provider": "MNRAS", \
+								"UPDATE": "DIFFERING_FULL_TEXT"},
+							{"bibcode": "test1", "ft_source": "tests/test_unit/stub_data/te/st/test.ocr", "provider": "MNRAS", \
+								"UPDATE": "NOT_EXTRACTED_BEFORE"},
+							{"bibcode": "test3", "ft_source": "/vagrant/tests/test_unit/stub_data/te/st/test.pdf", "provider": "MNRAS", \
+								"UPDATE": "MISSING_FULL_TEXT"},
+							]
+
+		self.assertEqual(json.loads(self.worker.results), expected_results, 'Type of output: %s, type of expected: %s' % (type(self.worker.results), type(expected_results)))
+		# self.assertEqual(self.worker.results, 'pass')
 		self.assertTrue(queue.method.message_count==1, "Should be 1, but it is: %d" % queue.method.message_count)
 
 		# Clean-up for next test: should be removed when next queue implemented

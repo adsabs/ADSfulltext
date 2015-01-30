@@ -25,9 +25,9 @@ def publish(w, records, sleep=5, max_queue_size=100000, url=psettings.RABBITMQ_U
 
 	return True
 
-def read_links_from_file(file_input, stream_format):
+def read_links_from_file(file_input):
 
-	FileInputStream = utils.FileInputStream(file_input, stream_format=stream_format)
+	FileInputStream = utils.FileInputStream(file_input)
 	FileInputStream.extract()
 
 	return FileInputStream

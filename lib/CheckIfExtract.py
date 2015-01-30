@@ -19,10 +19,10 @@ def file_last_modified_time(file_input):
     return datetime.fromtimestamp(mtime)
 
 
-def create_meta_path(file_input, extract_key="FULLTEXT_EXTRACT_PATH"):
+def create_meta_path(dict_input, extract_key="FULLTEXT_EXTRACT_PATH"):
 
 	import ptree
-	ptr = ptree.id2ptree(file_input.bibcode)
+	ptr = ptree.id2ptree(dict_input['bibcode'])
 	extract_path = config[extract_key] + ptr + "meta.json"
 	
 	return extract_path
@@ -47,13 +47,13 @@ def load_meta_file(file_input, extract_key="FULLTEXT_EXTRACT_PATH"):
 		with open(meta_full_path) as f:
 			content = json.loads(f.read())
 	except IOError:
-		raise IOError("IOError: Json content could not be loaded: \n%s, \n%s" % (meta_full_path, file_input.raw))
+		raise IOError("IOError: Json content could not be loaded: \n%s, \n%s" % (meta_full_path, file_input))
 	except:
 		print "Unexpected error"
 
 	return content
 
-def meta_needs_update(file_input, meta_content, extract_key="FULLTEXT_EXTRACT_PATH"):
+def meta_needs_update(dict_input, meta_content, extract_key="FULLTEXT_EXTRACT_PATH"):
 
 	import sys
 	from dateutil.parser import parse
@@ -71,7 +71,7 @@ def meta_needs_update(file_input, meta_content, extract_key="FULLTEXT_EXTRACT_PA
 		return 'MISSING_FULL_TEXT'
 
 	# Full text file path has changed
-	if meta_content['ft_source'] != file_input.full_text_path:
+	if meta_content['ft_source'] != dict_input['ft_source']:
 		return 'DIFFERING_FULL_TEXT'
 
 	# Content is considered 'stale'
@@ -80,7 +80,7 @@ def meta_needs_update(file_input, meta_content, extract_key="FULLTEXT_EXTRACT_PA
 	ft_source_last_modified = file_last_modified_time(meta_content['ft_source'])
 	ft_source_last_modified += delta_comp_time
 
-	meta_path = create_meta_path(file_input, extract_key=extract_key)
+	meta_path = create_meta_path(dict_input, extract_key=extract_key)
 
 	meta_json_last_modified = file_last_modified_time(meta_path)
 
@@ -90,18 +90,21 @@ def meta_needs_update(file_input, meta_content, extract_key="FULLTEXT_EXTRACT_PA
 
 def check_if_extract(message_list, extract_key="FULLTEXT_EXTRACT_PATH"):
 	
-	NEEDS_UPDATE = ["MISSING_FULL_TEXT", "DIFFERING_FULL_TEXT", "STALE_CONTENT"]
+	NEEDS_UPDATE = ["MISSING_FULL_TEXT", "DIFFERING_FULL_TEXT", "STALE_CONTENT", "NOT_EXTRACTED_BEFORE"]
 
-	file_list = [utils.FileInputStream(i, stream_format='list') for i in message_list]
-	publish_list = []
+	publish_list_of_dictionaries = []
 
 	for message in message_list:
-		file_ = utils.FileInputStream(message, stream_format='list')
-		file_.extract()
-	 	meta_content = load_meta_file(file_, extract_key=extract_key)
-	 	update = meta_needs_update(file_, meta_content, extract_key="FULLTEXT_EXTRACT_PATH")
+
+		# message should be a dictionary
+		if meta_output_exists(message, extract_key=extract_key):
+	 		meta_content = load_meta_file(message, extract_key=extract_key)
+	 		update = meta_needs_update(message, meta_content, extract_key=extract_key)
+	 	else:
+	 		update = "NOT_EXTRACTED_BEFORE"
 
 	 	if update in NEEDS_UPDATE:
-	 		publish_list.append([file_.bibcode, file_.full_text_path, file_.provider])
+	 		message['UPDATE'] = update
+	 		publish_list_of_dictionaries.append(message)
 
-	return json.dumps(publish_list)
+	return json.dumps(publish_list_of_dictionaries)

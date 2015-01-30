@@ -64,7 +64,6 @@ class CheckIfExtractWorker(RabbitMQWorker):
 		try:
 			self.results = self.f(message, self.params['extract_key'])
 			self.publish(self.results)
-			self.results = 'pass'
 
 		except Exception, e:
 			self.results = "Offloading to ErrorWorker due to exception: %s" % e.message
