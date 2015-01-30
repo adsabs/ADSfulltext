@@ -8,6 +8,7 @@ Same schema is used as defined within ADSImportpipeline
 
 import pika
 import json
+import utils
 
 class RabbitMQWorker(object):
 	'''
@@ -15,6 +16,9 @@ class RabbitMQWorker(object):
 	'''
 	def __init__(self, params=None):
 		self.params = params
+
+ 	def setup_logging(self, level='DEBUG'):
+ 		return utils.setup_logging(__file__, self.__class__.__name__)
 
 	def connect(self, url, confirm_delivery=False):
 		'''
@@ -58,6 +62,8 @@ class CheckIfExtractWorker(RabbitMQWorker):
 		self.params = params
 		from lib import CheckIfExtract
 		self.f = CheckIfExtract.check_if_extract
+		self.logger = self.setup_logging()
+		self.logger.debug("Initialized")
 
  	def on_message(self, channel, method_frame, header_frame, body):
 		message = json.loads(body)

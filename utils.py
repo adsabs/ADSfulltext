@@ -1,6 +1,25 @@
 import os
 import sys
+import logging
 from settings import config, PROJ_HOME
+from logging import handlers
+from cloghandler import ConcurrentRotatingFileHandler
+
+def setup_logging(file_, name_, level='DEBUG'):
+
+	level = getattr(logging, level)
+
+	logfmt = '%(levelname)s\t%(process)d [%(asctime)s]:\t%(message)s'
+	datefmt= '%m/%d/%Y %H:%M:%S'
+	formatter = logging.Formatter(fmt=logfmt, datefmt=datefmt)
+	LOGGER = logging.getLogger(name_)
+	fn = os.path.join(os.path.dirname(file_), '..', 'logs', '%s.log' % name_)
+	rfh = ConcurrentRotatingFileHandler(filename=fn, maxBytes=2097152, backupCount=5, mode='a') #2MB file
+	rfh.setFormatter(formatter)
+	LOGGER.handlers = []
+	LOGGER.addHandler(rfh)
+	LOGGER.setLevel(level)
+	return LOGGER
 
 class FileInputStream(object):
 
@@ -10,7 +29,7 @@ class FileInputStream(object):
 		self.bibcode = ""
 		self.full_text_path = ""
 		self.provider = ""
-		
+
 	def print_info(self):
 		print "Bibcode: %s" % self.bibcode
 		print "Full text path: %s" % self.full_text_path
