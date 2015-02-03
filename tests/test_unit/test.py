@@ -106,7 +106,7 @@ class TestCheckIfExtracted(unittest.TestCase):
          [u"STALE_CONTENT", u"DIFFERING_FULL_TEXT", u"MISSING_FULL_TEXT", u"NOT_EXTRACTED_BEFORE"]]
 
         self.assertTrue(len(pdf_compare) == 3, json.loads(payload["PDF"]))
-        self.assertTrue(len(standard_compare) == 1)
+        self.assertTrue(len(standard_compare) == 2)
 
 
 class TestFileStreamInput(unittest.TestCase):
@@ -116,7 +116,10 @@ class TestFileStreamInput(unittest.TestCase):
         FileInputStream = utils.FileInputStream(test_file)
         ext = FileInputStream.extract()
 
-        self.assertEqual(len(FileInputStream.bibcode), 5, "Did not extract the correct number of records from the input file")
+        with open(PROJ_HOME + "/" + test_file, 'r') as f:
+            nor = len(f.readlines())
+
+        self.assertEqual(len(FileInputStream.bibcode), nor, "Did not extract the correct number of records from the input file")
 
     def test_file_stream_input_extract_list(self):
 
