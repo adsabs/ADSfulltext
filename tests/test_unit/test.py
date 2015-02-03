@@ -97,37 +97,16 @@ class TestCheckIfExtracted(unittest.TestCase):
         FileInputStream = utils.FileInputStream(test_file)
         FileInputStream.extract()
 
-        pdf_hard_1 = {u"UPDATE": u"STALE_CONTENT",
-                      u"bibcode": u"test",
-                      u"provider": u"MNRAS",
-                      u"ft_source": u"/vagrant/tests/test_unit/stub_data/te/st/test.pdf",
-                      u"meta_path": u"/vagrant/tests/test_unit/stub_data/te/st/meta.json"}
-
-        pdf_hard_2 = {u"UPDATE": u"DIFFERING_FULL_TEXT",
-                      u"bibcode": u"test",
-                      u"provider": u"MNRAS",
-                      u"ft_source": u"tests/test_unit/stub_data/te/st/test.pdf",
-                      u"meta_path": u"/vagrant/tests/test_unit/stub_data/te/st/meta.json"}
-
-        pdf_hard_3 = {u"UPDATE": u"MISSING_FULL_TEXT",
-                      u"bibcode": u"test3",
-                      u"provider": u"MNRAS",
-                      u"ft_source": u"/vagrant/tests/test_unit/stub_data/te/st/test.pdf",
-                      u"meta_path": u"/vagrant/tests/test_unit/stub_data/te/st/3/meta.json"}
-
-        standard_hard = {u"UPDATE": u"NOT_EXTRACTED_BEFORE",
-                         u"bibcode": u"test1",
-                         u"provider": u"MNRAS",
-                         u"ft_source": u"tests/test_unit/stub_data/te/st/test.ocr",
-                         u"meta_path": u"/vagrant/tests/test_unit/stub_data/te/st/1/meta.json"}
-
-        hard_dict = {"PDF": [pdf_hard_1, pdf_hard_2, pdf_hard_3], "Standard": [standard_hard]}
-
         payload = check.check_if_extract(FileInputStream.raw, extract_key="FULLTEXT_EXTRACT_PATH_UNITTEST")
 
+        pdf_compare = [content for content in json.loads(payload["PDF"]) if content["UPDATE"] in
+         [u"STALE_CONTENT", u"DIFFERING_FULL_TEXT", u"MISSING_FULL_TEXT", u"NOT_EXTRACTED_BEFORE"]]
 
-        self.assertListEqual(json.loads(payload["PDF"]), hard_dict["PDF"])
-        self.assertListEqual(json.loads(payload["Standard"]), hard_dict["Standard"])
+        standard_compare = [content for content in json.loads(payload["Standard"]) if content["UPDATE"] in
+         [u"STALE_CONTENT", u"DIFFERING_FULL_TEXT", u"MISSING_FULL_TEXT", u"NOT_EXTRACTED_BEFORE"]]
+
+        self.assertTrue(len(pdf_compare) == 3, json.loads(payload["PDF"]))
+        self.assertTrue(len(standard_compare) == 1)
 
 
 class TestFileStreamInput(unittest.TestCase):
