@@ -69,17 +69,18 @@ def extract_multi_content(parsed_xml):
 
 def extract_content(input_list):
 
+    import json
     output_list = []
 
     for dict_item in input_list:
-        opened_XML = open_xml(dict_item[CONSTANTS['META_PATH']])
+        opened_XML = open_xml(dict_item[CONSTANTS['FILE_SOURCE']])
         parsed_XML = parse_xml(opened_XML)
         parsed_content = extract_multi_content(parsed_XML)
 
         output_list.append(parsed_content)
 
 
-    return output_list
+    return json.dumps(output_list)
     # raw_content = open_xml()
 
     # return json.dumps(message)

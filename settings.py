@@ -16,6 +16,10 @@ config = {
 
 CONSTANTS = {
     "META_PATH": "meta_path",
+    "FILE_SOURCE": "ft_source",
+    "BIBCODE": "bibcode",
+    "PROVIDER": "provider",
+    "UPDATE": "UPDATE",
 }
 
 META_CONTENT = {

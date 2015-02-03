@@ -108,7 +108,7 @@ class StandardFileExtractWorker(RabbitMQWorker):
     def on_message(self, channel, method_frame, header_frame, body):
         message = json.loads(body)
         try:
-            self.results = self.f(message, self.params['extract_key'])
+            self.results = self.f(message)
             # self.publish(self.results)
 
         except Exception, e:

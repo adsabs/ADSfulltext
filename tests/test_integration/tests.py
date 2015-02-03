@@ -5,6 +5,7 @@ from pipeline import psettings
 from pipeline.workers import RabbitMQWorker, CheckIfExtractWorker, StandardFileExtractWorker
 from pipeline.ADSfulltext import TaskMaster
 from run import publish, read_links_from_file
+from settings import META_CONTENT
 
 
 class TestExtractWorker(unittest.TestCase):
@@ -72,16 +73,32 @@ class TestExtractWorker(unittest.TestCase):
         # results = json.loads(self.check_worker.results)
         # self.assertIn('STALE_CONTENT', results, "Result was different to what was expected: %s" % results)
 
-        pdf_expected = [{"bibcode": "test", "ft_source": "/vagrant/tests/test_unit/stub_data/te/st/test.pdf", "provider": "MNRAS", \
-                                "UPDATE": "STALE_CONTENT"},
-                            {"bibcode": "test", "ft_source": "tests/test_unit/stub_data/te/st/test.pdf", "provider": "MNRAS", \
-                                "UPDATE": "DIFFERING_FULL_TEXT"},
-                            {"bibcode": "test3", "ft_source": "/vagrant/tests/test_unit/stub_data/te/st/test.pdf", "provider": "MNRAS", \
-                                "UPDATE": "MISSING_FULL_TEXT"},
+        pdf_expected = [{"bibcode": "test",
+                         "ft_source": "/vagrant/tests/test_unit/stub_data/te/st/test.pdf",
+                         "provider": "MNRAS",
+                         "UPDATE": "STALE_CONTENT",
+                         "meta_path": "/vagrant/tests/test_unit/stub_data/te/st/meta.json"
+                        },
+                        {"bibcode": "test",
+                         "ft_source": "tests/test_unit/stub_data/te/st/test.pdf",
+                         "provider": "MNRAS",
+                         "UPDATE": "DIFFERING_FULL_TEXT",
+                         "meta_path": "/vagrant/tests/test_unit/stub_data/te/st/meta.json"
+                        },
+                        {"bibcode": "test3",
+                         "ft_source": "/vagrant/tests/test_unit/stub_data/te/st/test.pdf",
+                         "provider": "MNRAS",
+                         "UPDATE": "MISSING_FULL_TEXT",
+                         "meta_path": "/vagrant/tests/test_unit/stub_data/te/st/3/meta.json"
+                        },
                             ]
 
-        standard_expected = [{"bibcode": "test1", "ft_source": "tests/test_unit/stub_data/te/st/test.ocr", "provider": "MNRAS", \
-                                "UPDATE": "NOT_EXTRACTED_BEFORE"},
+        standard_expected = [{"bibcode": "test1",
+                              "ft_source": "/vagrant/tests/test_unit/stub_data/test.xml",
+                              "provider": "MNRAS",
+                              "UPDATE": "NOT_EXTRACTED_BEFORE",
+                              "meta_path": "/vagrant/tests/test_unit/stub_data/te/st/1/meta.json"
+                             },
                             ]
 
         pdf_res, standard_res = json.loads(self.check_worker.results["PDF"]), json.loads(self.check_worker.results["Standard"])
@@ -89,8 +106,8 @@ class TestExtractWorker(unittest.TestCase):
         self.assertEqual(pdf_res, pdf_expected)
         self.assertEqual(standard_res, standard_expected)
         # self.assertEqual(self.check_worker.results, 'pass')
-        self.assertTrue(pdf_queue.method.message_count == 1,
-                        "PDF queue should have 1 message, but it has: %d" % pdf_queue.method.message_count)
+        self.assertTrue(pdf_queue.method.message_count >= 1,
+                        "PDF queue should have at least 1 message, but it has: %d" % pdf_queue.method.message_count)
 
         # Clean-up for next test: should be removed when next queue implemented
         # self.check_worker.channel.queue_purge(queue="StandardFileExtractorQueue")
@@ -106,12 +123,9 @@ class TestExtractWorker(unittest.TestCase):
 
         # Standard Extractor should extract the content of the given payload
         self.standard_worker.run()
-        standard_res = json.loads(self.standard_worker.results)
-        standard_expected = [{"bibcode": "test1", "ft_source": "tests/test_unit/stub_data/te/st/test.ocr", "provider": "MNRAS", \
-                                "UPDATE": "NOT_EXTRACTED_BEFORE", "full_text": "FULL TEXT", "meta_path": ""},
-                            ]
+        standard_res = json.loads(self.standard_worker.results)[0]
 
-        self.assertEqual(standard_res, standard_expected)
+        self.assertTrue(any([i for i in standard_res.keys() if i in META_CONTENT["XML"].keys()]), [standard_res.keys(), META_CONTENT["XML"].keys()])
 
         # When extracted, the payload should no longer exist within the standard file queue
         # self.assertTrue(standard_queue.method.message_count == 0,

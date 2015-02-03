@@ -97,16 +97,37 @@ class TestCheckIfExtracted(unittest.TestCase):
         FileInputStream = utils.FileInputStream(test_file)
         FileInputStream.extract()
 
-        rabbitmq_input = []
+        pdf_hard_1 = {u"UPDATE": u"STALE_CONTENT",
+                      u"bibcode": u"test",
+                      u"provider": u"MNRAS",
+                      u"ft_source": u"/vagrant/tests/test_unit/stub_data/te/st/test.pdf",
+                      u"meta_path": u"/vagrant/tests/test_unit/stub_data/te/st/meta.json"}
 
-        for b, f, p in zip(FileInputStream.bibcode, FileInputStream.full_text_path, FileInputStream.provider):
-            meta_path = check.create_meta_path(b, extract_key="FULLTEXT_EXTRACT_PATH_UNITTEST")
-            rabbitmq_input.append({"bibcode": b, "ft_source": f, "provider": p, "UPDATE": "DIFFERING_FULL_TEXT", "meta_path": meta_path})
+        pdf_hard_2 = {u"UPDATE": u"DIFFERING_FULL_TEXT",
+                      u"bibcode": u"test",
+                      u"provider": u"MNRAS",
+                      u"ft_source": u"tests/test_unit/stub_data/te/st/test.pdf",
+                      u"meta_path": u"/vagrant/tests/test_unit/stub_data/te/st/meta.json"}
+
+        pdf_hard_3 = {u"UPDATE": u"MISSING_FULL_TEXT",
+                      u"bibcode": u"test3",
+                      u"provider": u"MNRAS",
+                      u"ft_source": u"/vagrant/tests/test_unit/stub_data/te/st/test.pdf",
+                      u"meta_path": u"/vagrant/tests/test_unit/stub_data/te/st/3/meta.json"}
+
+        standard_hard = {u"UPDATE": u"NOT_EXTRACTED_BEFORE",
+                         u"bibcode": u"test1",
+                         u"provider": u"MNRAS",
+                         u"ft_source": u"tests/test_unit/stub_data/te/st/test.ocr",
+                         u"meta_path": u"/vagrant/tests/test_unit/stub_data/te/st/1/meta.json"}
+
+        hard_dict = {"PDF": [pdf_hard_1, pdf_hard_2, pdf_hard_3], "Standard": [standard_hard]}
 
         payload = check.check_if_extract(FileInputStream.raw, extract_key="FULLTEXT_EXTRACT_PATH_UNITTEST")
-        rabbitmq_input = json.dumps(rabbitmq_input)
 
-        self.assertEqual(payload, rabbitmq_input)
+
+        self.assertListEqual(json.loads(payload["PDF"]), hard_dict["PDF"])
+        self.assertListEqual(json.loads(payload["Standard"]), hard_dict["Standard"])
 
 
 class TestFileStreamInput(unittest.TestCase):
@@ -116,7 +137,7 @@ class TestFileStreamInput(unittest.TestCase):
         FileInputStream = utils.FileInputStream(test_file)
         ext = FileInputStream.extract()
 
-        self.assertEqual(len(FileInputStream.bibcode), 3, "Did not extract the correct number of records from the input file")
+        self.assertEqual(len(FileInputStream.bibcode), 5, "Did not extract the correct number of records from the input file")
 
     def test_file_stream_input_extract_list(self):
 
