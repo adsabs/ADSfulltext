@@ -4,7 +4,8 @@ Unit Test of the check records functions for the base class, CheckIfExtract
 
 import unittest
 import utils
-from settings import PROJ_HOME, config
+import json
+from settings import PROJ_HOME, config, CONSTANTS
 from lib import CheckIfExtract as check
 from lib import StandardFileExtract as std_extract
 test_file = 'tests/test_integration/stub_data/fulltext.links'
@@ -93,7 +94,6 @@ class TestCheckIfExtracted(unittest.TestCase):
 
     def test_file_should_be_extracted(self):
 
-        import json
         FileInputStream = utils.FileInputStream(test_file)
         FileInputStream.extract()
 
@@ -185,11 +185,10 @@ class TestStandardFileExtract(unittest.TestCase):
         from settings import META_CONTENT
         file_path = "%s/%s" % (config["FULLTEXT_EXTRACT_PATH"], test_stub_xml)
 
-        pay_load = [{"meta_path": file_path}]
+        pay_load = [{CONSTANTS["FILE_SOURCE"]: file_path}]
 
-        content = std_extract.extract_content(pay_load)
+        content = json.loads(std_extract.extract_content(pay_load))
 
-        self.assertEqual(len(content), 1)
         self.assertEqual(len(content[0].keys()), 3)
         self.assertItemsEqual(content[0].keys(), META_CONTENT["XML"].keys())
 
