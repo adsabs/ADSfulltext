@@ -7,64 +7,71 @@ document types, excluding PDF. A lot of the source code has been ported from ads
 
 import json
 import re
+import traceback
 from lxml.html import soupparser
 from lib import entitydefs as edef
 
 from settings import CONSTANTS
 
 
-def open_xml(file_input):
+class StandardExtractorXML(object):
 
-    raw_xml = None
+    def __init__(self, dict_item):
 
-    with open(file_input, 'r') as f:
-        raw_xml = f.read()
-        raw_xml = re.sub('(<!-- body|endbody -->)', '', raw_xml)
-        raw_xml = edef.convertentities(raw_xml.decode('utf-8', 'ignore'))
-        raw_xml = re.sub('<\?CDATA.+?\?>', '', raw_xml)
+        self.file_input = dict_item[CONSTANTS['FILE_SOURCE']]
+        self.raw_xml = None
+        self.parsed_xml = None
 
-    return raw_xml
+    def open_xml(self):
+
+        raw_xml = None
+        with open(self.file_input, 'r') as f:
+            raw_xml = f.read()
+            raw_xml = re.sub('(<!-- body|endbody -->)', '', raw_xml)
+            raw_xml = edef.convertentities(raw_xml.decode('utf-8', 'ignore'))
+            raw_xml = re.sub('<\?CDATA.+?\?>', '', raw_xml)
+            self.raw_xml = raw_xml
+        return raw_xml
+
+    def parse_xml(self):
+
+        parsed_content = soupparser.fromstring(self.raw_xml.encode('utf-8'))
+
+        # strip out the latex stuff (for now)
+        for e in parsed_content.xpath('//inline-formula'):
+            e.getparent().remove(e)
+
+        self.parsed_xml = parsed_content
+        return parsed_content
+
+    def extract_multi_content(self):
+
+        from settings import META_CONTENT
+
+        meta_out = {}
+        self.open_xml()
+        self.parse_xml()
+
+        for content_name in META_CONTENT["XML"]:
+            for static_xpath in META_CONTENT["XML"][content_name]:
+                try:
+
+                    meta_out[content_name] = self.parsed_xml.xpath(static_xpath)[0].text_content()
+                    continue
+                except IndexError:
+                    pass
+                except KeyError:
+                    raise KeyError("You gave a malformed xpath call to HTMLElementTree: %s" % static_xpath)
+                except Exception:
+                    raise Exception(traceback.format_exc())
+
+        return meta_out
 
 
-def parse_xml(file_input):
+EXTRACTOR_FACTORY = {
+    "xml": StandardExtractorXML,
+}
 
-    parsed_content = soupparser.fromstring(file_input.encode('utf-8'))
-
-    # strip out the latex stuff (for now)
-    for e in parsed_content.xpath('//inline-formula'):
-        e.getparent().remove(e)
-
-    return parsed_content
-
-
-def extract_body(parsed_xml):
-
-    for xpath in ['//body','//section[@type="body"]', '//journalarticle-body']:
-        try:
-            return parsed_xml.xpath(xpath)[0].text_content()
-        except IndexError:
-            pass
-        except:
-            raise KeyError
-
-
-def extract_multi_content(parsed_xml):
-
-    from settings import META_CONTENT
-
-    meta_out = {}
-
-    for content_name in META_CONTENT["XML"]:
-        for static_xpath in META_CONTENT["XML"][content_name]:
-            try:
-                meta_out[content_name] = parsed_xml.xpath(static_xpath)[0].text_content()
-                continue
-            except IndexError:
-                pass
-            except:
-                raise KeyError("You gave a malformed xpath call to HTMLElementTree: %s" % static_xpath)
-
-    return meta_out
 
 
 def extract_content(input_list):
@@ -72,13 +79,24 @@ def extract_content(input_list):
     import json
     output_list = []
 
+    ACCEPTED_FORMATS = ["xml", "html"]
+
     for dict_item in input_list:
-        opened_XML = open_xml(dict_item[CONSTANTS['FILE_SOURCE']])
-        parsed_XML = parse_xml(opened_XML)
-        parsed_content = extract_multi_content(parsed_XML)
 
-        output_list.append(parsed_content)
-
+        try:
+            ExtractorClass = EXTRACTOR_FACTORY[dict_item[CONSTANTS['FILE_SOURCE']].lower().split(".")[-1]]
+            Extractor = ExtractorClass(dict_item)
+            parsed_content = Extractor.extract_multi_content()
+            output_list.append(parsed_content)
+        except KeyError:
+            raise KeyError("You gave a format not currently supported for extraction",traceback.format_exc())
+        except Exception:
+            raise Exception(traceback.format_exc())
+            #
+            #
+            # opened_XML = open_xml(dict_item[CONSTANTS['FILE_SOURCE']])
+            # parsed_XML = parse_xml(opened_XML)
+            # parsed_content = extract_multi_content(parsed_XML)
 
     return json.dumps(output_list)
     # raw_content = open_xml()

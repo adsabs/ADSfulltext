@@ -5,7 +5,7 @@ Unit Test of the check records functions for the base class, CheckIfExtract
 import unittest
 import utils
 import json
-from settings import PROJ_HOME, config, CONSTANTS
+from settings import PROJ_HOME, config, CONSTANTS, META_CONTENT
 from lib import CheckIfExtract as check
 from lib import StandardFileExtract as std_extract
 test_file = 'tests/test_integration/stub_data/fulltext.links'
@@ -130,41 +130,34 @@ class TestFileStreamInput(unittest.TestCase):
 
 class TestStandardFileExtract(unittest.TestCase):
 
-    def test_that_we_can_open_an_xml_file(self):
+    def setUp(self):
+        self.dict_item = {CONSTANTS["FILE_SOURCE"]: "%s/%s" % (config["FULLTEXT_EXTRACT_PATH"], test_stub_xml)}
+        self.extractor = std_extract.StandardExtractorXML(self.dict_item)
 
-        file_path = "%s/%s" % (config["FULLTEXT_EXTRACT_PATH"], test_stub_xml)
-        full_text_content = std_extract.open_xml(file_path)
+    def test_that_we_can_open_an_xml_file(self):
+        full_text_content = self.extractor.open_xml()
 
         self.assertIn("<journal-title>Review of Scientific Instruments</journal-title>", full_text_content)
 
     def test_that_we_can_parse_the_xml_content(self):
-
-        file_path = "%s/%s" % (config["FULLTEXT_EXTRACT_PATH"], test_stub_xml)
-        full_text_content = std_extract.open_xml(file_path)
-
-        content = std_extract.parse_xml(full_text_content)
+        full_text_content = self.extractor.open_xml()
+        content = self.extractor.parse_xml()
         journal_title = content.xpath('//journal-title')[0].text_content()
 
         self.assertEqual(journal_title, "Review of Scientific Instruments")
 
     def test_that_we_can_extract_using_settings_template(self):
 
-        from settings import META_CONTENT
-
-        file_path = "%s/%s" % (config["FULLTEXT_EXTRACT_PATH"], test_stub_xml)
-        full_text_content = std_extract.open_xml(file_path)
-        parsed_xml = std_extract.parse_xml(full_text_content)
-
-        content = std_extract.extract_multi_content(parsed_xml)
+        full_text_content = self.extractor.open_xml()
+        parsed_xml = self.extractor.parse_xml()
+        content = self.extractor.extract_multi_content()
 
         self.assertEqual(META_CONTENT["XML"].keys(), content.keys())
 
     def test_that_we_can_extract_all_content_from_payload_input(self):
 
-        from settings import META_CONTENT
         file_path = "%s/%s" % (config["FULLTEXT_EXTRACT_PATH"], test_stub_xml)
-
-        pay_load = [{CONSTANTS["FILE_SOURCE"]: file_path}]
+        pay_load = [self.dict_item]
 
         content = json.loads(std_extract.extract_content(pay_load))
 
