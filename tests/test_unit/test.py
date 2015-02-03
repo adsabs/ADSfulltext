@@ -14,6 +14,7 @@ test_file_wrong = 'tests/test_integration/stub_data/fulltext_wrong.links'
 test_file_exists = 'tests/test_integration/stub_data/fulltext_exists.links'
 
 test_stub_xml = 'tests/test_unit/stub_data/test.xml'
+test_stub_html = 'tests/test_unit/stub_data/test.html'
 
 class TestCheckIfExtracted(unittest.TestCase):
 
@@ -131,7 +132,7 @@ class TestFileStreamInput(unittest.TestCase):
         self.assertIn("MNRAS", FileInputStream.provider)
 
 
-class TestStandardFileExtract(unittest.TestCase):
+class TestXMLExtractor(unittest.TestCase):
 
     def setUp(self):
         self.dict_item = {CONSTANTS["FILE_SOURCE"]: "%s/%s" % (config["FULLTEXT_EXTRACT_PATH"], test_stub_xml)}
@@ -166,6 +167,24 @@ class TestStandardFileExtract(unittest.TestCase):
 
         self.assertEqual(len(content[0].keys()), 3)
         self.assertItemsEqual(content[0].keys(), META_CONTENT["XML"].keys())
+
+
+class TestHTMLExtractor(unittest.TestCase):
+
+    def setUp(self):
+        self.dict_item = {CONSTANTS["FILE_SOURCE"]: "%s/%s" % (config["FULLTEXT_EXTRACT_PATH"], test_stub_html)}
+        self.extractor = std_extract.StandardExtractorHTML(self.dict_item)
+
+    def test_that_we_can_open_an_html_file(self):
+
+        full_text_content = self.extractor.open_html()
+        self.assertIn("evidence for Li-enriched polluting gas", full_text_content)
+
+    def test_can_parse_an_html_file(self):
+
+        full_text_content = self.extractor.open_html()
+        parsed_html = self.extractor.parse_html()
+        self.assertIn("evidence for Li-enriched polluting gas", parsed_html)
 
 
 if __name__ == '__main__':

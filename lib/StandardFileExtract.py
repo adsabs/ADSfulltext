@@ -8,10 +8,36 @@ document types, excluding PDF. A lot of the source code has been ported from ads
 import json
 import re
 import traceback
+from lxml import etree
 from lxml.html import soupparser
 from lib import entitydefs as edef
+from StringIO import StringIO
 
-from settings import CONSTANTS
+from settings import CONSTANTS, META_CONTENT
+
+
+class StandardExtractorHTML(object):
+
+    def __init__(self, dict_item):
+
+        self.file_input = dict_item[CONSTANTS['FILE_SOURCE']]
+        self.raw_html = None
+
+    def open_html(self):
+        import codecs
+        with codecs.open(self.file_input, 'r', 'utf-8') as f:
+            raw_html = f.read()
+
+        # raw_html = raw_html.decode('utf-8', 'ignore')
+        raw_html = edef.convertentities(raw_html)
+
+        self.raw_html = raw_html
+        return raw_html
+        # parser = etree.HTMLParser()
+        # tree = etree.parse(StringIO(html), parser)
+        #
+        # return tree.getroot()
+
 
 
 class StandardExtractorXML(object):
@@ -45,8 +71,6 @@ class StandardExtractorXML(object):
         return parsed_content
 
     def extract_multi_content(self):
-
-        from settings import META_CONTENT
 
         meta_out = {}
         self.open_xml()
