@@ -10,6 +10,8 @@ import re
 from lxml.html import soupparser
 from lib import entitydefs as edef
 
+from settings import CONSTANTS
+
 
 def open_xml(file_input):
 
@@ -64,9 +66,20 @@ def extract_multi_content(parsed_xml):
 
     return meta_out
 
-def extract_content(json_list):
 
-    return 1
+def extract_content(input_list):
+
+    output_list = []
+
+    for dict_item in input_list:
+        opened_XML = open_xml(dict_item[CONSTANTS['META_PATH']])
+        parsed_XML = parse_xml(opened_XML)
+        parsed_content = extract_multi_content(parsed_XML)
+
+        output_list.append(parsed_content)
+
+
+    return output_list
     # raw_content = open_xml()
 
     # return json.dumps(message)

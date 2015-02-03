@@ -14,6 +14,10 @@ config = {
     "FULLTEXT_EXTRACT_PATH_UNITTEST": PROJ_HOME + "/" + FULLTEXT_EXTRACT_PATH_UNITTEST, \
 }
 
+CONSTANTS = {
+    "META_PATH": "meta_path",
+}
+
 META_CONTENT = {
     "XML": {
         "body": ['//body','//section[@type="body"]', '//journalarticle-body'],

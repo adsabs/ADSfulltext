@@ -100,7 +100,8 @@ class TestCheckIfExtracted(unittest.TestCase):
         rabbitmq_input = []
 
         for b, f, p in zip(FileInputStream.bibcode, FileInputStream.full_text_path, FileInputStream.provider):
-            rabbitmq_input.append({"bibcode": b, "ft_source": f, "provider": p, "UPDATE": "DIFFERING_FULL_TEXT"})
+            meta_path = check.create_meta_path(b, extract_key="FULLTEXT_EXTRACT_PATH_UNITTEST")
+            rabbitmq_input.append({"bibcode": b, "ft_source": f, "provider": p, "UPDATE": "DIFFERING_FULL_TEXT", "meta_path": meta_path})
 
         payload = check.check_if_extract(FileInputStream.raw, extract_key="FULLTEXT_EXTRACT_PATH_UNITTEST")
         rabbitmq_input = json.dumps(rabbitmq_input)
@@ -158,20 +159,19 @@ class TestStandardFileExtract(unittest.TestCase):
 
         self.assertEqual(META_CONTENT["XML"].keys(), content.keys())
 
-    def test_that_we_can_extract_all_content(self):
+    def test_that_we_can_extract_all_content_from_payload_input(self):
 
         from settings import META_CONTENT
         file_path = "%s/%s" % (config["FULLTEXT_EXTRACT_PATH"], test_stub_xml)
 
-        content = std_extract.extract_content(file_path)
+        pay_load = [{"meta_path": file_path}]
 
-        self.assertEqual(META_CONTENT["XML"].keys(), content.keys())
+        content = std_extract.extract_content(pay_load)
 
-    # def test_that_the_extractor_can_extract_xml_content(self):
-    #
-    #     full_text_content = std_extract.extract_content(test_stub_xml, extract_key="FULLTEXT_EXTRACT_PATH_UNITTEST")
-    #
-    #     self.assertIn("<journal-title>Review of Scientific Instruments</journal-title>", full_text_content)
+        self.assertEqual(len(content), 1)
+        self.assertEqual(len(content[0].keys()), 3)
+        self.assertItemsEqual(content[0].keys(), META_CONTENT["XML"].keys())
+
 
 if __name__ == '__main__':
     unittest.main()
