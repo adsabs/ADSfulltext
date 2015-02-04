@@ -161,9 +161,7 @@ class StandardExtractorHTML(object):
                                        if individual_element_tree_node
                                        and not individual_element_tree_node.isspace()])
 
-        meta_out = {"fulltext": {}}
-
-        meta_out["fulltext"]["body"] = string_of_all_html
+        meta_out = {"fulltext": string_of_all_html}
 
         return meta_out
 
@@ -221,6 +219,7 @@ class StandardExtractorXML(object):
 
 EXTRACTOR_FACTORY = {
     "xml": StandardExtractorXML,
+    "html": StandardExtractorHTML,
 }
 
 

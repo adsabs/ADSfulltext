@@ -137,7 +137,7 @@ class TestXMLExtractor(unittest.TestCase):
 
     def setUp(self):
         self.dict_item = {CONSTANTS["FILE_SOURCE"]: "%s/%s" % (config["FULLTEXT_EXTRACT_PATH"], test_stub_xml)}
-        self.extractor = std_extract.StandardExtractorXML(self.dict_item)
+        self.extractor = std_extract.EXTRACTOR_FACTORY['xml'](self.dict_item)
 
     def test_that_we_can_open_an_xml_file(self):
         full_text_content = self.extractor.open_xml()
@@ -176,7 +176,8 @@ class TestHTMLExtractor(unittest.TestCase):
         self.dict_item = {CONSTANTS["FILE_SOURCE"]: "%s/%s,%s/%s" % (PROJ_HOME, test_stub_html,
                                                                      PROJ_HOME, test_stub_html_table),
                           CONSTANTS['BIBCODE']: "TEST"}
-        self.extractor = std_extract.StandardExtractorHTML(self.dict_item)
+
+        self.extractor = std_extract.EXTRACTOR_FACTORY['html'](self.dict_item)
 
     def test_that_we_can_open_an_html_file(self):
 
