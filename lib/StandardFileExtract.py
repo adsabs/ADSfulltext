@@ -88,9 +88,7 @@ class StandardExtractorHTML(object):
         self.parse_html()
 
         removed_content = None
-        num = 1
-        logger.info("%d. %s" % (num, self.parsed_html))
-        num += 1
+
         # Remove anything before introduction
         for xpath in META_CONTENT['HTML']['introduction']:
             try:
@@ -122,11 +120,7 @@ class StandardExtractorHTML(object):
 
         # Insert tables from external files
         first_parsed_html = self.parsed_html
-        logger.info("%d. %s" % (num, self.parsed_html))
-        num += 1
         self.collate_tables()
-        logger.info("%d. %s" % (num, self.parsed_html))
-        num += 1
         for table_name, table_root_node in self.dictionary_of_tables.items():
 
             table_node_to_insert = None
@@ -237,6 +231,11 @@ EXTRACTOR_FACTORY = {
     "xml": StandardExtractorXML,
     "html": StandardExtractorHTML,
 }
+# ocr, txt
+# Elsevier
+# HTTP
+#-----
+# PDF
 
 
 

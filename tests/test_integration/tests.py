@@ -97,10 +97,13 @@ class TestExtractWorker(unittest.TestCase):
         # Standard Extractor should extract the content of the given payload
         self.standard_worker.run()
         standard_res = json.loads(self.standard_worker.results)[0]
-
         self.assertTrue(any([i for i in standard_res.keys() if i in META_CONTENT["XML"].keys()]), [standard_res.keys(), META_CONTENT["XML"].keys()])
 
-        self.assertEquals(len(json.loads(self.standard_worker.results)), 2)
+        standard_res = json.loads(self.standard_worker.results)[1]
+        self.assertTrue(any[i for i in standard_res.keys() if i in META_CONTENT["HTML"].keys()]), [standard_res.keys(), META_CONTENT["HTML"].keys()])])
+
+        self.assertEquals(len(json.loads(self.standard_worker.results)), 3)
+
 
         # When extracted, the payload should no longer exist within the standard file queue
         # self.assertTrue(standard_queue.method.message_count == 0,

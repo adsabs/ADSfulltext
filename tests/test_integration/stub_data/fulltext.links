@@ -4,3 +4,4 @@ test1	/vagrant/tests/test_unit/stub_data/test.xml	MNRAS
 test2	/vagrant/tests/test_unit/stub_data/te/st/test.pdf	MNRAS
 test3	/vagrant/tests/test_unit/stub_data/te/st/test.pdf	MNRAS
 test	/vagrant/tests/test_unit/stub_data/test.html,/vagrant/tests/test_unit/stub_data/test_table1.html,/vagrant/tests/test_unit/stub_data/test_table2.html,/vagrant/tests/test_unit/stub_data/test_tableE.1.html	MNRAS
+test	/vagrant/tests/test_unit/stub_data/test.ocr	MNRAS

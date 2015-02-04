@@ -218,5 +218,11 @@ class TestHTMLExtractor(unittest.TestCase):
                       "Fulltext seems incorrect")
 
 
+class TestOCRandTXTExtractor(unittest.TestCase):
+
+    def test_open_txt_file(self):
+        self.fail()
+
+
 if __name__ == '__main__':
     unittest.main()
