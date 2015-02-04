@@ -14,7 +14,7 @@ from lxml.html import soupparser, document_fromstring
 from lib import entitydefs as edef
 from settings import CONSTANTS, META_CONTENT
 
-#return utils.setup_logging(__file__, self.__class__.__name__)
+logger = utils.setup_logging(__file__, __name__)
 
 
 class StandardExtractorHTML(object):
@@ -53,6 +53,8 @@ class StandardExtractorHTML(object):
         else:
             parsed_html = document_fromstring(in_html)
 
+        logger.info("Parsed HTML. %s" % parsed_html)
+
         return parsed_html
 
         # Alternative used etree HTMLParser, but this requires an extra two calls, one making
@@ -75,27 +77,35 @@ class StandardExtractorHTML(object):
             dictionary_of_tables[table_name] = self.parse_html(table_raw_html)
 
         self.dictionary_of_tables = dictionary_of_tables
+
+        logger.info("Collated %d tables" % len(self.dictionary_of_tables))
+
         return self.dictionary_of_tables
 
     def extract_multi_content(self):
 
-        removed_content = None
+        self.open_html()
+        self.parse_html()
 
+        removed_content = None
+        num = 1
+        logger.info("%d. %s" % (num, self.parsed_html))
+        num += 1
         # Remove anything before introduction
         for xpath in META_CONTENT['HTML']['introduction']:
             try:
                 removed_content = self.parsed_html.xpath(xpath)[0]
                 break
             except Exception:
-                pass
+                print Exception(traceback.format_exc())
 
-            if removed_content is None:
-                print "Could not find intro for %s (last xpath: %s)" % \
-                      (self.dict_item[CONSTANTS['BIBCODE']], xpath)
-            else:
-                first_position_index = removed_content.getparent().index(removed_content)
-                for element_tree_node in removed_content.getchildren()[:first_position_index]:
-                    element_tree_node.getparent().remove(element_tree_node)
+        if removed_content is None:
+            print "Could not find intro for %s (last xpath: %s)" % \
+                  (self.dict_item[CONSTANTS['BIBCODE']], xpath)
+        else:
+            first_position_index = removed_content.getparent().index(removed_content)
+            for element_tree_node in removed_content.getchildren()[:first_position_index]:
+                element_tree_node.getparent().remove(element_tree_node)
 
         # Remove the references
         for xpath in META_CONTENT['HTML']['references']:
@@ -105,19 +115,22 @@ class StandardExtractorHTML(object):
                 html_ul_element = removed_content.getnext()
                 html_ul_element.getparent().remove(html_ul_element)
                 removed_content.getparent().remove(removed_content)
+                break
             except Exception:
                 print "Could not find references for %s (last xpath: %s)" % \
                       (self.dict_item[CONSTANTS['BIBCODE']], xpath)
 
-
         # Insert tables from external files
         first_parsed_html = self.parsed_html
+        logger.info("%d. %s" % (num, self.parsed_html))
+        num += 1
         self.collate_tables()
+        logger.info("%d. %s" % (num, self.parsed_html))
+        num += 1
         for table_name, table_root_node in self.dictionary_of_tables.items():
 
-            assert self.parsed_html == first_parsed_html
-
             table_node_to_insert = None
+            logger.debug("Attempting to find table contents: %s" % table_name)
             for xpath in META_CONTENT['HTML']['table']:
 
                 try:
@@ -130,17 +143,20 @@ class StandardExtractorHTML(object):
                     raise Exception("Could not find table content for %s (last xpath: %s)" %
                                     (table_name, xpath))
 
-
+            logger.debug("Attempting to find table links: %s" % table_name)
             for xpath in META_CONTENT['HTML']['table_links']:
                 try:
+                    logger.info(self.parsed_html)
                     table_nodes_in_file_source = self.parsed_html.xpath(xpath.replace('TABLE_NAME', table_name))
                     break
                 except AttributeError:
-                    raise AttributeError("You used an incorrect method", traceback.format_exc())
+                    raise AttributeError("You used an incorrect method", traceback.format_exc(),
+                                         table_name, self.parsed_html)
                 except Exception:
                     # print traceback.format_exc()
                     raise Exception("Could not find table links for %s (last xpath: %s)" % (table_name, xpath.replace('TABLE_NAME', table_name)))
 
+            logger.debug("Attempting to replace table at table links: %s" % table_name)
             if table_nodes_in_file_source:
                 parent_node_of_table_link = table_nodes_in_file_source[0].getparent()
                 parent_node_of_table_link.replace(table_nodes_in_file_source[0], table_node_to_insert)

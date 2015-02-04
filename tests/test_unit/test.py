@@ -200,11 +200,10 @@ class TestHTMLExtractor(unittest.TestCase):
 
         for key in table_content.keys():
             self.assertTrue(table_content[key].xpath('//table'))
+            self.assertTrue(self.extractor.parsed_html.xpath('//h2'))
 
     def test_that_we_can_extract_using_settings_template(self):
 
-        raw_html = self.extractor.open_html()
-        parsed_html = self.extractor.parse_html()
         content = self.extractor.extract_multi_content()
 
         self.assertEqual(content.keys(), ["fulltext"])
