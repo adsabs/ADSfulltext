@@ -15,6 +15,7 @@ test_file_exists = 'tests/test_integration/stub_data/fulltext_exists.links'
 
 test_stub_xml = 'tests/test_unit/stub_data/test.xml'
 test_stub_html = 'tests/test_unit/stub_data/test.html'
+test_stub_html_table = 'tests/test_unit/stub_data/test_table2.html'
 
 class TestCheckIfExtracted(unittest.TestCase):
 
@@ -172,19 +173,49 @@ class TestXMLExtractor(unittest.TestCase):
 class TestHTMLExtractor(unittest.TestCase):
 
     def setUp(self):
-        self.dict_item = {CONSTANTS["FILE_SOURCE"]: "%s/%s" % (config["FULLTEXT_EXTRACT_PATH"], test_stub_html)}
+        self.dict_item = {CONSTANTS["FILE_SOURCE"]: "%s/%s,%s/%s" % (PROJ_HOME, test_stub_html,
+                                                                     PROJ_HOME, test_stub_html_table),
+                          CONSTANTS['BIBCODE']: "TEST"}
         self.extractor = std_extract.StandardExtractorHTML(self.dict_item)
 
     def test_that_we_can_open_an_html_file(self):
 
         full_text_content = self.extractor.open_html()
-        self.assertIn("evidence for Li-enriched polluting gas", full_text_content)
+        self.assertIn("Projected properties of a family of", full_text_content)
 
     def test_can_parse_an_html_file(self):
 
-        full_text_content = self.extractor.open_html()
+        raw_html = self.extractor.open_html()
         parsed_html = self.extractor.parse_html()
-        self.assertIn("evidence for Li-enriched polluting gas", parsed_html)
+        header = parsed_html.xpath('//h2')[0].text
+        self.assertIn("Projected properties of a family of", header)
+
+    def test_that_we_can_extract_table_contents_correctly(self):
+
+        from lxml.etree import Element
+        raw_html = self.extractor.open_html()
+        parsed_html = self.extractor.parse_html()
+        table_content = self.extractor.collate_tables()
+
+        for key in table_content.keys():
+            self.assertTrue(table_content[key].xpath('//table'))
+
+    def test_that_we_can_extract_using_settings_template(self):
+
+        raw_html = self.extractor.open_html()
+        parsed_html = self.extractor.parse_html()
+        content = self.extractor.extract_multi_content()
+
+        self.assertEqual(content.keys(), ["fulltext"])
+
+        self.assertIn("and the maximum variations in axial ratios.", content['fulltext'],
+                      "Table 1 is not in the fulltext")
+        self.assertIn("Profiles of the isophotal shape parameter", content['fulltext'],
+                      "Table 2 is not in the fulltext")
+        self.assertIn("expressed in terms of", content['fulltext'],
+                      "Table E.1 is not in the fulltext")
+        self.assertIn("Projected properties of a family of", content['fulltext'],
+                      "Fulltext seems incorrect")
 
 
 if __name__ == '__main__':

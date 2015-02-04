@@ -8,37 +8,164 @@ document types, excluding PDF. A lot of the source code has been ported from ads
 import json
 import re
 import traceback
-from lxml import etree
-from lxml.html import soupparser
+import utils
+import os
+from lxml.html import soupparser, document_fromstring
 from lib import entitydefs as edef
-from StringIO import StringIO
-
 from settings import CONSTANTS, META_CONTENT
+
+#return utils.setup_logging(__file__, self.__class__.__name__)
 
 
 class StandardExtractorHTML(object):
 
     def __init__(self, dict_item):
-
-        self.file_input = dict_item[CONSTANTS['FILE_SOURCE']]
+        self.dict_item = dict_item
+        self.file_input = self.dict_item[CONSTANTS['FILE_SOURCE']].split(",")[0]
         self.raw_html = None
+        self.parsed_html = None
+        self.dictionary_of_tables = None
 
-    def open_html(self):
+    def open_html(self, in_html=False):
         import codecs
-        with codecs.open(self.file_input, 'r', 'utf-8') as f:
+
+        if not in_html:
+            html_file = self.file_input
+        else:
+            html_file = in_html
+
+        with codecs.open(html_file, 'r', 'utf-8') as f:
             raw_html = f.read()
 
         # raw_html = raw_html.decode('utf-8', 'ignore')
         raw_html = edef.convertentities(raw_html)
 
-        self.raw_html = raw_html
+        if not in_html:
+            self.raw_html = raw_html
+
         return raw_html
+
+    def parse_html(self, in_html=False):
+
+        if not in_html:
+            parsed_html = document_fromstring(self.raw_html)
+            self.parsed_html = parsed_html
+        else:
+            parsed_html = document_fromstring(in_html)
+
+        return parsed_html
+
+        # Alternative used etree HTMLParser, but this requires an extra two calls, one making
+        # it a StringIO, and then acquiring the root element tree, but I don't see a difference?
         # parser = etree.HTMLParser()
         # tree = etree.parse(StringIO(html), parser)
         #
         # return tree.getroot()
 
+    def collate_tables(self):
+        table_source_files = re.split('\s*,\s*', self.dict_item[CONSTANTS['FILE_SOURCE']])
+        table_source_files.reverse()
+        file_source = table_source_files.pop()
 
+        dictionary_of_tables = {}
+        for table_file_path in filter(lambda x: re.search('table', x), table_source_files):
+            table_name = os.path.basename(table_file_path)
+
+            table_raw_html = self.open_html(table_file_path)
+            dictionary_of_tables[table_name] = self.parse_html(table_raw_html)
+
+        self.dictionary_of_tables = dictionary_of_tables
+        return self.dictionary_of_tables
+
+    def extract_multi_content(self):
+
+        removed_content = None
+
+        # Remove anything before introduction
+        for xpath in META_CONTENT['HTML']['introduction']:
+            try:
+                removed_content = self.parsed_html.xpath(xpath)[0]
+                break
+            except Exception:
+                pass
+
+            if removed_content is None:
+                print "Could not find intro for %s (last xpath: %s)" % \
+                      (self.dict_item[CONSTANTS['BIBCODE']], xpath)
+            else:
+                first_position_index = removed_content.getparent().index(removed_content)
+                for element_tree_node in removed_content.getchildren()[:first_position_index]:
+                    element_tree_node.getparent().remove(element_tree_node)
+
+        # Remove the references
+        for xpath in META_CONTENT['HTML']['references']:
+            removed_content = None
+            try:
+                removed_content = self.parsed_html.xpath(xpath)[0]
+                html_ul_element = removed_content.getnext()
+                html_ul_element.getparent().remove(html_ul_element)
+                removed_content.getparent().remove(removed_content)
+            except Exception:
+                print "Could not find references for %s (last xpath: %s)" % \
+                      (self.dict_item[CONSTANTS['BIBCODE']], xpath)
+
+
+        # Insert tables from external files
+        first_parsed_html = self.parsed_html
+        self.collate_tables()
+        for table_name, table_root_node in self.dictionary_of_tables.items():
+
+            assert self.parsed_html == first_parsed_html
+
+            table_node_to_insert = None
+            for xpath in META_CONTENT['HTML']['table']:
+
+                try:
+                    table_node_to_insert = table_root_node.xpath(xpath)[0].getparent()
+                    break
+                except AttributeError:
+                    raise AttributeError("You used an incorrect method")
+                except Exception:
+                    # print traceback.format_exc()
+                    raise Exception("Could not find table content for %s (last xpath: %s)" %
+                                    (table_name, xpath))
+
+
+            for xpath in META_CONTENT['HTML']['table_links']:
+                try:
+                    table_nodes_in_file_source = self.parsed_html.xpath(xpath.replace('TABLE_NAME', table_name))
+                    break
+                except AttributeError:
+                    raise AttributeError("You used an incorrect method", traceback.format_exc())
+                except Exception:
+                    # print traceback.format_exc()
+                    raise Exception("Could not find table links for %s (last xpath: %s)" % (table_name, xpath.replace('TABLE_NAME', table_name)))
+
+            if table_nodes_in_file_source:
+                parent_node_of_table_link = table_nodes_in_file_source[0].getparent()
+                parent_node_of_table_link.replace(table_nodes_in_file_source[0], table_node_to_insert)
+                [remaining_node.getparent().remove(remaining_node) for remaining_node in table_nodes_in_file_source[1:]]
+        try:
+            for xpath in META_CONTENT['HTML']['head']:
+                try:
+                    self.parsed_html.xpath(xpath)
+                    break
+                except Exception:
+                    continue
+        except Exception:
+            pass
+
+
+        string_of_all_html = " ".join([individual_element_tree_node for individual_element_tree_node
+                                       in self.parsed_html.itertext()
+                                       if individual_element_tree_node
+                                       and not individual_element_tree_node.isspace()])
+
+        meta_out = {"fulltext": {}}
+
+        meta_out["fulltext"]["body"] = string_of_all_html
+
+        return meta_out
 
 class StandardExtractorXML(object):
 

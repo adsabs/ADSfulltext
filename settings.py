@@ -10,8 +10,8 @@ FULLTEXT_EXTRACT_PATH_UNITTEST = "tests/test_unit/stub_data"
 PROJ_HOME = os.path.dirname(os.path.realpath(__file__))
 
 config = {
-    "FULLTEXT_EXTRACT_PATH": PROJ_HOME + "/"+ FULLTEXT_EXTRACT_PATH, \
-    "FULLTEXT_EXTRACT_PATH_UNITTEST": PROJ_HOME + "/" + FULLTEXT_EXTRACT_PATH_UNITTEST, \
+    "FULLTEXT_EXTRACT_PATH": PROJ_HOME + "/"+ FULLTEXT_EXTRACT_PATH,
+    "FULLTEXT_EXTRACT_PATH_UNITTEST": PROJ_HOME + "/" + FULLTEXT_EXTRACT_PATH_UNITTEST,
 }
 
 CONSTANTS = {
@@ -24,9 +24,19 @@ CONSTANTS = {
 
 META_CONTENT = {
     "XML": {
-        "body": ['//body','//section[@type="body"]', '//journalarticle-body'],
-        "ack": ['//ack', '//section[@type="acknowledgments"]', '//subsection[@type="acknowledgement" or @type="acknowledgment"]'],
+        "fulltext": ['//body','//section[@type="body"]', '//journalarticle-body'],
+        "acknowledgements": ['//ack', '//section[@type="acknowledgments"]', '//subsection[@type="acknowledgement" or @type="acknowledgment"]'],
         "dataset": ['//named-content[@content-type="dataset"]'],
+    },
+    "HTML": {
+        "introduction": ['//h2[contains(.,"ntroduction")]',
+                         '//h2[contains(.,"ntroduction")]',
+                         '//p[contains(.,"Abstract")]',
+                         ],
+        "references": ['//h2[contains(.,"References")]'],
+        "table": ['//table'],
+        "table_links": ['//a[contains(@href, "TABLE_NAME")]'],
+        "head": ['//head']
     }
 }
 
