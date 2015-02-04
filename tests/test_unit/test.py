@@ -16,6 +16,8 @@ test_file_exists = 'tests/test_integration/stub_data/fulltext_exists.links'
 test_stub_xml = 'tests/test_unit/stub_data/test.xml'
 test_stub_html = 'tests/test_unit/stub_data/test.html'
 test_stub_html_table = 'tests/test_unit/stub_data/test_table2.html'
+test_stub_text = 'tests/test_unit/stub_data/test.txt'
+
 
 class TestCheckIfExtracted(unittest.TestCase):
 
@@ -220,8 +222,27 @@ class TestHTMLExtractor(unittest.TestCase):
 
 class TestOCRandTXTExtractor(unittest.TestCase):
 
+    def setUp(self):
+        self.dict_item = {CONSTANTS["FILE_SOURCE"]: "%s/%s" % (PROJ_HOME, test_stub_text),
+                          CONSTANTS['BIBCODE']: "TEST"}
+
+        self.extractor = std_extract.EXTRACTOR_FACTORY['txt'](self.dict_item)
+
     def test_open_txt_file(self):
-        self.fail()
+        raw_text = self.extractor.open_text()
+        self.assertIn("Introduction", raw_text)
+
+    def test_parse_txt_file(self):
+        raw_text = self.extractor.open_text()
+        parsed_text = self.extractor.parse_text()
+        self.assertIn("Introduction", parsed_text)
+
+    def test_translation_map_works(self):
+        instring = "Tab\t CarriageReturn\r New line\n Random Escape characters:" + chr(1) + chr(4) + chr(8)
+        expected_out_string = "Tab\t CarriageReturn\r New line\n Random Escape characters:"
+        instring.translate(self.extractor.translation_map)
+
+        self.assertEqual(instring, expected_out_string)
 
 
 if __name__ == '__main__':

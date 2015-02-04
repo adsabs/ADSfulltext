@@ -17,6 +17,58 @@ from settings import CONSTANTS, META_CONTENT
 logger = utils.setup_logging(__file__, __name__)
 
 
+class StandardExtractorBasicText(object):
+
+    def __init__(self, dict_item):
+
+        """
+        Translation map:
+            This is used to replace the escape characters. There are 32 escape characters listed for example
+            here: http://www.robelle.com/smugbook/ascii.html
+
+            the filter makes a list of the escape characters excluding \n, \t, \r, (9, 10, 13)
+            dict.fromkeys turns this into a map, where all of the escape characters (except the above) are
+            converted into a nothing (None)
+
+            This map can then be given to the string.translate as the map for a unicode string
+            e.g.,
+
+            u'jonny\x40myemail.com\n'.translate(dict.fromkeys(filter(lambda x: x not in [9,10,13], range(32))))
+            u'jonny@myemail.com\n'
+        """
+
+        self.dict_item = dict_item
+        self.raw_text = None
+        self.translation_map = dict.fromkeys(filter(lambda x: x not in [9,10,13], range(32)))
+
+
+    def open_text(self):
+
+        with open(self.dict_item[CONSTANTS['FILE_SOURCE']], 'r') as f:
+            raw_text = f.read()
+
+        self.raw_text = raw_text
+        return self.raw_text
+
+    def parse_text(self, translate=False, decode=False):
+
+        if translate:
+            if type(self.raw_text) == str:
+                tmap = get_translation_map()
+            else:
+                tmap = get_unicode_translation_map()
+
+            self.raw_text = self.raw_text.translate(tmap)
+
+        if decode and type(text) == str:
+            text = text.decode('utf-8', 'ignore')
+
+        text = unicodedata.normalize('NFKC', unicode(text))
+        text = re.sub('\s+', ' ', text)
+        return text
+
+        return self.raw_text
+
 class StandardExtractorHTML(object):
 
     def __init__(self, dict_item):
@@ -230,6 +282,7 @@ class StandardExtractorXML(object):
 EXTRACTOR_FACTORY = {
     "xml": StandardExtractorXML,
     "html": StandardExtractorHTML,
+    "txt": StandardExtractorBasicText,
 }
 # ocr, txt
 # Elsevier
