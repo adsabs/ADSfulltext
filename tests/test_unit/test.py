@@ -16,6 +16,7 @@ test_file_wrong = 'tests/test_integration/stub_data/fulltext_wrong.links'
 test_file_exists = 'tests/test_integration/stub_data/fulltext_exists.links'
 
 test_stub_xml = 'tests/test_unit/stub_data/test.xml'
+test_stub_exml = 'tests/test_unit/stub_data/test_elsevier.xml'
 test_stub_html = 'tests/test_unit/stub_data/test.html'
 test_stub_html_table = 'tests/test_unit/stub_data/test_table2.html'
 test_stub_text = 'tests/test_unit/stub_data/test.txt'
@@ -175,6 +176,43 @@ class TestXMLExtractor(unittest.TestCase):
         self.assertItemsEqual(content[0].keys(), META_CONTENT["XML"].keys())
 
 
+class TestXMLElsevierExtractor(unittest.TestCase):
+
+    def setUp(self):
+        self.dict_item = {CONSTANTS["FILE_SOURCE"]: "%s/%s" % (config["FULLTEXT_EXTRACT_PATH"], test_stub_exml)}
+        self.extractor = std_extract.EXTRACTOR_FACTORY['elsevier'](self.dict_item)
+
+    def test_that_we_can_open_an_xml_file(self):
+        full_text_content = self.extractor.open_xml()
+
+        self.assertIn("<journal-title>Review of Scientific Instruments</journal-title>", full_text_content)
+
+    # def test_that_we_can_parse_the_xml_content(self):
+    #     full_text_content = self.extractor.open_xml()
+    #     content = self.extractor.parse_xml()
+    #     journal_title = content.xpath('//journal-title')[0].text_content()
+    #
+    #     self.assertEqual(journal_title, "Review of Scientific Instruments")
+    #
+    # def test_that_we_can_extract_using_settings_template(self):
+    #
+    #     full_text_content = self.extractor.open_xml()
+    #     parsed_xml = self.extractor.parse_xml()
+    #     content = self.extractor.extract_multi_content()
+    #
+    #     self.assertEqual(META_CONTENT["XML"].keys(), content.keys())
+    #
+    # def test_that_we_can_extract_all_content_from_payload_input(self):
+    #
+    #     file_path = "%s/%s" % (config["FULLTEXT_EXTRACT_PATH"], test_stub_xml)
+    #     pay_load = [self.dict_item]
+    #
+    #     content = json.loads(std_extract.extract_content(pay_load))
+    #
+    #     self.assertEqual(len(content[0].keys()), 3)
+    #     self.assertItemsEqual(content[0].keys(), META_CONTENT["XML"].keys())
+
+
 class TestHTMLExtractor(unittest.TestCase):
 
     def setUp(self):
@@ -283,7 +321,7 @@ class TestOCRandTXTExtractor(unittest.TestCase):
 
     def test_extract_multi_content_on_text_data(self):
         content = self.extractor.extract_multi_content()
-        self.assertIn('introduction', content.lower())
+        self.assertIn('introduction', content['fulltext'].lower())
 
 if __name__ == '__main__':
     unittest.main()

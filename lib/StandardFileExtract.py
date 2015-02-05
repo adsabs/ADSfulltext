@@ -117,7 +117,11 @@ class StandardExtractorBasicText(object):
     def extract_multi_content(self, translate=True, decode=True):
         self.open_text()
         self.parse_text(translate=translate, decode=decode)
-        return self.parsed_text
+
+        meta_out = {}
+        meta_out["fulltext"] = self.parsed_text
+        return meta_out
+
 
 class StandardExtractorHTML(object):
 
@@ -277,6 +281,7 @@ class StandardExtractorHTML(object):
 
         return meta_out
 
+
 class StandardExtractorXML(object):
 
     def __init__(self, dict_item):
@@ -329,11 +334,18 @@ class StandardExtractorXML(object):
         return meta_out
 
 
+class StandardElsevierExtractorXML(StandardExtractorXML):
+
+    def __init__(self, dict_item):
+        StandardExtractorXML.__init__(self, dict_item)
+
+
 EXTRACTOR_FACTORY = {
     "xml": StandardExtractorXML,
     "html": StandardExtractorHTML,
     "txt": StandardExtractorBasicText,
     "ocr": StandardExtractorBasicText,
+    "elsevier": StandardElsevierExtractorXML,
 }
 # Elsevier
 # HTTP

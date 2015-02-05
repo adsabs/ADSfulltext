@@ -102,7 +102,10 @@ class TestExtractWorker(unittest.TestCase):
         standard_res = json.loads(self.standard_worker.results)[1]
         self.assertTrue(u'fulltext' in standard_res.keys())
 
-        self.assertEquals(len(json.loads(self.standard_worker.results)), 3)
+        standard_res = json.loads(self.standard_worker.results)[2]
+        self.assertTrue(u'fulltext' in standard_res.keys())
+
+        self.assertEquals(len(json.loads(self.standard_worker.results)), 4)
 
 
         # When extracted, the payload should no longer exist within the standard file queue
