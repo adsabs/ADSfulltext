@@ -5,6 +5,8 @@ Unit Test of the check records functions for the base class, CheckIfExtract
 import unittest
 import utils
 import json
+import re
+
 from settings import PROJ_HOME, config, CONSTANTS, META_CONTENT
 from lib import CheckIfExtract as check
 from lib import StandardFileExtract as std_extract
@@ -17,6 +19,7 @@ test_stub_xml = 'tests/test_unit/stub_data/test.xml'
 test_stub_html = 'tests/test_unit/stub_data/test.html'
 test_stub_html_table = 'tests/test_unit/stub_data/test_table2.html'
 test_stub_text = 'tests/test_unit/stub_data/test.txt'
+test_stub_ocr = 'tests/test_unit/stub_data/test.ocr'
 
 
 class TestCheckIfExtracted(unittest.TestCase):
@@ -225,6 +228,8 @@ class TestOCRandTXTExtractor(unittest.TestCase):
     def setUp(self):
         self.dict_item = {CONSTANTS["FILE_SOURCE"]: "%s/%s" % (PROJ_HOME, test_stub_text),
                           CONSTANTS['BIBCODE']: "TEST"}
+        self.dict_item_ocr = {CONSTANTS["FILE_SOURCE"]: "%s/%s" % (PROJ_HOME, test_stub_ocr),
+                          CONSTANTS['BIBCODE']: "TEST"}
 
         self.extractor = std_extract.EXTRACTOR_FACTORY['txt'](self.dict_item)
 
@@ -234,16 +239,51 @@ class TestOCRandTXTExtractor(unittest.TestCase):
 
     def test_parse_txt_file(self):
         raw_text = self.extractor.open_text()
-        parsed_text = self.extractor.parse_text()
+        parsed_text = self.extractor.parse_text(translate=True, decode=True)
         self.assertIn("Introduction", parsed_text)
+        self.assertNotIn("\x00", parsed_text)
 
-    def test_translation_map_works(self):
+    def test_parse_ocr_file(self):
+        self.extractor.dict_item = self.dict_item_ocr
+        raw_text = self.extractor.open_text()
+        parsed_text = self.extractor.parse_text(translate=True, decode=True)
+        self.assertIn("introduction", parsed_text.lower())
+        self.assertIn("A STUDY OF OPTICAL OBSERVING TECHNIQUES FOR", parsed_text)
+        self.assertNotIn("\x00", parsed_text)
+
+    def test_ASCII_parsing(self):
+
+        self.extractor.raw_text = "Tab\t CarriageReturn\r New line\n Random Escape characters:" + chr(1) + chr(4) + chr(8)
+        expected_out_string = re.sub('\s+', ' ', "Tab\t CarriageReturn\r New line\n Random Escape characters:   ")
+        new_instring = self.extractor.parse_text(translate=True, decode=True)
+
+        self.assertEqual(new_instring, expected_out_string)
+
+    def test_Unicode_parsing(self):
+        self.extractor.raw_text = u"Tab\t CarriageReturn\r New line\n Random Escape characters:" + u'\u0000'
+        expected_out_string = re.sub('\s+', ' ', u"Tab\t CarriageReturn\r New line\n Random Escape characters:")
+
+        new_instring = self.extractor.parse_text(translate=True, decode=True)
+
+        self.assertEqual(new_instring, expected_out_string)
+
+    def test_ASCII_translation_map_works(self):
         instring = "Tab\t CarriageReturn\r New line\n Random Escape characters:" + chr(1) + chr(4) + chr(8)
-        expected_out_string = "Tab\t CarriageReturn\r New line\n Random Escape characters:"
-        instring.translate(self.extractor.translation_map)
+        expected_out_string = "Tab\t CarriageReturn\r New line\n Random Escape characters:   "
+        new_instring = instring.translate(self.extractor.ASCII_translation_map)
 
-        self.assertEqual(instring, expected_out_string)
+        self.assertEqual(new_instring, expected_out_string)
 
+    def test_Unicode_translation_map_works(self):
+        instring = u"Tab\t CarriageReturn\r New line\n Random Escape characters:" + u'\u0000'
+        expected_out_string = u"Tab\t CarriageReturn\r New line\n Random Escape characters:"
+        new_instring = instring.translate(self.extractor.Unicode_translation_map)
+
+        self.assertEqual(new_instring, expected_out_string)
+
+    def test_extract_multi_content_on_text_data(self):
+        content = self.extractor.extract_multi_content()
+        self.assertIn('introduction', content.lower())
 
 if __name__ == '__main__':
     unittest.main()

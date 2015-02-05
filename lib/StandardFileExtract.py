@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 """
 StandardFileExtractor Worker Functions
 
@@ -10,6 +11,7 @@ import re
 import traceback
 import utils
 import os
+import unicodedata
 from lxml.html import soupparser, document_fromstring
 from lib import entitydefs as edef
 from settings import CONSTANTS, META_CONTENT
@@ -21,26 +23,70 @@ class StandardExtractorBasicText(object):
 
     def __init__(self, dict_item):
 
-        """
-        Translation map:
-            This is used to replace the escape characters. There are 32 escape characters listed for example
-            here: http://www.robelle.com/smugbook/ascii.html
+        # For those interested: http://www.joelonsoftware.com/articles/Unicode.html
+        # Translation map (ASCII):
+        #     This is used to replace the escape characters. There are 32 escape characters listed for example
+        #     here: http://www.robelle.com/smugbook/ascii.html
+        #
+        #     input_control_characters:
+        #     This is a string that contains all the escape characters
+        #
+        #     translated_control_characters:
+        #     This is a string that is equal in length to input_control_characters, where all the escape characters
+        #     are replaced by an empty string ' '. The only escape characters kept are \n, \t, \r, (9, 10, 13)
+        #
+        #     This map can then be given to the string.translate as the map for a string (ASCII encoded)
+        #     e.g.,
+        #
+        #     'jonny\x40myemail.com\n'.translate(dict.fromkeys(filter(lambda x: x not in [9,10,13], range(32))))
+        #     'jonny@myemail.com\n'
+        #
+        # Translation map (Unicode):
+        #     This has the same purpose as the previous map, except it works on text that is encoded in utf-8, or some
+        #     other unicode encoding. The unicode_control_number array contains a list of tuples, that contain the range
+        #     of numbers that want to be removed. i.e., 0x00, 0x08 in unicode form is U+00 00 to U+00 08, which is
+        #     just removing the e.g., Null characters, see http://www.fileformat.info/info/charset/UTF-8/list.htm
+        #     for a list of unicode numberings.
+        #     e.g.,
+        #
+        #     This map can then be given to the string.translate as the map for a unicode type (e.g., UTF-8 encoded)
+        #
+        #     u'jonny\x40myemail.com\n'.translate(dict.fromkeys(filter(lambda x: x not in [9,10,13], range(32))))
+        #     u'jonny@myemail.com\n'
+        #
+        #
+        #     unicodedata.normalize(unicode_string, 'NFKC'):
+        #
+        #         https://docs.python.org/2/library/unicodedata.html#unicodedata.normalize
+        #         http://stackoverflow.com/questions/14682397/can-somone-explain-how-unicodedata-normalizeform-unistr-work-with-examples
+        #         NFKC = Normal Form K Composition
+        #
+        #         'K' converts characters such as ① to 1
+        #         'C' composes characters such as C, to Ç
 
-            the filter makes a list of the escape characters excluding \n, \t, \r, (9, 10, 13)
-            dict.fromkeys turns this into a map, where all of the escape characters (except the above) are
-            converted into a nothing (None)
-
-            This map can then be given to the string.translate as the map for a unicode string
-            e.g.,
-
-            u'jonny\x40myemail.com\n'.translate(dict.fromkeys(filter(lambda x: x not in [9,10,13], range(32))))
-            u'jonny@myemail.com\n'
-        """
+        import string
 
         self.dict_item = dict_item
         self.raw_text = None
-        self.translation_map = dict.fromkeys(filter(lambda x: x not in [9,10,13], range(32)))
+        self.parsed_text = None
 
+        translated_control_characters = "".join([chr(i) if i in [9, 10, 13] else ' ' for i in range(0,32)])
+        input_control_characters = "".join([chr(i) for i in range(0,32)])
+        self.ASCII_translation_map = string.maketrans(input_control_characters, translated_control_characters)
+
+        unicode_control_numbers = [(0x00, 0x08), (0x0B, 0x0C), (0x0E, 0x1F), (0x7F, 0x84), (0x86, 0x9F),
+                                    (0xD800, 0xDFFF), (0xFDD0, 0xFDDF), (0xFFFE, 0xFFFF),
+                                    (0x1FFFE, 0x1FFFF), (0x2FFFE, 0x2FFFF), (0x3FFFE, 0x3FFFF),
+                                    (0x4FFFE, 0x4FFFF), (0x5FFFE, 0x5FFFF), (0x6FFFE, 0x6FFFF),
+                                    (0x7FFFE, 0x7FFFF), (0x8FFFE, 0x8FFFF), (0x9FFFE, 0x9FFFF),
+                                    (0xAFFFE, 0xAFFFF), (0xBFFFE, 0xBFFFF), (0xCFFFE, 0xCFFFF),
+                                    (0xDFFFE, 0xDFFFF), (0xEFFFE, 0xEFFFF), (0xFFFFE, 0xFFFFF),
+                                    (0x10FFFE, 0x10FFFF)]
+        self.Unicode_translation_map = dict.fromkeys(unicode_number
+                                                     for starting_unicode_number, ending_unicode_number
+                                                     in unicode_control_numbers
+                                                     for unicode_number
+                                                     in range(starting_unicode_number, ending_unicode_number+1))
 
     def open_text(self):
 
@@ -52,22 +98,26 @@ class StandardExtractorBasicText(object):
 
     def parse_text(self, translate=False, decode=False):
 
+        raw_text = self.raw_text
         if translate:
-            if type(self.raw_text) == str:
-                tmap = get_translation_map()
+            if type(raw_text) == str:
+                raw_text = raw_text.translate(self.ASCII_translation_map)
             else:
-                tmap = get_unicode_translation_map()
+                raw_text = raw_text.translate(self.Unicode_translation_map)
 
-            self.raw_text = self.raw_text.translate(tmap)
+        if decode and type(raw_text) == str:
+            raw_text = raw_text.decode('utf-8', 'ignore')
 
-        if decode and type(text) == str:
-            text = text.decode('utf-8', 'ignore')
+        raw_text = unicodedata.normalize('NFKC', unicode(raw_text))
+        raw_text = re.sub('\s+', ' ', raw_text) # remove duplicated spaces?
 
-        text = unicodedata.normalize('NFKC', unicode(text))
-        text = re.sub('\s+', ' ', text)
-        return text
+        self.parsed_text = raw_text
+        return self.parsed_text
 
-        return self.raw_text
+    def extract_multi_content(self, translate=True, decode=True):
+        self.open_text()
+        self.parse_text(translate=translate, decode=decode)
+        return self.parsed_text
 
 class StandardExtractorHTML(object):
 
@@ -291,7 +341,6 @@ EXTRACTOR_FACTORY = {
 # PDF
 
 
-
 def extract_content(input_list):
 
     import json
@@ -310,6 +359,8 @@ def extract_content(input_list):
             raise KeyError("You gave a format not currently supported for extraction",traceback.format_exc())
         except Exception:
             raise Exception(traceback.format_exc())
+        finally:
+            del Extractor, parsed_content
             #
             #
             # opened_XML = open_xml(dict_item[CONSTANTS['FILE_SOURCE']])
