@@ -28,6 +28,13 @@ META_CONTENT = {
         "acknowledgements": ['//ack', '//section[@type="acknowledgments"]', '//subsection[@type="acknowledgement" or @type="acknowledgment"]'],
         "dataset": ['//named-content[@content-type="dataset"]'],
     },
+    "XMLElsevier": {
+        "fulltext": ['//body','//raw-text'],
+        "acknowledgements": ['//acknowledgment', '//ack', '//section[@type="acknowledgments"]',
+                             '//subsection[@type="acknowledgement" or @type="acknowledgment"]',
+                             '//*[local-name()="acknowledgment"]'],
+        "dataset": ['//named-content[@content-type="dataset"]'],
+    },
     "HTML": {
         "introduction": ['//h2[contains(.,"ntroduction")]',
                          '//h2[contains(.,"ntroduction")]',

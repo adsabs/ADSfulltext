@@ -9,14 +9,14 @@ document types, excluding PDF. A lot of the source code has been ported from ads
 import json
 import re
 import traceback
-import utils
 import os
 import unicodedata
-from lxml.html import soupparser, document_fromstring
+from utils import setup_logging, overrides
+from lxml.html import soupparser, document_fromstring, fromstring
 from lib import entitydefs as edef
 from settings import CONSTANTS, META_CONTENT
 
-logger = utils.setup_logging(__file__, __name__)
+logger = setup_logging(__file__, __name__)
 
 
 class StandardExtractorBasicText(object):
@@ -289,6 +289,7 @@ class StandardExtractorXML(object):
         self.file_input = dict_item[CONSTANTS['FILE_SOURCE']]
         self.raw_xml = None
         self.parsed_xml = None
+        self.meta_name = "XML"
 
     def open_xml(self):
 
@@ -318,12 +319,14 @@ class StandardExtractorXML(object):
         self.open_xml()
         self.parse_xml()
 
-        for content_name in META_CONTENT["XML"]:
-            for static_xpath in META_CONTENT["XML"][content_name]:
+        for content_name in META_CONTENT[self.meta_name]:
+            logger.info("Trying meta content: %s" % content_name)
+            for static_xpath in META_CONTENT[self.meta_name][content_name]:
+                logger.info("Trying xpath: %s" % static_xpath)
                 try:
-
                     meta_out[content_name] = self.parsed_xml.xpath(static_xpath)[0].text_content()
-                    continue
+                    logger.info("Successful")
+                    break
                 except IndexError:
                     pass
                 except KeyError:
@@ -338,6 +341,16 @@ class StandardElsevierExtractorXML(StandardExtractorXML):
 
     def __init__(self, dict_item):
         StandardExtractorXML.__init__(self, dict_item)
+        self.meta_name = "XMLElsevier"
+
+    def parse_xml(self):
+        self.parsed_xml = fromstring(self.raw_xml.encode('utf-8'))
+        return self.parsed_xml
+
+    @overrides(StandardExtractorXML)
+    def extract_multi_content(self):
+        content = super(StandardElsevierExtractorXML, self).extract_multi_content()
+        return content
 
 
 EXTRACTOR_FACTORY = {

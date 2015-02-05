@@ -21,6 +21,19 @@ def setup_logging(file_, name_, level='DEBUG'):
 	LOGGER.setLevel(level)
 	return LOGGER
 
+
+def overrides(interface_class):
+    """
+    To be used as a decorator, it allows the explicit declaration you are overriding the method of class
+    from the one it has inherited. It checks that the name you have used matches that in the parent
+    class and returns an assertion error if not
+    """
+    def overrider(method):
+        assert(method.__name__ in dir(interface_class))
+        return method
+    return overrider
+
+
 class FileInputStream(object):
 
 	def __init__(self, input_stream):
