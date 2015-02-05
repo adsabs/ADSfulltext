@@ -333,8 +333,8 @@ EXTRACTOR_FACTORY = {
     "xml": StandardExtractorXML,
     "html": StandardExtractorHTML,
     "txt": StandardExtractorBasicText,
+    "ocr": StandardExtractorBasicText,
 }
-# ocr, txt
 # Elsevier
 # HTTP
 #-----
@@ -352,15 +352,18 @@ def extract_content(input_list):
 
         try:
             ExtractorClass = EXTRACTOR_FACTORY[dict_item[CONSTANTS['FILE_SOURCE']].lower().split(".")[-1]]
+        except KeyError:
+            raise KeyError("You gave a format not currently supported for extraction",traceback.format_exc())
+
+        try:
             Extractor = ExtractorClass(dict_item)
             parsed_content = Extractor.extract_multi_content()
             output_list.append(parsed_content)
-        except KeyError:
-            raise KeyError("You gave a format not currently supported for extraction",traceback.format_exc())
         except Exception:
             raise Exception(traceback.format_exc())
-        finally:
-            del Extractor, parsed_content
+
+        del Extractor, parsed_content
+
             #
             #
             # opened_XML = open_xml(dict_item[CONSTANTS['FILE_SOURCE']])

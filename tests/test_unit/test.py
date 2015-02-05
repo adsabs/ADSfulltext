@@ -113,7 +113,7 @@ class TestCheckIfExtracted(unittest.TestCase):
          [u"STALE_CONTENT", u"DIFFERING_FULL_TEXT", u"MISSING_FULL_TEXT", u"NOT_EXTRACTED_BEFORE"]]
 
         self.assertTrue(len(pdf_compare) == 3, json.loads(payload["PDF"]))
-        self.assertTrue(len(standard_compare) == 2)
+        self.assertTrue(len(standard_compare) == 3)
 
 
 class TestFileStreamInput(unittest.TestCase):
