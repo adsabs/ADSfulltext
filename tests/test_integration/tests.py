@@ -77,7 +77,7 @@ class TestExtractWorker(unittest.TestCase):
         pdf_res, standard_res = json.loads(self.check_worker.results["PDF"]), json.loads(self.check_worker.results["Standard"])
 
         self.assertEqual(len(pdf_res), 3)
-        self.assertEqual(len(standard_res), 3, standard_res)
+        self.assertEqual(len(standard_res), 4, standard_res)
         # self.assertEqual(self.check_worker.results, 'pass')
         self.assertTrue(pdf_queue.method.message_count >= 1,
                         "PDF queue should have at least 1 message, but it has: %d" % pdf_queue.method.message_count)
@@ -104,6 +104,13 @@ class TestExtractWorker(unittest.TestCase):
 
         standard_res = json.loads(self.standard_worker.results)[2]
         self.assertTrue(u'fulltext' in standard_res.keys())
+
+        standard_res = json.loads(self.standard_worker.results)[2]
+        self.assertTrue(u'fulltext' in standard_res.keys())
+
+        standard_res = json.loads(self.standard_worker.results)[3]
+        self.assertTrue(u'fulltext' in standard_res.keys())
+        self.assertTrue(u'acknowledgements' in standard_res.keys())
 
         self.assertEquals(len(json.loads(self.standard_worker.results)), 4)
 

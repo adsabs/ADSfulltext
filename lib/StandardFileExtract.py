@@ -360,7 +360,6 @@ EXTRACTOR_FACTORY = {
     "ocr": StandardExtractorBasicText,
     "elsevier": StandardElsevierExtractorXML,
 }
-# Elsevier
 # HTTP
 #-----
 # PDF
@@ -371,12 +370,19 @@ def extract_content(input_list):
     import json
     output_list = []
 
-    ACCEPTED_FORMATS = ["xml", "html"]
+    ACCEPTED_FORMATS = ["xml", "html", "txt", "ocr"]
 
     for dict_item in input_list:
 
         try:
-            ExtractorClass = EXTRACTOR_FACTORY[dict_item[CONSTANTS['FILE_SOURCE']].lower().split(".")[-1]]
+            extension = dict_item[CONSTANTS['FILE_SOURCE']].lower().split(".")[-1]
+            if extension not in ACCEPTED_FORMATS: raise KeyError("You gave an unsupported file extension.")
+
+            if extension == "xml" and dict_item[CONSTANTS['PROVIDER']] == "Elsevier":
+                extension = "elsevier"
+
+            ExtractorClass = EXTRACTOR_FACTORY[extension]
+
         except KeyError:
             raise KeyError("You gave a format not currently supported for extraction",traceback.format_exc())
 
