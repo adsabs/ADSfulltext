@@ -20,6 +20,8 @@ CONSTANTS = {
     "BIBCODE": "bibcode",
     "PROVIDER": "provider",
     "UPDATE": "UPDATE",
+    "FULL_TEXT": 'fulltext',
+    "FORMAT": "XML",
 }
 
 META_CONTENT = {

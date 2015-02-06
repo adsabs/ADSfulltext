@@ -6,10 +6,12 @@ import unittest
 import utils
 import json
 import re
+import os
 
 from settings import PROJ_HOME, config, CONSTANTS, META_CONTENT
 from lib import CheckIfExtract as check
 from lib import StandardFileExtract as std_extract
+from lib import WriteMetaFile as writer
 test_file = 'tests/test_integration/stub_data/fulltext.links'
 test_file_stub = 'tests/test_integration/stub_data/fulltext_stub.links'
 test_file_wrong = 'tests/test_integration/stub_data/fulltext_wrong.links'
@@ -312,5 +314,52 @@ class TestOCRandTXTExtractor(unittest.TestCase):
         content = self.extractor.extract_multi_content()
         self.assertIn('introduction', content['fulltext'].lower())
 
+
+class TestWriteMetaFileWorker(unittest.TestCase):
+
+    def setUp(self):
+        self.dict_item = {CONSTANTS['META_PATH']: '/vagrant/tests/test_unit/stub_data/te/st/1/meta.json',
+                          CONSTANTS['FULL_TEXT']: 'hehehe I am the full text',
+                          CONSTANTS['FORMAT']: 'XML'}
+        self.meta_file = self.dict_item[CONSTANTS['META_PATH']]
+        self.bibcode_pair_tree = self.dict_item[CONSTANTS['META_PATH']].replace('meta.json', '')
+        self.full_text_file = self.bibcode_pair_tree + 'fulltext.txt'
+
+    def tearDown(self):
+        try:
+            os.remove(self.meta_file)
+        except IOError:
+            pass
+
+        try:
+            os.remove(self.full_text_file)
+        except IOError:
+            pass
+
+        try:
+            os.rmdir(self.bibcode_pair_tree)
+        except IOError:
+            pass
+
+    def test_loads_the_content_correctly_and_makes_folders(self):
+
+        content = writer.write_content(self.dict_item)
+
+        self.assertTrue(os.path.exists(self.bibcode_pair_tree),
+                            msg=os.path.exists(self.bibcode_pair_tree))
+
+    def test_loads_the_content_correctly_and_makes_meta_file(self):
+
+        content = writer.write_content(self.dict_item)
+
+        self.assertTrue(os.path.exists(self.meta_file),
+                            msg=os.path.exists(self.meta_file))
+
+    def test_loads_the_content_correctly_and_makes_full_text_file(self):
+
+        content = writer.write_content(self.dict_item)
+
+        self.assertTrue(os.path.exists(self.full_text_file),
+                            msg=os.path.exists(self.full_text_file))
 if __name__ == '__main__':
     unittest.main()
