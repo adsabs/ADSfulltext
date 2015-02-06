@@ -6,3 +6,7 @@ local_settings.py
 pipeline/local_psettings.py
 .profile
 .bashrc
+tests/test_unit/stub_data/test*.xml
+tests/test_unit/stub_data/test*.html
+tests/test_unit/stub_data/test*.ocr
+tests/test_unit/stub_data/test*.txt
