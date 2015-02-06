@@ -1,8 +1,9 @@
 import unittest
 import time
 import json
+import os
 from pipeline import psettings
-from pipeline.workers import RabbitMQWorker, CheckIfExtractWorker, StandardFileExtractWorker
+from pipeline.workers import RabbitMQWorker, CheckIfExtractWorker, StandardFileExtractWorker, WriteMetaFileWorker
 from pipeline.ADSfulltext import TaskMaster
 from run import publish, read_links_from_file
 from settings import META_CONTENT, PROJ_HOME
@@ -14,8 +15,9 @@ class TestExtractWorker(unittest.TestCase):
         # Load the extraction worker
         check_params = psettings.WORKERS['CheckIfExtractWorker']
         standard_params = psettings.WORKERS['StandardFileExtractWorker']
+        writer_params = psettings.WORKERS['WriteMetaFileWorker']
 
-        for params in [check_params, standard_params]:
+        for params in [check_params, standard_params, writer_params]:
             params['RABBITMQ_URL'] = psettings.RABBITMQ_URL
             params['extract_key'] = "FULLTEXT_EXTRACT_PATH_UNITTEST"
             params['TEST_RUN'] = True
@@ -23,6 +25,7 @@ class TestExtractWorker(unittest.TestCase):
         self.check_worker = CheckIfExtractWorker(params=check_params)
         self.standard_worker = StandardFileExtractWorker(params=standard_params)
         self.standard_worker.logger.debug("params: %s" % standard_params)
+        self.meta_writer = WriteMetaFileWorker(params=writer_params)
 
     def test_extraction_of_non_extracted(self):
 
@@ -96,26 +99,35 @@ class TestExtractWorker(unittest.TestCase):
 
         # Standard Extractor should extract the content of the given payload
         self.standard_worker.run()
-        standard_res = json.loads(self.standard_worker.results)[0]
-        self.assertItemsEqual(META_CONTENT["XML"].keys(), standard_res.keys())
+        # standard_res = json.loads(self.standard_worker.results)[0]
+        # self.assertItemsEqual(META_CONTENT["XML"].keys(), standard_res.keys())
+        #
+        # standard_res = json.loads(self.standard_worker.results)[1]
+        # self.assertTrue(u'fulltext' in standard_res.keys())
+        #
+        # standard_res = json.loads(self.standard_worker.results)[2]
+        # self.assertTrue(u'fulltext' in standard_res.keys())
+        #
+        # standard_res = json.loads(self.standard_worker.results)[2]
+        # self.assertTrue(u'fulltext' in standard_res.keys())
+        #
+        # standard_res = json.loads(self.standard_worker.results)[3]
+        # self.assertTrue(u'fulltext' in standard_res.keys())
+        # self.assertTrue(u'acknowledgements' in standard_res.keys())
 
-        standard_res = json.loads(self.standard_worker.results)[1]
-        self.assertTrue(u'fulltext' in standard_res.keys())
+        # self.assertEquals(len(json.loads(self.standard_worker.results)), 4)
 
-        standard_res = json.loads(self.standard_worker.results)[2]
-        self.assertTrue(u'fulltext' in standard_res.keys())
+        self.meta_writer.run()
 
-        standard_res = json.loads(self.standard_worker.results)[2]
-        self.assertTrue(u'fulltext' in standard_res.keys())
+        # The writing queue should now contain the correct number in the payload
+        queue_write = self.check_worker.channel.queue_declare(
+            queue="WriteMetaFileQueue",
+            passive=True
+            )
 
-        standard_res = json.loads(self.standard_worker.results)[3]
-        self.assertTrue(u'fulltext' in standard_res.keys())
-        self.assertTrue(u'acknowledgements' in standard_res.keys())
+        self.assertTrue(os.path.exists('/vagrant/tests/test_unit/te/st/1/meta.json'))
 
-        self.assertEquals(len(json.loads(self.standard_worker.results)), 4)
-
-
-        # When extracted, the payload should no longer exist within the standard file queue
+        # # When extracted, the payload should no longer exist within the standard file queue
         # self.assertTrue(standard_queue.method.message_count == 0,
         #                 "Standard queue should have 1 message, but it has: %d" % standard_queue.method.message_count)
 

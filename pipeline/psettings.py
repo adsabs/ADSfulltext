@@ -27,10 +27,10 @@ RABBITMQ_ROUTES = {
       'queue': 'StandardFileExtractorQueue',
       'durable': True,
     },
-    # {
-    #   'queue': 'WriteMetaFileQueue',
-    #   'durable': True,
-    # },
+    {
+      'queue': 'WriteMetaFileQueue',
+      'durable': True,
+    },
     {
       'queue': 'ErrorHandlerQueue',
       'durable': True,
@@ -52,11 +52,11 @@ RABBITMQ_ROUTES = {
        'exchange':     'FulltextExtractionExchange',
        'routing_key':  'StandardFileExtractorRoute',
      },
-    # {
-    #   'queue':        'WriteMetaFileQueue',
-    #   'exchange':     'FulltextExtractionExchange',
-    #   'routing_key':  'WriteMetaFileRoute',
-    # },
+    {
+      'queue':        'WriteMetaFileQueue',
+      'exchange':     'FulltextExtractionExchange',
+      'routing_key':  'WriteMetaFileRoute',
+    },
     {
       'queue':        'ErrorHandlerQueue',
       'exchange':     'FulltextExtractionExchange',
@@ -80,7 +80,7 @@ WORKERS = {
   'StandardFileExtractWorker': { 
     'concurrency': 1,
     'publish': [
-      {'exchange': 'FulltextExtractionExchange', 'routing_key': 'WriteMetaFileQueue',},
+      {'exchange': 'FulltextExtractionExchange', 'routing_key': 'WriteMetaFileRoute',},
     ],
     'subscribe': [
       {'queue': 'StandardFileExtractorQueue',},
@@ -95,14 +95,14 @@ WORKERS = {
   #     {'queue': 'ReadRecordsQueue',},
   #   ],
   # },
-  #   'WriteMetalFileExtractorWorker': { 
-  #   'concurrency': 1,
-  #   'publish': [
-  #   ],
-  #   'subscribe': [
-  #     {'queue': 'ReadRecordsQueue',},
-  #   ],
-  # },
+    'WriteMetaFileWorker': {
+    'concurrency': 1,
+    'publish': [
+    ],
+    'subscribe': [
+      {'queue': 'WriteMetaFileQueue',},
+    ],
+  },
   'ErrorHandlerWorker': { 
     'concurrency': 1,
     'publish': [

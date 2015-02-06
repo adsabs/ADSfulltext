@@ -6,7 +6,6 @@ These are the functions for the StandardFileExtractor class. This worker should 
 document types, excluding PDF. A lot of the source code has been ported from adsabs/adsdata
 """
 
-import json
 import re
 import traceback
 import os
@@ -362,7 +361,6 @@ EXTRACTOR_FACTORY = {
 }
 # HTTP
 #-----
-# PDF
 
 
 def extract_content(input_list):
@@ -395,13 +393,5 @@ def extract_content(input_list):
 
         del Extractor, parsed_content
 
-            #
-            #
-            # opened_XML = open_xml(dict_item[CONSTANTS['FILE_SOURCE']])
-            # parsed_XML = parse_xml(opened_XML)
-            # parsed_content = extract_multi_content(parsed_XML)
 
     return json.dumps(output_list)
-    # raw_content = open_xml()
-
-    # return json.dumps(message)

@@ -64,7 +64,7 @@ class RabbitMQWorker(object):
 
 
 class CheckIfExtractWorker(RabbitMQWorker):
-    """Check if extractor work. Checks if the file needs to be extracted and pushes to the correct following queue."""
+    """Checks if the file needs to be extracted and pushes to the correct extraction queue."""
 
     def __init__(self, params=None):
         self.params = params
@@ -96,6 +96,38 @@ class CheckIfExtractWorker(RabbitMQWorker):
 
 class StandardFileExtractWorker(RabbitMQWorker):
 
+    """Extracts the full text from the given location and pushes to the writing queue."""
+
+    def __init__(self, params=None):
+        self.params = params
+        from lib import StandardFileExtract
+        self.f = StandardFileExtract.extract_content
+        self.logger = self.setup_logging()
+        self.logger.debug("Initialized")
+
+    def on_message(self, channel, method_frame, header_frame, body):
+        message = json.loads(body)
+        try:
+            self.results = self.f(message)
+            self.logger.debug("Publishing")
+            self.publish(self.results)
+
+        except Exception, e:
+            import traceback
+            self.results = "Offloading to ErrorWorker due to exception: %s" % e.message
+            self.logger.warning("Offloading to ErrorWorker due to exception: %s (%s)" % (e.message, traceback.format_exc()))
+            #self.publish_to_error_queue(json.dumps({self.__class__.__name__:message}),header_frame=header_frame)
+
+        # Send delivery acknowledgement
+        self.channel.basic_ack(delivery_tag=method_frame.delivery_tag)
+
+    def run(self):
+        self.connect(self.params['RABBITMQ_URL'])
+        self.subscribe(self.on_message)
+
+
+class StandardFileExtractWorker(RabbitMQWorker):
+
     """Check if extractor work. Checks if the file needs to be extracted and pushes to the correct following queue."""
 
     def __init__(self, params=None):
@@ -109,7 +141,37 @@ class StandardFileExtractWorker(RabbitMQWorker):
         message = json.loads(body)
         try:
             self.results = self.f(message)
-            # self.publish(self.results)
+            self.logger.debug("Publishing")
+            self.publish(self.results)
+
+        except Exception, e:
+            import traceback
+            self.results = "Offloading to ErrorWorker due to exception: %s" % e.message
+            self.logger.warning("Offloading to ErrorWorker due to exception: %s (%s)" % (e.message, traceback.format_exc()))
+            #self.publish_to_error_queue(json.dumps({self.__class__.__name__:message}),header_frame=header_frame)
+
+        # Send delivery acknowledgement
+        self.channel.basic_ack(delivery_tag=method_frame.delivery_tag)
+
+    def run(self):
+        self.connect(self.params['RABBITMQ_URL'])
+        self.subscribe(self.on_message)
+
+
+class WriteMetaFileWorker(RabbitMQWorker):
+    def __init__(self, params=None):
+        self.params = params
+        from lib import WriteMetaFile
+        self.f = WriteMetaFile.extract_content
+        self.logger = self.setup_logging()
+        self.logger.debug("Initialized")
+
+    def on_message(self, channel, method_frame, header_frame, body):
+        message = json.loads(body)
+        try:
+            self.results = self.f(message)
+            self.logger.debug("Publishing")
+            self.publish(self.results)
 
         except Exception, e:
             import traceback
