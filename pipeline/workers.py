@@ -43,6 +43,11 @@ class RabbitMQWorker(object):
             for key in self.params['publish'].keys():
                 self.logger.debug('Using key: %s' % key)
                 for e in self.params['publish'][key]:
+
+                    if not json.loads(message[key]):
+                        self.logger.debug('%s list is empty, not publishing' % e)
+                        continue
+
                     self.logger.debug("Using exchange: %s" % e)
                     self.channel.basic_publish(e['exchange'], e['routing_key'], message[key])
         else:

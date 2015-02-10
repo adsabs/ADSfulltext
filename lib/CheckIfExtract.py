@@ -10,6 +10,7 @@ import json
 from datetime import datetime
 from settings import config, CONSTANTS
 from utils import setup_logging
+from dateutil.parser import parse
 
 logger = setup_logging(__file__, __name__)
 
@@ -44,7 +45,6 @@ def meta_output_exists(file_input, extract_key="FULLTEXT_EXTRACT_PATH"):
 
 def load_meta_file(file_input, extract_key="FULLTEXT_EXTRACT_PATH"):
 
-    from dateutil.parser import parse
     meta_full_path = create_meta_path(file_input, extract_key)
 
     content = None
@@ -63,7 +63,6 @@ def load_meta_file(file_input, extract_key="FULLTEXT_EXTRACT_PATH"):
 def meta_needs_update(dict_input, meta_content, extract_key="FULLTEXT_EXTRACT_PATH"):
 
     import sys
-    from dateutil.parser import parse
 
     # Obtain the indexed date within the meta file
     try:
@@ -112,13 +111,14 @@ def check_if_extract(message_list, extract_key="FULLTEXT_EXTRACT_PATH"):
         else:
             update = "NOT_EXTRACTED_BEFORE"
 
+        logger.info('Update required?: %s' % update)
         logger.info('Creating meta path')
         message[CONSTANTS['META_PATH']] = create_meta_path(message, extract_key=extract_key)
         logger.info('created: %s' % message[CONSTANTS['META_PATH']])
 
         message[CONSTANTS['FORMAT']] = format_ = message[CONSTANTS['FILE_SOURCE']].split(".")[-1].lower()
-
-        if update in NEEDS_UPDATE and 'pdf':
+        logger.info('Format found: %s' % format_)
+        if update in NEEDS_UPDATE and format_ == 'pdf':
             message[CONSTANTS['UPDATE']] = update
 
             publish_list_of_pdf_dictionaries.append(message)
@@ -126,6 +126,16 @@ def check_if_extract(message_list, extract_key="FULLTEXT_EXTRACT_PATH"):
         elif update in NEEDS_UPDATE:
             message[CONSTANTS['UPDATE']] = update
             publish_list_of_standard_dictionaries.append(message)
+
+        logger.info('Returning dictionaries')
+
+        if len(publish_list_of_pdf_dictionaries) == 0:
+            publish_list_of_pdf_dictionaries = None
+            logger.info('PDF list is empty, setting to none')
+
+        if len(publish_list_of_standard_dictionaries) == 0:
+            publish_list_of_standard_dictionaries = None
+            logger.info('Standard list is empty, setting to none')
 
     return {"Standard": json.dumps(publish_list_of_standard_dictionaries),
             "PDF": json.dumps(publish_list_of_pdf_dictionaries)}

@@ -16,6 +16,7 @@ test_file = 'tests/test_integration/stub_data/fulltext.links'
 test_file_stub = 'tests/test_integration/stub_data/fulltext_stub.links'
 test_file_wrong = 'tests/test_integration/stub_data/fulltext_wrong.links'
 test_file_exists = 'tests/test_integration/stub_data/fulltext_exists.links'
+test_single_document = 'tests/test_integration/stub_data/fulltext_single_document.links'
 
 test_stub_xml = 'tests/test_unit/stub_data/test.xml'
 test_stub_exml = 'tests/test_unit/stub_data/test_elsevier.xml'
@@ -120,7 +121,7 @@ class TestCheckIfExtracted(unittest.TestCase):
 
     def test_output_dictionary_contains_everything_we_need(self):
 
-        FileInputStream = utils.FileInputStream(test_file)
+        FileInputStream = utils.FileInputStream(test_single_document)
         FileInputStream.extract()
 
         payload = check.check_if_extract(FileInputStream.raw, extract_key="FULLTEXT_EXTRACT_PATH_UNITTEST")
@@ -130,10 +131,22 @@ class TestCheckIfExtracted(unittest.TestCase):
                               CONSTANTS['UPDATE'], CONSTANTS['META_PATH']]
         expected_content = [unicode(i) for i in expected_content]
         expected_content.sort()
+
         actual_content = json.loads(payload['Standard'])[0].keys()
+        actual_format = json.loads(payload['Standard'])[0][CONSTANTS['FORMAT']]
+
         actual_content.sort()
         self.assertListEqual(actual_content, expected_content)
-        self.assertEqual(actual_content[CONSTANTS['FORMAT']], 'txt')
+        self.assertEqual(actual_format, 'txt')
+
+    def test_that_no_payload_gets_sent_if_there_is_no_content(self):
+        FileInputStream = utils.FileInputStream(test_single_document)
+        FileInputStream.extract()
+
+        payload = check.check_if_extract(FileInputStream.raw, extract_key="FULLTEXT_EXTRACT_PATH_UNITTEST")
+
+        self.assertFalse(json.loads(payload['PDF']))
+        self.assertTrue(len(json.loads(payload['Standard'])) != 0)
 
 
 class TestFileStreamInput(unittest.TestCase):

@@ -82,13 +82,19 @@ class TestExtractWorker(unittest.TestCase):
             passive=True
             )
 
-        pdf_res, standard_res = json.loads(self.check_worker.results["PDF"]), json.loads(self.check_worker.results["Standard"])
+        print self.check_worker.results
+        pdf_res = json.loads(self.check_worker.results["PDF"])
+        standard_res = json.loads(self.check_worker.results["Standard"])
 
-        self.assertEqual(len(pdf_res), number_of_PDFs, 'Expected number of PDFs: %d' % number_of_PDFs)
+        if pdf_res:
+            pdf_res = len(pdf_res)
+        else:
+            pdf_res = 0
+        self.assertEqual(pdf_res, number_of_PDFs, 'Expected number of PDFs: %d' % number_of_PDFs)
         self.assertEqual(len(standard_res), number_of_standard_files, 'Expected number of normal formats: %d' % number_of_standard_files)
         # self.assertEqual(self.check_worker.results, 'pass')
-        self.assertTrue(pdf_queue.method.message_count >= 1,
-                        "PDF queue should have at least 1 message, but it has: %d" % pdf_queue.method.message_count)
+        self.assertTrue(pdf_queue.method.message_count == pdf_res,
+                        "PDF queue should have at least %d message, but it has: %d" % (pdf_res, pdf_queue.method.message_count))
 
         # Clean-up for next test: should be removed when next queue implemented
         # self.check_worker.channel.queue_purge(queue="StandardFileExtractorQueue")
@@ -125,6 +131,8 @@ class TestExtractWorker(unittest.TestCase):
         print('starting meta writer...')
         self.meta_writer.run()
 
+
+        time.sleep(5)
         # The writing queue should now contain the correct number in the payload
         queue_write = self.check_worker.channel.queue_declare(
             queue="WriteMetaFileQueue",

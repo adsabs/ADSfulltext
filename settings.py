@@ -25,19 +25,19 @@ CONSTANTS = {
 }
 
 META_CONTENT = {
-    "XML": {
+    "xml": {
         "fulltext": ['//body','//section[@type="body"]', '//journalarticle-body'],
         "acknowledgements": ['//ack', '//section[@type="acknowledgments"]', '//subsection[@type="acknowledgement" or @type="acknowledgment"]'],
         "dataset": ['//named-content[@content-type="dataset"]'],
     },
-    "XMLElsevier": {
+    "xmlelsevier": {
         "fulltext": ['//body','//raw-text'],
         "acknowledgements": ['//acknowledgment', '//ack', '//section[@type="acknowledgments"]',
                              '//subsection[@type="acknowledgement" or @type="acknowledgment"]',
                              '//*[local-name()="acknowledgment"]'],
         "dataset": ['//named-content[@content-type="dataset"]'],
     },
-    "HTML": {
+    "html": {
         "introduction": ['//h2[contains(.,"ntroduction")]',
                          '//h2[contains(.,"ntroduction")]',
                          '//p[contains(.,"Abstract")]',
@@ -47,9 +47,9 @@ META_CONTENT = {
         "table_links": ['//a[contains(@href, "TABLE_NAME")]'],
         "head": ['//head']
     },
-    "TEXT": {"fulltext": [""]},
-    "OCR": {"fulltext": [""]},
-    "HTTP": {"fulltext": [""]}
+    "txt": {"fulltext": [""]},
+    "ocr": {"fulltext": [""]},
+    "http": {"fulltext": [""]}
 }
 
 
