@@ -23,7 +23,19 @@ def write_content(payload_dictionary):
         except OSError:
             raise OSError
 
+    # Write everything but the full text content to the meta.json
     meta_dict = {}
+
+    for const in CONSTANTS:
+        if const == "FULL_TEXT": continue
+        try:
+            meta_dict[CONSTANTS[const]] = payload_dictionary[CONSTANTS[const]]
+            print("Adding meta content: %s" % const)
+        except KeyError :
+            print("Missing meta content: %s" % const)
+            pass
+
+    # Write the custom extractions of content to the meta.json
     for meta_key_word in META_CONTENT[payload_dictionary[CONSTANTS['FORMAT']]]:
         if meta_key_word == CONSTANTS['FULL_TEXT']: continue
 
@@ -33,21 +45,35 @@ def write_content(payload_dictionary):
         except KeyError:
             pass
 
+    # Write the full text content to its own file fulltext.txt
     full_text_dict = {CONSTANTS['FULL_TEXT']: payload_dictionary[CONSTANTS['FULL_TEXT']]}
 
     with open(meta_output_file_path, 'w') as meta_output_file:
         try:
+            print("Writing to file: %s" % meta_output_file_path)
+            print("Content has keys: %s" % (meta_dict.keys()))
             json.dump(meta_dict, meta_output_file)
+            print("Writing complete.")
         except IOError:
             raise IOError
 
     with open(full_text_output_file_path, 'w') as full_text_output_file:
         try:
-            json.dump(full_text_dict, full_text_output_file)
+            print("Writing to file: %s" % full_text_output_file_path)
+            print("Content has length: %d" % (len(full_text_dict[CONSTANTS['FULL_TEXT']])))
+            full_text_output_file.write(full_text_dict[CONSTANTS['FULL_TEXT']])
+            print("Writing complete.")
         except IOError:
             raise IOError
 
 
+def extract_content(input_list):
 
-def extract_content():
-    pass
+    for dict_item in input_list:
+        try:
+            write_content(dict_item)
+        except Exception:
+            import traceback
+            raise Exception(traceback.print_exc())
+
+    return 1

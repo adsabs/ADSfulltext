@@ -9,6 +9,7 @@ Same schema is used as defined within ADSImportpipeline
 import pika
 import json
 import utils
+import sys
 
 
 class RabbitMQWorker(object):

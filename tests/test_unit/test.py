@@ -320,7 +320,12 @@ class TestWriteMetaFileWorker(unittest.TestCase):
     def setUp(self):
         self.dict_item = {CONSTANTS['META_PATH']: '/vagrant/tests/test_unit/stub_data/te/st/1/meta.json',
                           CONSTANTS['FULL_TEXT']: 'hehehe I am the full text',
-                          CONSTANTS['FORMAT']: 'XML'}
+                          CONSTANTS['FORMAT']: 'XML',
+                          CONSTANTS['FILE_SOURCE']: '/vagrant/source.txt',
+                          CONSTANTS['BIBCODE']: "MNRAS2014",
+                          CONSTANTS['PROVIDER']: "MNRAS",
+                          CONSTANTS['UPDATE']: "MISSING_FULL_TEXT"}
+
         self.meta_file = self.dict_item[CONSTANTS['META_PATH']]
         self.bibcode_pair_tree = self.dict_item[CONSTANTS['META_PATH']].replace('meta.json', '')
         self.full_text_file = self.bibcode_pair_tree + 'fulltext.txt'
@@ -328,17 +333,17 @@ class TestWriteMetaFileWorker(unittest.TestCase):
     def tearDown(self):
         try:
             os.remove(self.meta_file)
-        except IOError:
+        except OSError:
             pass
 
         try:
             os.remove(self.full_text_file)
-        except IOError:
+        except OSError:
             pass
 
         try:
             os.rmdir(self.bibcode_pair_tree)
-        except IOError:
+        except OSError:
             pass
 
     def test_loads_the_content_correctly_and_makes_folders(self):
@@ -361,5 +366,64 @@ class TestWriteMetaFileWorker(unittest.TestCase):
 
         self.assertTrue(os.path.exists(self.full_text_file),
                             msg=os.path.exists(self.full_text_file))
+
+    def test_pipeline_extract_content_extracts_fulltext_correctly(self):
+
+        self.dict_item[CONSTANTS['FORMAT']] = 'TEXT'
+        pipeline_payload = [self.dict_item]
+
+        return_payload = writer.extract_content(pipeline_payload)
+
+        self.assertTrue(return_payload, 1)
+
+        full_text = ""
+        with open(self.dict_item[CONSTANTS['META_PATH']].replace('meta.json', 'fulltext.txt'), 'r') as full_text_file:
+            full_text = full_text_file.read()
+
+        self.assertEqual(self.dict_item[CONSTANTS['FULL_TEXT']], full_text)
+
+    def test_pipeline_extract_content_extracts_meta_text_correctly(self):
+        self.dict_item[CONSTANTS['FORMAT']] = 'TEXT'
+        pipeline_payload = [self.dict_item]
+
+        return_payload = writer.extract_content(pipeline_payload)
+
+        self.assertTrue(return_payload, 1)
+
+        meta_dict = {}
+        with open(self.dict_item[CONSTANTS['META_PATH']], 'r') as meta_file:
+            meta_dict = json.load(meta_file)
+
+        self.assertEqual(self.dict_item[CONSTANTS['FILE_SOURCE']], meta_dict[CONSTANTS['FILE_SOURCE']])
+        self.assertEqual(self.dict_item[CONSTANTS['BIBCODE']], meta_dict[CONSTANTS['BIBCODE']])
+        self.assertEqual(self.dict_item[CONSTANTS['PROVIDER']], meta_dict[CONSTANTS['PROVIDER']])
+        self.assertEqual(self.dict_item[CONSTANTS['UPDATE']], meta_dict[CONSTANTS['UPDATE']])
+
+    def pipeline_extract(self, format):
+        self.dict_item[CONSTANTS['FORMAT']] = format
+        pipeline_payload = [self.dict_item]
+
+        return_payload = writer.extract_content(pipeline_payload)
+
+        self.assertTrue(return_payload, 1)
+
+        meta_dict = {}
+        with open(self.dict_item[CONSTANTS['META_PATH']], 'r') as meta_file:
+            meta_dict = json.load(meta_file)
+
+        self.assertEqual(self.dict_item[CONSTANTS['FILE_SOURCE']], meta_dict[CONSTANTS['FILE_SOURCE']])
+        self.assertEqual(self.dict_item[CONSTANTS['BIBCODE']], meta_dict[CONSTANTS['BIBCODE']])
+        self.assertEqual(self.dict_item[CONSTANTS['PROVIDER']], meta_dict[CONSTANTS['PROVIDER']])
+        self.assertEqual(self.dict_item[CONSTANTS['UPDATE']], meta_dict[CONSTANTS['UPDATE']])
+
+    def test_pipeline_extract_works_for_all_formats(self):
+
+        for format_ in ['TEXT', 'XML', 'XMLElsevier', 'OCR', 'HTML', 'HTTP']:
+            try:
+                self.pipeline_extract(format_)
+            except Exception:
+                raise Exception
+
+
 if __name__ == '__main__':
     unittest.main()

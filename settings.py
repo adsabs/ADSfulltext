@@ -21,7 +21,7 @@ CONSTANTS = {
     "PROVIDER": "provider",
     "UPDATE": "UPDATE",
     "FULL_TEXT": 'fulltext',
-    "FORMAT": "XML",
+    "FORMAT": "file_format",
 }
 
 META_CONTENT = {
@@ -46,7 +46,10 @@ META_CONTENT = {
         "table": ['//table'],
         "table_links": ['//a[contains(@href, "TABLE_NAME")]'],
         "head": ['//head']
-    }
+    },
+    "TEXT": {"fulltext": [""]},
+    "OCR": {"fulltext": [""]},
+    "HTTP": {"fulltext": [""]}
 }
 
 

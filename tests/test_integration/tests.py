@@ -34,7 +34,11 @@ class TestExtractWorker(unittest.TestCase):
         records = read_links_from_file(test_publish)
 
         with open(PROJ_HOME + "/" + test_publish, "r") as f:
-            nor = len(f.readlines())
+            lines = f.readlines()
+            nor = len(lines)
+
+        number_of_PDFs = len(list(filter(lambda x: x.lower().endswith('.pdf'), [i.strip().split("\t")[-2] for i in lines])))
+        number_of_standard_files = nor - number_of_PDFs
 
         self.assertEqual(len(records.bibcode), nor)
 
@@ -79,8 +83,8 @@ class TestExtractWorker(unittest.TestCase):
 
         pdf_res, standard_res = json.loads(self.check_worker.results["PDF"]), json.loads(self.check_worker.results["Standard"])
 
-        self.assertEqual(len(pdf_res), 3)
-        self.assertEqual(len(standard_res), 4, standard_res)
+        self.assertEqual(len(pdf_res), number_of_PDFs, 'Expected number of pdfs: %d' % number_of_PDFs)
+        self.assertEqual(len(standard_res), number_of_standard_files, 'Expected number of normal formats: %d' % number_of_standard_files)
         # self.assertEqual(self.check_worker.results, 'pass')
         self.assertTrue(pdf_queue.method.message_count >= 1,
                         "PDF queue should have at least 1 message, but it has: %d" % pdf_queue.method.message_count)
