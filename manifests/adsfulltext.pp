@@ -28,7 +28,8 @@ exec {'pip_install_modules':
 
 # Python path to work while on the VM
 exec {'update_python_path':
-command => "echo 'export PYTHONPATH=$PYTHONPATH:/vagrant/' > /home/vagrant/.bashrc",
+    command => "echo 'export PYTHONPATH=$PYTHONPATH:/vagrant/' > /home/vagrant/.bashrc",
+    path => $path_var,
 }
 
 Exec['apt_update_1'] -> Package[$build_packages] -> Exec['pip_install_modules'] -> Exec['update_python_path']
