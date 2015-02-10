@@ -27,6 +27,14 @@ class TestExtractWorker(unittest.TestCase):
         self.standard_worker.logger.debug("params: %s" % standard_params)
         self.meta_writer = WriteMetaFileWorker(params=writer_params)
 
+    def tearDown(self):
+
+        if os.path.exists('/vagrant/tests/test_unit/stub_data/te/st/1/'):
+            os.remove('/vagrant/tests/test_unit/stub_data/te/st/1/meta.json')
+            os.remove('/vagrant/tests/test_unit/stub_data/te/st/1/fulltext.txt')
+            os.rmdir('/vagrant/tests/test_unit/stub_data/te/st/1/')
+
+
     def test_extraction_of_non_extracted(self):
 
         # user loads the list of full text files
@@ -139,7 +147,7 @@ class TestExtractWorker(unittest.TestCase):
             passive=True
             )
 
-        self.assertTrue(os.path.exists('/vagrant/tests/test_unit/te/st/1/meta.json'))
+        self.assertTrue(os.path.exists('/vagrant/tests/test_unit/stub_data/te/st/1/meta.json'))
 
         # # When extracted, the payload should no longer exist within the standard file queue
         # self.assertTrue(standard_queue.method.message_count == 0,
