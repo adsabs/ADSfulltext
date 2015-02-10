@@ -118,6 +118,23 @@ class TestCheckIfExtracted(unittest.TestCase):
         self.assertTrue(len(pdf_compare) == 3, json.loads(payload["PDF"]))
         self.assertTrue(len(standard_compare) == 3)
 
+    def test_output_dictionary_contains_everything_we_need(self):
+
+        FileInputStream = utils.FileInputStream(test_file)
+        FileInputStream.extract()
+
+        payload = check.check_if_extract(FileInputStream.raw, extract_key="FULLTEXT_EXTRACT_PATH_UNITTEST")
+
+        expected_content = [CONSTANTS['FILE_SOURCE'], CONSTANTS['BIBCODE'],
+                              CONSTANTS['PROVIDER'], CONSTANTS['FORMAT'],
+                              CONSTANTS['UPDATE'], CONSTANTS['META_PATH']]
+        expected_content = [unicode(i) for i in expected_content]
+        expected_content.sort()
+        actual_content = json.loads(payload['Standard'])[0].keys()
+        actual_content.sort()
+        self.assertListEqual(actual_content, expected_content)
+        self.assertEqual(actual_content[CONSTANTS['FORMAT']], 'txt')
+
 
 class TestFileStreamInput(unittest.TestCase):
 

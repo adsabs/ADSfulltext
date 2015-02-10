@@ -9,6 +9,9 @@ import utils
 import json
 from datetime import datetime
 from settings import config, CONSTANTS
+from utils import setup_logging
+
+logger = setup_logging(__file__, __name__)
 
 
 def file_last_modified_time(file_input):
@@ -109,14 +112,19 @@ def check_if_extract(message_list, extract_key="FULLTEXT_EXTRACT_PATH"):
         else:
             update = "NOT_EXTRACTED_BEFORE"
 
+        logger.info('Creating meta path')
         message[CONSTANTS['META_PATH']] = create_meta_path(message, extract_key=extract_key)
+        logger.info('created: %s' % message[CONSTANTS['META_PATH']])
 
-        if update in NEEDS_UPDATE and message['ft_source'].lower().endswith('.pdf'):
-            message['UPDATE'] = update
+        message[CONSTANTS['FORMAT']] = format_ = message[CONSTANTS['FILE_SOURCE']].split(".")[-1].lower()
+
+        if update in NEEDS_UPDATE and 'pdf':
+            message[CONSTANTS['UPDATE']] = update
+
             publish_list_of_pdf_dictionaries.append(message)
 
         elif update in NEEDS_UPDATE:
-            message['UPDATE'] = update
+            message[CONSTANTS['UPDATE']] = update
             publish_list_of_standard_dictionaries.append(message)
 
     return {"Standard": json.dumps(publish_list_of_standard_dictionaries),

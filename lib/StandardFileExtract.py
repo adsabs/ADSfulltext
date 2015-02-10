@@ -373,7 +373,7 @@ def extract_content(input_list):
     for dict_item in input_list:
 
         try:
-            extension = dict_item[CONSTANTS['FILE_SOURCE']].lower().split(".")[-1]
+            extension = dict_item[CONSTANTS['FORMAT']]
             if extension not in ACCEPTED_FORMATS: raise KeyError("You gave an unsupported file extension.")
 
             if extension == "xml" and dict_item[CONSTANTS['PROVIDER']] == "Elsevier":
@@ -387,7 +387,11 @@ def extract_content(input_list):
         try:
             Extractor = ExtractorClass(dict_item)
             parsed_content = Extractor.extract_multi_content()
-            output_list.append(parsed_content)
+
+            for item in parsed_content:
+                dict_item[item] = parsed_content[item]
+
+            output_list.append(dict_item)
         except Exception:
             raise Exception(traceback.format_exc())
 

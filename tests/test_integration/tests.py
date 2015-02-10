@@ -66,6 +66,7 @@ class TestExtractWorker(unittest.TestCase):
         # see: http://stackoverflow.com/questions/22061082/\
         # getting-pika-exceptions-connectionclosed-error-while-using-rabbitmq-in-python
 
+        print('starting check worker...')
         self.check_worker.run()
         time.sleep(10)
 
@@ -83,7 +84,7 @@ class TestExtractWorker(unittest.TestCase):
 
         pdf_res, standard_res = json.loads(self.check_worker.results["PDF"]), json.loads(self.check_worker.results["Standard"])
 
-        self.assertEqual(len(pdf_res), number_of_PDFs, 'Expected number of pdfs: %d' % number_of_PDFs)
+        self.assertEqual(len(pdf_res), number_of_PDFs, 'Expected number of PDFs: %d' % number_of_PDFs)
         self.assertEqual(len(standard_res), number_of_standard_files, 'Expected number of normal formats: %d' % number_of_standard_files)
         # self.assertEqual(self.check_worker.results, 'pass')
         self.assertTrue(pdf_queue.method.message_count >= 1,
@@ -102,6 +103,7 @@ class TestExtractWorker(unittest.TestCase):
                         "Should be 0, but it is: %d" % queue_error.method.message_count)
 
         # Standard Extractor should extract the content of the given payload
+        print('starting extractor worker')
         self.standard_worker.run()
         # standard_res = json.loads(self.standard_worker.results)[0]
         # self.assertItemsEqual(META_CONTENT["XML"].keys(), standard_res.keys())
@@ -120,7 +122,7 @@ class TestExtractWorker(unittest.TestCase):
         # self.assertTrue(u'acknowledgements' in standard_res.keys())
 
         # self.assertEquals(len(json.loads(self.standard_worker.results)), 4)
-
+        print('starting meta writer...')
         self.meta_writer.run()
 
         # The writing queue should now contain the correct number in the payload
