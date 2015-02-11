@@ -14,6 +14,7 @@ from utils import setup_logging, overrides
 from lxml.html import soupparser, document_fromstring, fromstring
 from lib import entitydefs as edef
 from settings import CONSTANTS, META_CONTENT
+from requests.exceptions import HTTPError
 
 logger = setup_logging(__file__, __name__)
 
@@ -118,7 +119,7 @@ class StandardExtractorBasicText(object):
         self.parse_text(translate=translate, decode=decode)
 
         meta_out = {}
-        meta_out["fulltext"] = self.parsed_text
+        meta_out[CONSTANTS['FILE_SOURCE']] = self.parsed_text
         return meta_out
 
 
@@ -276,7 +277,7 @@ class StandardExtractorHTML(object):
                                        if individual_element_tree_node
                                        and not individual_element_tree_node.isspace()])
 
-        meta_out = {"fulltext": string_of_all_html}
+        meta_out = {CONSTANTS['FILE_SOURCE']: string_of_all_html}
 
         return meta_out
 
@@ -352,36 +353,54 @@ class StandardElsevierExtractorXML(StandardExtractorXML):
         return content
 
 
-class StandardExtractorHTTP(object):
+class StandardExtractorHTTP(StandardExtractorBasicText):
 
     def __init__(self, dict_item):
+
+        StandardExtractorBasicText.__init__(self, dict_item)
         self.dict_item = dict_item
         self.meta_name = "HTTP"
-        self.request_headers = {'User-Agent': 'ADSClient', 'Accept': 'text/plain'}
+        self.raw_text = None
+        self.parsed_text = None
+        self.request_headers = {'User-Agent': 'ADSClient',
+                                'Accept': 'text/plain',}
 
-#          if only_if_modified:
-# if self.last_extracted is not None:
-# last_extracted_str = self.last_extracted.strftime('%a, %d %b %Y %H:%M:%S %Z')
-# log.debug("setting if-modified-since: %s" % last_extracted_str)
-# req_headers['If-Modified-Since'] = last_extracted_str
-# http = httplib2.Http()
-# (resp_headers, resp) = http.request(
-# self.ft_source, method="GET",
-# headers=req_headers)
-# if resp_headers['status'] == '200':
-# self.source_content = resp
-# self.source_loaded = True
-# elif resp_headers['status'] != '304':
-# log.error("http response status: %s" % resp_headers['status'])
-# raise FulltextSourceNotFound("no content found at %s" % self.ft_source)
+        try:
+            prev_time_stamp = self.dict_item[CONSTANTS['PREVIOUS_TIME_STAMP']]
+            last_modified = prev_time_stamp.strftime('%a, %d %b %Y %H:%M:%S %Z')
+            self.request_headers['If-Modified-Since'] = last_modified
+        except KeyError:
+            pass
 
     def open_http(self):
 
         import requests
-        response = requests.get(self.dict_item[CONSTANTS['FILE_SOURCE']])
-        # response_headers, response = http.request()
+        response = requests.get(self.dict_item[CONSTANTS['FILE_SOURCE']],
+                                headers=self.request_headers)
 
-        return response
+        if response.status_code != 200:
+            raise HTTPError('Status code not 200: %d' % response.status_code)
+
+        self.raw_text = response.text
+
+        return self.raw_text
+
+    def parse_http(self, translate=True, decode=True):
+        self.parsed_http = self.parse_text(translate=translate, decode=decode)
+        return self.parsed_http
+
+    @overrides(StandardExtractorBasicText)
+    def extract_multi_content(self, translate=True, decode=True):
+        pass
+
+    def extract_multi_content(self, translate=True, decode=True):
+        self.open_http()
+        self.parse_http(translate=translate, decode=decode)
+
+        meta_out = {}
+        meta_out[CONSTANTS['FILE_SOURCE']] = self.parsed_http
+        return meta_out
+
 
 EXTRACTOR_FACTORY = {
     "xml": StandardExtractorXML,

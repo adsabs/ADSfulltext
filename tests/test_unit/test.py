@@ -13,6 +13,7 @@ from settings import PROJ_HOME, config, CONSTANTS, META_CONTENT
 from lib import CheckIfExtract as check
 from lib import StandardFileExtract as std_extract
 from lib import WriteMetaFile as writer
+from requests.exceptions import HTTPError
 
 test_file = 'tests/test_integration/stub_data/fulltext.links'
 test_file_stub = 'tests/test_integration/stub_data/fulltext_stub.links'
@@ -355,38 +356,54 @@ class TestHTTPExtractor(unittest.TestCase):
 
         self.extractor = std_extract.EXTRACTOR_FACTORY['http'](self.dict_item)
 
-    def tearDownClass(self):
+        self.body_content = "Full text extract"
+
+    def tearDown(self):
         httpretty.disable()  # disable afterwards, so that you will have no problems in code that uses that socket module
         httpretty.reset()    # reset HTTPretty state (clean up registered urls and request history)
 
     @httpretty.activate
     def test_http_can_be_open(self):
-
-        body_content = "Full text extract"
-
         httpretty.register_uri(httpretty.GET,
                                self.dict_item[CONSTANTS['FILE_SOURCE']],
-                               body=body_content)
+                               body=self.body_content)
 
         response = self.extractor.open_http()
-        self.assertEqual(response.text, '1',
-                         'Expected response: %s\n but got: %s' % (body_content, response.text))
 
+        self.assertEqual(response, self.body_content,
+                         'Expected response: %s\n but got: %s' % (self.body_content, response))
 
     @httpretty.activate
-    def test_http_can_be_open_with_header_requests(self):
-        pass
+    def test_http_response_not_200(self):
+        httpretty.register_uri(httpretty.GET,
+                               self.dict_item[CONSTANTS['FILE_SOURCE']],
+                               body=self.body_content,
+                               status=304)
 
-    # @httpretty.activate
-    # def test_http_response_not_200(self):
-    #     httpretty.register_uri(httpretty.GET,
-    #                            self.dict_item[CONSTANTS['FILE_SOURCE']],
-    #                            body=body_content,
-    #                            status=304)
-    #     # self.extractor.open_http()
-    #     # self.assertRaises()
-    #     # # self.assertEqual(response.text, '1',
-    #     #                  'Expected response: %s\n but got: %s' % (body_content, response.text))
+        self.assertRaises(HTTPError, self.extractor.open_http)
+
+    @httpretty.activate
+    def test_http_parses(self):
+        httpretty.register_uri(httpretty.GET,
+                               self.dict_item[CONSTANTS['FILE_SOURCE']],
+                               body=self.body_content,
+                               status=200)
+
+        self.extractor.open_http()
+        parsed_content = self.extractor.parse_http()
+
+        self.assertEqual(parsed_content, self.body_content)
+
+    @httpretty.activate
+    def test_http_multi_content(self):
+        httpretty.register_uri(httpretty.GET,
+                               self.dict_item[CONSTANTS['FILE_SOURCE']],
+                               body=self.body_content,
+                               status=200)
+
+        content = self.extractor.extract_multi_content()
+
+        self.assertEqual(content[CONSTANTS['FILE_SOURCE']], self.body_content)
 
 
 class TestWriteMetaFileWorker(unittest.TestCase):
