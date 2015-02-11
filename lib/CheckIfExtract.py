@@ -29,6 +29,7 @@ def create_meta_path(dict_input, extract_key="FULLTEXT_EXTRACT_PATH"):
     import ptree
     ptr = ptree.id2ptree(dict_input[CONSTANTS['BIBCODE']])
     extract_path = config[extract_key] + ptr + "meta.json"
+    logger.info('extract_path: %s' % extract_path)
 
     return extract_path
 
@@ -52,6 +53,8 @@ def load_meta_file(file_input, extract_key="FULLTEXT_EXTRACT_PATH"):
     try:
         with open(meta_full_path) as f:
             content = json.loads(f.read())
+
+        logger.info('Meta file already exists')
     except IOError:
         raise IOError("IOError: Json content could not be loaded: \n%s, \n%s" % (meta_full_path, file_input))
     except Exception:
@@ -66,11 +69,13 @@ def meta_needs_update(dict_input, meta_content, extract_key="FULLTEXT_EXTRACT_PA
 
     # Obtain the indexed date within the meta file
     try:
-        meta_date = parse(meta_content["index_date"])
+        meta_date = parse(meta_content[CONSTANTS['TIME_STAMP']])
     except KeyError:
         logger.warning("Malformed meta-file")
     except:
         logger.warning("Unexpected error %s" % sys.exc_info())
+
+    logger.info('Opened existing meta to determine if an update is required.')
 
     # No extraction exists
     if CONSTANTS['FILE_SOURCE'] not in meta_content:
@@ -109,6 +114,7 @@ def check_if_extract(message_list, extract_key="FULLTEXT_EXTRACT_PATH"):
             meta_content = load_meta_file(message, extract_key=extract_key)
             update = meta_needs_update(message, meta_content, extract_key=extract_key)
         else:
+            logger.info('No existing meta file')
             update = "NOT_EXTRACTED_BEFORE"
 
         logger.info('Update required?: %s' % update)
@@ -131,7 +137,7 @@ def check_if_extract(message_list, extract_key="FULLTEXT_EXTRACT_PATH"):
         # Wite a time stamp of this process
         message[CONSTANTS['TIME_STAMP']] = datetime.utcnow().isoformat() + 'Z'
 
-        logger.info("Adding timestamp: %s" % message[CONSTANTS['TIME_STAMP']])o
+        logger.info("Adding timestamp: %s" % message[CONSTANTS['TIME_STAMP']])
         logger.info('Returning dictionaries')
 
         if len(publish_list_of_pdf_dictionaries) == 0:

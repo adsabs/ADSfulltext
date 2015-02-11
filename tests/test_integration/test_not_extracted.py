@@ -2,11 +2,12 @@ import unittest
 import time
 import json
 import os
+import lib.CheckIfExtract as check_if_extract
 from pipeline import psettings
 from pipeline.workers import RabbitMQWorker, CheckIfExtractWorker, StandardFileExtractWorker, WriteMetaFileWorker
 from pipeline.ADSfulltext import TaskMaster
 from run import publish, read_links_from_file
-from settings import META_CONTENT, PROJ_HOME
+from settings import META_CONTENT, PROJ_HOME, CONSTANTS
 
 
 class TestExtractWorker(unittest.TestCase):
@@ -26,13 +27,14 @@ class TestExtractWorker(unittest.TestCase):
         self.standard_worker = StandardFileExtractWorker(params=standard_params)
         self.standard_worker.logger.debug("params: %s" % standard_params)
         self.meta_writer = WriteMetaFileWorker(params=writer_params)
+        self.meta_path = ''
 
     def tearDown(self):
 
-        if os.path.exists('/vagrant/tests/test_unit/stub_data/te/st/1/'):
-            os.remove('/vagrant/tests/test_unit/stub_data/te/st/1/meta.json')
-            os.remove('/vagrant/tests/test_unit/stub_data/te/st/1/fulltext.txt')
-            os.rmdir('/vagrant/tests/test_unit/stub_data/te/st/1/')
+        if os.path.exists(self.meta_path):
+            os.remove(os.path.join(self.meta_path, 'fulltext.txt'))
+            os.remove(os.path.join(self.meta_path, 'meta.json'))
+            os.rmdir(self.meta_path)
 
         # Purge the queues if they have content
         channel_list = [[self.check_worker.channel, 'CheckIfExtractQueue'],
@@ -45,17 +47,20 @@ class TestExtractWorker(unittest.TestCase):
 
     def test_extraction_of_non_extracted(self):
 
-        # user loads the list of full text files and publishes them to the first queue
-        test_publish = 'tests/test_integration/stub_data/fulltext_single_document.links'
-        records = read_links_from_file(test_publish)
+        test_publish='tests/test_integration/stub_data/fulltext_single_document.links'
 
+        # user loads the list of full text files and publishes them to the first queue
+        records = read_links_from_file(test_publish)
         with open(os.path.join(PROJ_HOME, test_publish), "r") as f:
             lines = f.readlines()
             nor = len(lines)
+        test_expected = check_if_extract.create_meta_path(
+            {"bibcode": lines[0].strip().split("\t")[0]}, extract_key='FULLTEXT_EXTRACT_PATH_UNITTEST')
+        self.meta_path = test_expected.replace('meta.json', '')
 
-        number_of_PDFs = len(list(filter(lambda x: x.lower().endswith('.pdf'),
+        self.number_of_PDFs = len(list(filter(lambda x: x.lower().endswith('.pdf'),
                                          [i.strip().split("\t")[-2] for i in lines])))
-        number_of_standard_files = nor - number_of_PDFs
+        self.number_of_standard_files = nor - self.number_of_PDFs
 
         self.assertEqual(len(records.bibcode), nor)
 
@@ -101,25 +106,28 @@ class TestExtractWorker(unittest.TestCase):
             passive=True
             )
 
-        self.assertTrue(standard_queue.method.message_count == number_of_standard_files,
+        self.assertTrue(standard_queue.method.message_count == self.number_of_standard_files,
                         "Standard queue should have at least %d message, but it has: %d" %
-                        (number_of_standard_files, standard_queue.method.message_count))
-        self.assertTrue(pdf_queue.method.message_count == number_of_PDFs,
+                        (self.number_of_standard_files, standard_queue.method.message_count))
+        self.assertTrue(pdf_queue.method.message_count == self.number_of_PDFs,
                         "PDF queue should have at least %d message, but it has: %d" %
-                        (number_of_PDFs, pdf_queue.method.message_count))
+                        (self.number_of_PDFs, pdf_queue.method.message_count))
 
         # Double check with the worker output
         pdf_res = json.loads(self.check_worker.results["PDF"])
         standard_res = json.loads(self.check_worker.results["Standard"])
+
+        self.assertTrue('NOT_EXTRACTED_BEFORE',
+                        'This should be NOT_EXTRACTED_BEFORE, but is in fact: %s' % standard_res[0][CONSTANTS['UPDATE']])
 
         if pdf_res:
             pdf_res = len(pdf_res)
         else:
             pdf_res = 0
 
-        self.assertEqual(pdf_res, number_of_PDFs, 'Expected number of PDFs: %d' % number_of_PDFs)
-        self.assertEqual(len(standard_res), number_of_standard_files, 'Expected number of normal formats: %d' %
-                         number_of_standard_files)
+        self.assertEqual(pdf_res, self.number_of_PDFs, 'Expected number of PDFs: %d' % self.number_of_PDFs)
+        self.assertEqual(len(standard_res), self.number_of_standard_files, 'Expected number of normal formats: %d' %
+                         self.number_of_standard_files)
 
         # There should be no errors at this stage
         queue_error = self.check_worker.channel.queue_declare(
@@ -135,7 +143,7 @@ class TestExtractWorker(unittest.TestCase):
         print('starting extractor worker')
         self.standard_worker.run()
         number_of_standard_files_2 = len(json.loads(self.standard_worker.results))
-        self.assertTrue(number_of_standard_files_2, number_of_standard_files)
+        self.assertTrue(number_of_standard_files_2, self.number_of_standard_files)
 
         # After the extractor, the meta writer should write all the payloads to disk in the correct
         # folders
@@ -143,8 +151,12 @@ class TestExtractWorker(unittest.TestCase):
         self.meta_writer.run()
 
         time.sleep(5)
-        self.assertTrue(os.path.exists('/vagrant/tests/test_unit/stub_data/te/st/1/meta.json'))
-        self.assertTrue(os.path.exists('/vagrant/tests/test_unit/stub_data/te/st/1/fulltext.txt'))
+        meta_json = (os.path.join(self.meta_path, 'meta.json'))
+        fulltext_txt = (os.path.join(self.meta_path, 'fulltext.txt'))
+
+        self.assertTrue(os.path.exists(meta_json), "Meta file not created: %s" % meta_json)
+        self.assertTrue(os.path.exists(fulltext_txt), "Full text file not created: %s" % fulltext_txt)
+
 
 if __name__ == "__main__":
     unittest.main()
