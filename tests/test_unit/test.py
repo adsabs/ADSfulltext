@@ -7,11 +7,13 @@ import utils
 import json
 import re
 import os
+import httpretty
 
 from settings import PROJ_HOME, config, CONSTANTS, META_CONTENT
 from lib import CheckIfExtract as check
 from lib import StandardFileExtract as std_extract
 from lib import WriteMetaFile as writer
+
 test_file = 'tests/test_integration/stub_data/fulltext.links'
 test_file_stub = 'tests/test_integration/stub_data/fulltext_stub.links'
 test_file_wrong = 'tests/test_integration/stub_data/fulltext_wrong.links'
@@ -344,6 +346,47 @@ class TestOCRandTXTExtractor(unittest.TestCase):
     def test_extract_multi_content_on_text_data(self):
         content = self.extractor.extract_multi_content()
         self.assertIn('introduction', content['fulltext'].lower())
+
+
+class TestHTTPExtractor(unittest.TestCase):
+    def setUp(self):
+        self.dict_item = {CONSTANTS["FILE_SOURCE"]: "http://fake/http/address",
+                          CONSTANTS['BIBCODE']: "TEST"}
+
+        self.extractor = std_extract.EXTRACTOR_FACTORY['http'](self.dict_item)
+
+    def tearDownClass(self):
+        httpretty.disable()  # disable afterwards, so that you will have no problems in code that uses that socket module
+        httpretty.reset()    # reset HTTPretty state (clean up registered urls and request history)
+
+    @httpretty.activate
+    def test_http_can_be_open(self):
+
+        body_content = "Full text extract"
+
+        httpretty.register_uri(httpretty.GET,
+                               self.dict_item[CONSTANTS['FILE_SOURCE']],
+                               body=body_content)
+
+        response = self.extractor.open_http()
+        self.assertEqual(response.text, '1',
+                         'Expected response: %s\n but got: %s' % (body_content, response.text))
+
+
+    @httpretty.activate
+    def test_http_can_be_open_with_header_requests(self):
+        pass
+
+    # @httpretty.activate
+    # def test_http_response_not_200(self):
+    #     httpretty.register_uri(httpretty.GET,
+    #                            self.dict_item[CONSTANTS['FILE_SOURCE']],
+    #                            body=body_content,
+    #                            status=304)
+    #     # self.extractor.open_http()
+    #     # self.assertRaises()
+    #     # # self.assertEqual(response.text, '1',
+    #     #                  'Expected response: %s\n but got: %s' % (body_content, response.text))
 
 
 class TestWriteMetaFileWorker(unittest.TestCase):

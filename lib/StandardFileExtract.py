@@ -352,12 +352,44 @@ class StandardElsevierExtractorXML(StandardExtractorXML):
         return content
 
 
+class StandardExtractorHTTP(object):
+
+    def __init__(self, dict_item):
+        self.dict_item = dict_item
+        self.meta_name = "HTTP"
+        self.request_headers = {'User-Agent': 'ADSClient', 'Accept': 'text/plain'}
+
+#          if only_if_modified:
+# if self.last_extracted is not None:
+# last_extracted_str = self.last_extracted.strftime('%a, %d %b %Y %H:%M:%S %Z')
+# log.debug("setting if-modified-since: %s" % last_extracted_str)
+# req_headers['If-Modified-Since'] = last_extracted_str
+# http = httplib2.Http()
+# (resp_headers, resp) = http.request(
+# self.ft_source, method="GET",
+# headers=req_headers)
+# if resp_headers['status'] == '200':
+# self.source_content = resp
+# self.source_loaded = True
+# elif resp_headers['status'] != '304':
+# log.error("http response status: %s" % resp_headers['status'])
+# raise FulltextSourceNotFound("no content found at %s" % self.ft_source)
+
+    def open_http(self):
+
+        import requests
+        response = requests.get(self.dict_item[CONSTANTS['FILE_SOURCE']])
+        # response_headers, response = http.request()
+
+        return response
+
 EXTRACTOR_FACTORY = {
     "xml": StandardExtractorXML,
     "html": StandardExtractorHTML,
     "txt": StandardExtractorBasicText,
     "ocr": StandardExtractorBasicText,
     "elsevier": StandardElsevierExtractorXML,
+    "http": StandardExtractorHTTP,
 }
 # HTTP
 #-----
