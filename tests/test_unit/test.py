@@ -128,7 +128,8 @@ class TestCheckIfExtracted(unittest.TestCase):
 
         expected_content = [CONSTANTS['FILE_SOURCE'], CONSTANTS['BIBCODE'],
                               CONSTANTS['PROVIDER'], CONSTANTS['FORMAT'],
-                              CONSTANTS['UPDATE'], CONSTANTS['META_PATH']]
+                              CONSTANTS['UPDATE'], CONSTANTS['META_PATH'],
+                              CONSTANTS['TIME_STAMP']]
         expected_content = [unicode(i) for i in expected_content]
         expected_content.sort()
 

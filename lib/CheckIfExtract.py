@@ -127,6 +127,11 @@ def check_if_extract(message_list, extract_key="FULLTEXT_EXTRACT_PATH"):
             message[CONSTANTS['UPDATE']] = update
             publish_list_of_standard_dictionaries.append(message)
 
+
+        # Wite a time stamp of this process
+        message[CONSTANTS['TIME_STAMP']] = datetime.utcnow().isoformat() + 'Z'
+
+        logger.info("Adding timestamp: %s" % message[CONSTANTS['TIME_STAMP']])o
         logger.info('Returning dictionaries')
 
         if len(publish_list_of_pdf_dictionaries) == 0:
