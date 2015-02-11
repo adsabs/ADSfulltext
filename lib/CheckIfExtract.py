@@ -27,7 +27,7 @@ def file_last_modified_time(file_input):
 def create_meta_path(dict_input, extract_key="FULLTEXT_EXTRACT_PATH"):
 
     import ptree
-    ptr = ptree.id2ptree(dict_input['bibcode'])
+    ptr = ptree.id2ptree(dict_input[CONSTANTS['BIBCODE']])
     extract_path = config[extract_key] + ptr + "meta.json"
 
     return extract_path
@@ -54,9 +54,9 @@ def load_meta_file(file_input, extract_key="FULLTEXT_EXTRACT_PATH"):
             content = json.loads(f.read())
     except IOError:
         raise IOError("IOError: Json content could not be loaded: \n%s, \n%s" % (meta_full_path, file_input))
-    except:
-        print "Unexpected error"
-
+    except Exception:
+        logger.warning("Unexpected error")
+        raise Exception
     return content
 
 
@@ -68,22 +68,22 @@ def meta_needs_update(dict_input, meta_content, extract_key="FULLTEXT_EXTRACT_PA
     try:
         meta_date = parse(meta_content["index_date"])
     except KeyError:
-        print "Malformed meta-file"
+        logger.warning("Malformed meta-file")
     except:
-        print "Unexpected error", sys.exc_info()
+        logger.warning("Unexpected error %s" % sys.exc_info())
 
     # No extraction exists
-    if 'ft_source' not in meta_content:
+    if CONSTANTS['FILE_SOURCE'] not in meta_content:
         return 'MISSING_FULL_TEXT'
 
     # Full text file path has changed
-    if meta_content['ft_source'] != dict_input['ft_source']:
+    if meta_content[CONSTANTS['FILE_SOURCE']] != dict_input[CONSTANTS['FILE_SOURCE']]:
         return 'DIFFERING_FULL_TEXT'
 
     # Content is considered 'stale'
     delta_comp_time = datetime.utcnow() - datetime.now()
 
-    ft_source_last_modified = file_last_modified_time(meta_content['ft_source'])
+    ft_source_last_modified = file_last_modified_time(meta_content[CONSTANTS['FILE_SOURCE']])
     ft_source_last_modified += delta_comp_time
 
     meta_path = create_meta_path(dict_input, extract_key=extract_key)
