@@ -1,51 +1,16 @@
-import unittest
-import time
-import json
-import os
-import lib.CheckIfExtract as check_if_extract
+from base import *
 from datetime import datetime
-from pipeline import psettings
-from pipeline.workers import RabbitMQWorker, CheckIfExtractWorker, StandardFileExtractWorker, WriteMetaFileWorker
-from pipeline.ADSfulltext import TaskMaster
-from run import publish, read_links_from_file
-from settings import META_CONTENT, PROJ_HOME, CONSTANTS
 
 
-class TestExtractWorker(unittest.TestCase):
-
-    def setUp(self):
-        # Load the extraction worker
-        check_params = psettings.WORKERS['CheckIfExtractWorker']
-        standard_params = psettings.WORKERS['StandardFileExtractWorker']
-        writer_params = psettings.WORKERS['WriteMetaFileWorker']
-
-        for params in [check_params, standard_params, writer_params]:
-            params['RABBITMQ_URL'] = psettings.RABBITMQ_URL
-            params['extract_key'] = "FULLTEXT_EXTRACT_PATH_UNITTEST"
-            params['TEST_RUN'] = True
-
-        self.check_worker = CheckIfExtractWorker(params=check_params)
-        self.standard_worker = StandardFileExtractWorker(params=standard_params)
-        self.standard_worker.logger.debug("params: %s" % standard_params)
-        self.meta_writer = WriteMetaFileWorker(params=writer_params)
-        self.meta_path = ''
+class TestExtractWorker(IntegrationTest):
 
     def tearDown(self):
-
         if os.path.exists(self.meta_path):
             os.remove(os.path.join(self.meta_path, 'fulltext.txt'))
             os.remove(os.path.join(self.meta_path, 'meta.json'))
             os.rmdir(self.meta_path)
 
-        time.sleep(3)
-        # Purge the queues if they have content
-        channel_list = [[self.check_worker.channel, 'CheckIfExtractQueue'],
-                        [self.standard_worker.channel, 'StandardFileExtractorQueue'],
-                        [self.meta_writer.channel, 'WriteMetaFileQueue'],
-                        ]
-
-        for channel_link, queue_name in channel_list:
-            single_connection = channel_link.queue_purge(queue=queue_name)
+        super(TestExtractWorker, self).tearDown()
 
     def test_extraction_of_non_extracted(self):
 
@@ -53,44 +18,28 @@ class TestExtractWorker(unittest.TestCase):
 
         # user loads the list of full text files and publishes them to the first queue
         records = read_links_from_file(test_publish)
-        with open(os.path.join(PROJ_HOME, test_publish), "r") as f:
-            lines = f.readlines()
-            nor = len(lines)
-        test_expected = check_if_extract.create_meta_path(
-            {"bibcode": lines[0].strip().split("\t")[0]}, extract_key='FULLTEXT_EXTRACT_PATH_UNITTEST')
+
+        self.helper_get_details(test_publish)
+        self.assertEqual(len(records.bibcode), self.nor,
+                         "The number of records should match the number of lines. It does not: %d [%d]"
+                         % (len(records.bibcode),self.nor))
 
         # Make the fake data to use
-        self.meta_path = test_expected.replace('meta.json', '')
         if not os.path.exists(self.meta_path):
             os.makedirs(self.meta_path)
 
         test_meta_content = {"index_date": datetime.utcnow().isoformat()+'Z', "bibcode": "test4", "provider": "mnras"}
-        with open(test_expected, 'w') as test_meta_file:
+        with open(self.test_expected, 'w') as test_meta_file:
             json.dump(test_meta_content, test_meta_file)
 
-
-        self.number_of_PDFs = len(list(filter(lambda x: x.lower().endswith('.pdf'),
-                                         [i.strip().split("\t")[-2] for i in lines])))
-        self.number_of_standard_files = nor - self.number_of_PDFs
-
-        self.assertEqual(len(records.bibcode), nor)
 
         # The pipeline converts the input into a payload expected by the workers
         records.make_payload()
         self.assertTrue(len(records.payload)>0)
 
-        # Queues and routes are switched on so that they can allow workers to connect
-        TM = TaskMaster(psettings.RABBITMQ_URL, psettings.RABBITMQ_ROUTES, psettings.WORKERS)
-        TM.initialize_rabbitmq()
-
-        # The worker connects to the queue
-        publish_worker = RabbitMQWorker()
-        ret_queue = publish_worker.connect(psettings.RABBITMQ_URL)
-        self.assertTrue(ret_queue)
-
         # External worker publishes the payload created before to the RabbitMQ queue
         # for the workers to start consuming
-        ret = publish(publish_worker, records.payload, exchange='FulltextExtractionExchange',
+        ret = publish(self.publish_worker, records.payload, exchange='FulltextExtractionExchange',
                       routing_key='CheckIfExtractRoute')
         self.assertTrue(ret)
         time.sleep(10)
