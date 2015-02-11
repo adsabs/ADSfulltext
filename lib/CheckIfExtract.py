@@ -96,6 +96,8 @@ def meta_needs_update(dict_input, meta_content, extract_key="FULLTEXT_EXTRACT_PA
     meta_json_last_modified = file_last_modified_time(meta_path)
 
     # If the source content is more new than the last time it was extracted
+    logger.info("FILE_SOUCE last modified: %s" % ft_source_last_modified)
+    logger.info("META_PATH last modified: %s" % meta_json_last_modified)
     if ft_source_last_modified > meta_json_last_modified:
         return 'STALE_CONTENT'
 
