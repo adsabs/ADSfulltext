@@ -111,16 +111,30 @@ class TestCheckIfExtracted(unittest.TestCase):
         FileInputStream = utils.FileInputStream(test_file)
         FileInputStream.extract()
 
+        with open(os.path.join(PROJ_HOME, test_file), 'r') as in_f:
+            text = in_f.read()
+        pdf_re = re.compile('pdf')
+        pdf_number = len(pdf_re.findall(text))
+        standard_number = len(text.split('\n')) - pdf_number
+
         payload = check.check_if_extract(FileInputStream.raw, extract_key="FULLTEXT_EXTRACT_PATH_UNITTEST")
+        pdf_payload = json.loads(payload["PDF"])
+        standard_payload = json.loads(payload["Standard"])
 
-        pdf_compare = [content for content in json.loads(payload["PDF"]) if content["UPDATE"] in
-         [u"STALE_CONTENT", u"DIFFERING_FULL_TEXT", u"MISSING_FULL_TEXT", u"NOT_EXTRACTED_BEFORE"]]
+        if pdf_payload:
+            pdf_compare = [content for content in json.loads(payload["PDF"]) if content["UPDATE"] in
+            [u"STALE_CONTENT", u"DIFFERING_FULL_TEXT", u"MISSING_FULL_TEXT", u"NOT_EXTRACTED_BEFORE"]]
+        else:
+            pdf_compare = []
 
-        standard_compare = [content for content in json.loads(payload["Standard"]) if content["UPDATE"] in
-         [u"STALE_CONTENT", u"DIFFERING_FULL_TEXT", u"MISSING_FULL_TEXT", u"NOT_EXTRACTED_BEFORE"]]
+        if standard_payload:
+            standard_compare = [content for content in json.loads(payload["Standard"]) if content["UPDATE"] in
+            [u"STALE_CONTENT", u"DIFFERING_FULL_TEXT", u"MISSING_FULL_TEXT", u"NOT_EXTRACTED_BEFORE"]]
+        else:
+            standard_compare = []
 
-        self.assertTrue(len(pdf_compare) == 3, json.loads(payload["PDF"]))
-        self.assertTrue(len(standard_compare) == 3)
+        self.assertTrue(len(pdf_compare) == pdf_number, pdf_number)
+        self.assertTrue(len(standard_compare) == standard_number)
 
     def test_output_dictionary_contains_everything_we_need(self):
 
@@ -178,7 +192,8 @@ class TestFileStreamInput(unittest.TestCase):
 class TestXMLExtractor(unittest.TestCase):
 
     def setUp(self):
-        self.dict_item = {CONSTANTS["FILE_SOURCE"]: "%s/%s" % (config["FULLTEXT_EXTRACT_PATH"], test_stub_xml)}
+        self.dict_item = {CONSTANTS["FILE_SOURCE"]: "%s/%s" % (config["FULLTEXT_EXTRACT_PATH"], test_stub_xml),
+                          CONSTANTS['FORMAT']: 'xml', CONSTANTS['PROVIDER']: 'MNRAS'}
         self.extractor = std_extract.EXTRACTOR_FACTORY['xml'](self.dict_item)
 
     def test_that_we_can_open_an_xml_file(self):
@@ -199,7 +214,7 @@ class TestXMLExtractor(unittest.TestCase):
         parsed_xml = self.extractor.parse_xml()
         content = self.extractor.extract_multi_content()
 
-        self.assertEqual(META_CONTENT["XML"].keys(), content.keys())
+        self.assertEqual(META_CONTENT["xml"].keys(), content.keys())
 
     def test_that_we_can_extract_all_content_from_payload_input(self):
 
@@ -208,8 +223,7 @@ class TestXMLExtractor(unittest.TestCase):
 
         content = json.loads(std_extract.extract_content(pay_load))
 
-        self.assertEqual(len(content[0].keys()), 3)
-        self.assertItemsEqual(content[0].keys(), META_CONTENT["XML"].keys())
+        self.assertTrue(set(META_CONTENT['xml'].keys()).issubset(content[0].keys()))
 
 
 class TestXMLElsevierExtractor(unittest.TestCase):
@@ -403,7 +417,7 @@ class TestHTTPExtractor(unittest.TestCase):
 
         content = self.extractor.extract_multi_content()
 
-        self.assertEqual(content[CONSTANTS['FILE_SOURCE']], self.body_content)
+        self.assertEqual(content[CONSTANTS['FULL_TEXT']], self.body_content)
 
 
 class TestWriteMetaFileWorker(unittest.TestCase):
@@ -411,7 +425,7 @@ class TestWriteMetaFileWorker(unittest.TestCase):
     def setUp(self):
         self.dict_item = {CONSTANTS['META_PATH']: '/vagrant/tests/test_unit/stub_data/te/st/1/meta.json',
                           CONSTANTS['FULL_TEXT']: 'hehehe I am the full text',
-                          CONSTANTS['FORMAT']: 'XML',
+                          CONSTANTS['FORMAT']: 'xml',
                           CONSTANTS['FILE_SOURCE']: '/vagrant/source.txt',
                           CONSTANTS['BIBCODE']: "MNRAS2014",
                           CONSTANTS['PROVIDER']: "MNRAS",
@@ -460,7 +474,7 @@ class TestWriteMetaFileWorker(unittest.TestCase):
 
     def test_pipeline_extract_content_extracts_fulltext_correctly(self):
 
-        self.dict_item[CONSTANTS['FORMAT']] = 'TEXT'
+        self.dict_item[CONSTANTS['FORMAT']] = 'txt'
         pipeline_payload = [self.dict_item]
 
         return_payload = writer.extract_content(pipeline_payload)
@@ -474,7 +488,7 @@ class TestWriteMetaFileWorker(unittest.TestCase):
         self.assertEqual(self.dict_item[CONSTANTS['FULL_TEXT']], full_text)
 
     def test_pipeline_extract_content_extracts_meta_text_correctly(self):
-        self.dict_item[CONSTANTS['FORMAT']] = 'TEXT'
+        self.dict_item[CONSTANTS['FORMAT']] = 'txt'
         pipeline_payload = [self.dict_item]
 
         return_payload = writer.extract_content(pipeline_payload)
@@ -509,7 +523,7 @@ class TestWriteMetaFileWorker(unittest.TestCase):
 
     def test_pipeline_extract_works_for_all_formats(self):
 
-        for format_ in ['TEXT', 'XML', 'XMLElsevier', 'OCR', 'HTML', 'HTTP']:
+        for format_ in ['txt', 'xml', 'xmlelsevier', 'ocr', 'html', 'http']:
             try:
                 self.pipeline_extract(format_)
             except Exception:

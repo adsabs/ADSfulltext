@@ -69,6 +69,7 @@ class StandardExtractorBasicText(object):
         self.dict_item = dict_item
         self.raw_text = None
         self.parsed_text = None
+        self.meta_name = 'txt'
 
         translated_control_characters = "".join([chr(i) if i in [9, 10, 13] else ' ' for i in range(0,32)])
         input_control_characters = "".join([chr(i) for i in range(0,32)])
@@ -119,7 +120,7 @@ class StandardExtractorBasicText(object):
         self.parse_text(translate=translate, decode=decode)
 
         meta_out = {}
-        meta_out[CONSTANTS['FILE_SOURCE']] = self.parsed_text
+        meta_out[CONSTANTS['FULL_TEXT']] = self.parsed_text
         return meta_out
 
 
@@ -131,6 +132,7 @@ class StandardExtractorHTML(object):
         self.raw_html = None
         self.parsed_html = None
         self.dictionary_of_tables = None
+        self.meta_name = 'html'
 
     def open_html(self, in_html=False):
         import codecs
@@ -196,7 +198,7 @@ class StandardExtractorHTML(object):
         removed_content = None
 
         # Remove anything before introduction
-        for xpath in META_CONTENT['HTML']['introduction']:
+        for xpath in META_CONTENT[self.meta_name]['introduction']:
             try:
                 removed_content = self.parsed_html.xpath(xpath)[0]
                 break
@@ -212,7 +214,7 @@ class StandardExtractorHTML(object):
                 element_tree_node.getparent().remove(element_tree_node)
 
         # Remove the references
-        for xpath in META_CONTENT['HTML']['references']:
+        for xpath in META_CONTENT[self.meta_name]['references']:
             removed_content = None
             try:
                 removed_content = self.parsed_html.xpath(xpath)[0]
@@ -231,7 +233,7 @@ class StandardExtractorHTML(object):
 
             table_node_to_insert = None
             logger.debug("Attempting to find table contents: %s" % table_name)
-            for xpath in META_CONTENT['HTML']['table']:
+            for xpath in META_CONTENT[self.meta_name]['table']:
 
                 try:
                     table_node_to_insert = table_root_node.xpath(xpath)[0].getparent()
@@ -244,7 +246,7 @@ class StandardExtractorHTML(object):
                                     (table_name, xpath))
 
             logger.debug("Attempting to find table links: %s" % table_name)
-            for xpath in META_CONTENT['HTML']['table_links']:
+            for xpath in META_CONTENT[self.meta_name]['table_links']:
                 try:
                     logger.info(self.parsed_html)
                     table_nodes_in_file_source = self.parsed_html.xpath(xpath.replace('TABLE_NAME', table_name))
@@ -262,7 +264,7 @@ class StandardExtractorHTML(object):
                 parent_node_of_table_link.replace(table_nodes_in_file_source[0], table_node_to_insert)
                 [remaining_node.getparent().remove(remaining_node) for remaining_node in table_nodes_in_file_source[1:]]
         try:
-            for xpath in META_CONTENT['HTML']['head']:
+            for xpath in META_CONTENT[self.meta_name]['head']:
                 try:
                     self.parsed_html.xpath(xpath)
                     break
@@ -277,7 +279,7 @@ class StandardExtractorHTML(object):
                                        if individual_element_tree_node
                                        and not individual_element_tree_node.isspace()])
 
-        meta_out = {CONSTANTS['FILE_SOURCE']: string_of_all_html}
+        meta_out = {CONSTANTS['FULL_TEXT']: string_of_all_html}
 
         return meta_out
 
@@ -289,7 +291,7 @@ class StandardExtractorXML(object):
         self.file_input = dict_item[CONSTANTS['FILE_SOURCE']]
         self.raw_xml = None
         self.parsed_xml = None
-        self.meta_name = "XML"
+        self.meta_name = "xml"
 
     def open_xml(self):
 
@@ -341,7 +343,7 @@ class StandardElsevierExtractorXML(StandardExtractorXML):
 
     def __init__(self, dict_item):
         StandardExtractorXML.__init__(self, dict_item)
-        self.meta_name = "XMLElsevier"
+        self.meta_name = "xmlelsevier"
 
     def parse_xml(self):
         self.parsed_xml = fromstring(self.raw_xml.encode('utf-8'))
@@ -359,7 +361,7 @@ class StandardExtractorHTTP(StandardExtractorBasicText):
 
         StandardExtractorBasicText.__init__(self, dict_item)
         self.dict_item = dict_item
-        self.meta_name = "HTTP"
+        self.meta_name = "http"
         self.raw_text = None
         self.parsed_text = None
         self.request_headers = {'User-Agent': 'ADSClient',
@@ -398,7 +400,7 @@ class StandardExtractorHTTP(StandardExtractorBasicText):
         self.parse_http(translate=translate, decode=decode)
 
         meta_out = {}
-        meta_out[CONSTANTS['FILE_SOURCE']] = self.parsed_http
+        meta_out[CONSTANTS['FULL_TEXT']] = self.parsed_http
         return meta_out
 
 
@@ -433,7 +435,7 @@ def extract_content(input_list):
             ExtractorClass = EXTRACTOR_FACTORY[extension]
 
         except KeyError:
-            raise KeyError("You gave a format not currently supported for extraction",traceback.format_exc())
+            raise KeyError("You gave a format not currently supported for extraction: %s" % dict_item[CONSTANTS['FORMAT']],traceback.format_exc())
 
         try:
             Extractor = ExtractorClass(dict_item)
