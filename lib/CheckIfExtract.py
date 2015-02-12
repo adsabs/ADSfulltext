@@ -124,11 +124,14 @@ def check_if_extract(message_list, extract_key="FULLTEXT_EXTRACT_PATH"):
         message[CONSTANTS['META_PATH']] = create_meta_path(message, extract_key=extract_key)
         logger.info('created: %s' % message[CONSTANTS['META_PATH']])
 
-        message[CONSTANTS['FORMAT']] = format_ = message[CONSTANTS['FILE_SOURCE']].split(".")[-1].lower()
+        format_ = os.path.splitext(message[CONSTANTS['FILE_SOURCE']])[-1].replace('.','').lower()
+        if not format_ and 'http://' in message[CONSTANTS['FILE_SOURCE']]:
+            format_ = 'http'
+        message[CONSTANTS['FORMAT']] = format_
+
         logger.info('Format found: %s' % format_)
         if update in NEEDS_UPDATE and format_ == 'pdf':
             message[CONSTANTS['UPDATE']] = update
-
             publish_list_of_pdf_dictionaries.append(message)
 
         elif update in NEEDS_UPDATE:
@@ -142,13 +145,13 @@ def check_if_extract(message_list, extract_key="FULLTEXT_EXTRACT_PATH"):
         logger.info("Adding timestamp: %s" % message[CONSTANTS['TIME_STAMP']])
         logger.info('Returning dictionaries')
 
-        if len(publish_list_of_pdf_dictionaries) == 0:
-            publish_list_of_pdf_dictionaries = None
-            logger.info('PDF list is empty, setting to none')
+    if len(publish_list_of_pdf_dictionaries) == 0:
+        publish_list_of_pdf_dictionaries = None
+        logger.info('PDF list is empty, setting to none')
 
-        if len(publish_list_of_standard_dictionaries) == 0:
-            publish_list_of_standard_dictionaries = None
-            logger.info('Standard list is empty, setting to none')
+    if len(publish_list_of_standard_dictionaries) == 0:
+        publish_list_of_standard_dictionaries = None
+        logger.info('Standard list is empty, setting to none')
 
     return {"Standard": json.dumps(publish_list_of_standard_dictionaries),
             "PDF": json.dumps(publish_list_of_pdf_dictionaries)}

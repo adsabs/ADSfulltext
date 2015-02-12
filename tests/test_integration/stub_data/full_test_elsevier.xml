@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE article>
+<article>
+<people>Foobar</people>
+<incomplete>
+<body>
+<data>
+<named-content content-type="dataset" xlink:href="ADS/Sa.CXO#Obs/11456">11456</named-content>
+<named-content content-type="dataset" xlink:href="ADS/Sa.CXO#Obs/11457">11457</named-content>
+</data>
+Jonathan Elliott
+Badgasteinerstrak 8 Miinchen, 81373 Bayern Deustchland
+Current Employment
+Phone: Email: Homepage: Software:
+ jonnynelliott ©go oglemail. com www. jonnyelliott .org http: / /git hub . com/ j onnyb azookat one
+Post-doctoral Research Fellow Max-Planck-Institut fiir extraterrestrische Physik, 2013 - present.
+Education
+Ph. D. (Dr. rer. nat.), Magna Cum Laude Max-Planck-Institut fiir extraterrestrische Physik, 2010 - 2013.
+Master of Physics, First Class Degree Warwick University, 2006 - 2010. A Levels, Grade A, A, A, A Physics, Mathematics, Further Mathematics, Computing Scarborough Sixth Form College, 2004 - 2006. GCSEs, Grade A* A*, A, A, B, B, B Double Science, Mathematics, French, Information Technology, Business Studies, History Filey Secondary School, 1999 - 2004.
+Experience
+• Hardware Operation and Management Max-Planck-Institut far extraterrestrische Physik, 2010 - Present I carried out operation and maintenance of a near-infrared/optical detector (GROND) located at the Max-Planck-Gesselschaft 2.2 meter telescope, in Chile. I have been a part of over 35 new discoveries. I travelled frequently to the instrument in Chile to make observations, which has amounted to 3528 hours of experience. I am an integral member of four projects, within international groups, that have acquired time at a world leading telescope facility, involving a range of instruments (e.g. spectrometer VIMOS, radio array ATCA, and CCD camera HAWK-I, to name but a few). I schedule the astronomical targets to be observed and delegate the duties to other members of the operating team, consisting of post-doctoral research fellows, PhD students and Masters students. I was the principle investigator (lead scientist) of three projects utilising the near-infrared detector HAWK-I located at the Very Large Telescope.
+• Software Development Max-Planck-Institut far extraterrestrische Physik, 2010 - Present — I have developed new software to allow displays located at the telescope site to be viewed remotely in real-time. This is important as real-time usage is not viable remotely. The software consists of a mixture of bash scripts and Python, whereby the images are eventually presented on an internal group web page. This is utilised by our group when carrying out observations.
+</body>
+<data>
+<named-content content-type="dataset" xlink:href="ADS/Sa.CXO#Obs/11458">11458</named-content>
+</data>
+<ack>
+<named-content content-type="dataset" xlink:href="ADS/Sa.CXO#Obs/11459">11459</named-content>
+<named-content content-type="source" xlink:href="ADS/Sa.CXO#Obs/11459">FAKENAME</named-content>
+</ack>
+</article>

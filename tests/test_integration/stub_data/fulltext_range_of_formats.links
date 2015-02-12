@@ -1,0 +1,6 @@
+full1	/vagrant/tests/test_integration/stub_data/full_test.txt	MNRAS
+full2	/vagrant/tests/test_integration/stub_data/full_test.ocr	MNRAS
+full3	/vagrant/tests/test_integration/stub_data/full_test.xml	MNRAS
+full4	/vagrant/tests/test_integration/stub_data/full_test_elsevier.xml	Elsevier
+full5	/vagrant/tests/test_integration/stub_data/full_test.html	MNRAS
+full6	/vagrant/tests/test_unit/stub_data/stub_data/test.pdf	MNRAS

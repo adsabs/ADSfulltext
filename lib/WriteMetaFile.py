@@ -72,8 +72,10 @@ def write_content(payload_dictionary):
         try:
             logger.info("Writing to file: %s" % full_text_output_file_path)
             logger.info("Content has length: %d" % (len(full_text_dict[CONSTANTS['FULL_TEXT']])))
-            full_text_output_file.write(full_text_dict[CONSTANTS['FULL_TEXT']])
+            full_text_output_file.write(full_text_dict[CONSTANTS['FULL_TEXT']].encode('utf-8'))
             logger.info("Writing complete.")
+        except KeyError:
+            KeyError(full_text_dict)
         except IOError:
             raise IOError
 
@@ -85,6 +87,6 @@ def extract_content(input_list):
             write_content(dict_item)
         except Exception:
             import traceback
-            raise Exception(traceback.format_exc())
+            raise Exception(traceback.format_exc(), dict_item)
 
     return 1

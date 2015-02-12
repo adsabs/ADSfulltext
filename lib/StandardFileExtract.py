@@ -288,6 +288,7 @@ class StandardExtractorXML(object):
 
     def __init__(self, dict_item):
 
+        self.dict_item = dict_item
         self.file_input = dict_item[CONSTANTS['FILE_SOURCE']]
         self.raw_xml = None
         self.parsed_xml = None
@@ -320,20 +321,25 @@ class StandardExtractorXML(object):
         meta_out = {}
         self.open_xml()
         self.parse_xml()
-
+        # logger.info('Parsed content: %s' % self.parsed_xml.text_content())
+        logger.info('%s: Extracting: %s' % (self.meta_name, self.file_input))
         for content_name in META_CONTENT[self.meta_name]:
             logger.info("Trying meta content: %s" % content_name)
             for static_xpath in META_CONTENT[self.meta_name][content_name]:
                 logger.info("Trying xpath: %s" % static_xpath)
                 try:
+                    # logger.info(self.parsed_xml.text_content())
                     meta_out[content_name] = self.parsed_xml.xpath(static_xpath)[0].text_content()
                     logger.info("Successful")
                     break
                 except IndexError:
+                    logger.warning('Index error for: %s' % self.dict_item[CONSTANTS['BIBCODE']])
                     pass
                 except KeyError:
+                    logger.warning('Dictionary key error for :%s' % self.dict_item[CONSTANTS['BIBCODE']])
                     raise KeyError("You gave a malformed xpath call to HTMLElementTree: %s" % static_xpath)
                 except Exception:
+                    logger.warning('Unknown error for :%s' % self.dict_item[CONSTANTS['BIBCODE']])
                     raise Exception(traceback.format_exc())
 
         return meta_out
@@ -346,7 +352,10 @@ class StandardElsevierExtractorXML(StandardExtractorXML):
         self.meta_name = "xmlelsevier"
 
     def parse_xml(self):
-        self.parsed_xml = fromstring(self.raw_xml.encode('utf-8'))
+        try:
+            self.parsed_xml = super(StandardElsevierExtractorXML, self).parse_xml()
+        except:
+            self.parsed_xml = document_fromstring(self.raw_xml.encode('utf-8'))
         return self.parsed_xml
 
     @overrides(StandardExtractorXML)
@@ -421,7 +430,7 @@ def extract_content(input_list):
     import json
     output_list = []
 
-    ACCEPTED_FORMATS = ["xml", "html", "txt", "ocr"]
+    ACCEPTED_FORMATS = ["xml", "html", "txt", "ocr", "http"]
 
     for dict_item in input_list:
 
