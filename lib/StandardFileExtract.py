@@ -297,12 +297,17 @@ class StandardExtractorXML(object):
     def open_xml(self):
 
         raw_xml = None
-        with open(self.file_input, 'r') as f:
+        try:
+            f = open(self.file_input, 'r')
             raw_xml = f.read()
             raw_xml = re.sub('(<!-- body|endbody -->)', '', raw_xml)
             raw_xml = edef.convertentities(raw_xml.decode('utf-8', 'ignore'))
             raw_xml = re.sub('<\?CDATA.+?\?>', '', raw_xml)
             self.raw_xml = raw_xml
+            f.close()
+        except IOError:
+            raise IOError
+
         return raw_xml
 
     def parse_xml(self):

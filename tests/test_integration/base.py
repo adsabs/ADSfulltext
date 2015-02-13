@@ -20,6 +20,7 @@ class IntegrationTest(unittest.TestCase):
 
         for params in [check_params, standard_params, writer_params]:
             params['RABBITMQ_URL'] = psettings.RABBITMQ_URL
+            params['ERROR_HANDLER'] = psettings.ERROR_HANDLER
             params['extract_key'] = "FULLTEXT_EXTRACT_PATH_UNITTEST"
             params['TEST_RUN'] = True
 
