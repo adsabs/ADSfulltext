@@ -4,7 +4,8 @@ import json
 import os
 import lib.CheckIfExtract as check_if_extract
 from pipeline import psettings
-from pipeline.workers import RabbitMQWorker, CheckIfExtractWorker, StandardFileExtractWorker, WriteMetaFileWorker
+from pipeline.workers import RabbitMQWorker, CheckIfExtractWorker, \
+    StandardFileExtractWorker, WriteMetaFileWorker, ErrorHandlerWorker
 from pipeline.ADSfulltext import TaskMaster
 from run import publish, read_links_from_file
 from settings import META_CONTENT, PROJ_HOME, CONSTANTS
@@ -17,8 +18,9 @@ class IntegrationTest(unittest.TestCase):
         check_params = psettings.WORKERS['CheckIfExtractWorker']
         standard_params = psettings.WORKERS['StandardFileExtractWorker']
         writer_params = psettings.WORKERS['WriteMetaFileWorker']
+        error_params = psettings.WORKERS['ErrorHandlerWorker']
 
-        for params in [check_params, standard_params, writer_params]:
+        for params in [check_params, standard_params, writer_params, error_params]:
             params['RABBITMQ_URL'] = psettings.RABBITMQ_URL
             params['ERROR_HANDLER'] = psettings.ERROR_HANDLER
             params['extract_key'] = "FULLTEXT_EXTRACT_PATH_UNITTEST"
@@ -28,7 +30,9 @@ class IntegrationTest(unittest.TestCase):
         self.standard_worker = StandardFileExtractWorker(params=standard_params)
         self.standard_worker.logger.debug("params: %s" % standard_params)
         self.meta_writer = WriteMetaFileWorker(params=writer_params)
+        self.error_worker = ErrorHandlerWorker(params=error_params)
         self.meta_path = ''
+        self.channel_list = None
 
         # Queues and routes are switched on so that they can allow workers to connect
         TM = TaskMaster(psettings.RABBITMQ_URL, psettings.RABBITMQ_ROUTES, psettings.WORKERS)
@@ -41,13 +45,18 @@ class IntegrationTest(unittest.TestCase):
 
     def tearDown(self):
         # Purge the queues if they have content
-        channel_list = [[self.check_worker.channel, 'CheckIfExtractQueue'],
-                        [self.standard_worker.channel, 'StandardFileExtractorQueue'],
-                        [self.meta_writer.channel, 'WriteMetaFileQueue'],
-                        ]
 
-        for channel_link, queue_name in channel_list:
-            single_connection = channel_link.queue_purge(queue=queue_name)
+        try:
+            if not self.channel_list:
+                self.channel_list = [[self.check_worker.channel, 'CheckIfExtractQueue'],
+                                    [self.standard_worker.channel, 'StandardFileExtractorQueue'],
+                                    [self.meta_writer.channel, 'WriteMetaFileQueue']]
+
+            for channel_link, queue_name in self.channel_list:
+
+                single_connection = channel_link.queue_purge(queue=queue_name)
+        except:
+            pass
 
     def helper_get_details(self, test_publish):
 

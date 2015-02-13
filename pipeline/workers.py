@@ -138,6 +138,7 @@ class StandardFileExtractWorker(RabbitMQWorker):
         self.connect(self.params['RABBITMQ_URL'])
         self.subscribe(self.on_message)
 
+
 class WriteMetaFileWorker(RabbitMQWorker):
     def __init__(self, params=None):
         self.params = params
@@ -161,6 +162,55 @@ class WriteMetaFileWorker(RabbitMQWorker):
 
         # Send delivery acknowledgement
         self.channel.basic_ack(delivery_tag=method_frame.delivery_tag)
+
+    def run(self):
+        self.connect(self.params['RABBITMQ_URL'])
+        self.subscribe(self.on_message)
+
+
+class ErrorHandlerWorker(RabbitMQWorker):
+
+    def __init__(self, params):
+        self.params = params
+        self.logger = self.setup_logging()
+        self.logger.debug("Initialized")
+#
+#         from pipeline import psettings
+#         from lib import CheckIfExtract
+#         from lib import StandardFileExtract
+#         from lib import WriteMetaFile
+#
+#         self.params['WORKERS'] = psettings.WORKERS
+#
+#
+#
+
+    def on_message(self, channel, method_frame, header_frame, body):
+        self.logger.info('Got message')
+        self.channel.basic_ack(delivery_tag=method_frame.delivery_tag)
+        self.logger.info('Acknowledge delivered')
+
+
+        # message = json.loads(body)
+        # producer = message.keys()[0]
+#  if header_frame.headers and 'redelivered' in header_frame.headers and header_frame.headers['redelivered']:
+# self.channel.basic_ack(delivery_tag=method_frame.delivery_tag)
+# self.logger.info("Fail: %s" % message)
+# return
+# P = pika.spec.BasicProperties(headers={'redelivered':True})
+# #Iterate over each element of the batch, log and discard the failure(s)
+# for content in message[producer]:
+# try:
+# result = json.dumps(self.strategies[producer]([content]))
+# except Exception, e:
+# if producer in ['UpdateRecordsWorker','MongoWriteWorker']:
+# content = content['bibcode']
+# self.logger.error('%s: %s' % (content,traceback.format_exc()))
+# continue
+# #Re-publish the single record
+# for e in self.params['WORKERS'][producer]['publish']:
+# self.channel.basic_publish(e['exchange'],e['routing_key'],result,properties=P)
+#         self.channel.basic_ack(delivery_tag=method_frame.delivery_tag)
 
     def run(self):
         self.connect(self.params['RABBITMQ_URL'])

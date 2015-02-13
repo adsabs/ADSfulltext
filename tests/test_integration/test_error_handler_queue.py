@@ -3,7 +3,7 @@ from base import *
 
 class TestExtractWorker(IntegrationTest):
 
-    # def tearDown(self):
+    def tearDown(self):
     #     path = '/vagrant/tests/test_unit/stub_data/fu/ll/'
     #     for i in range(5):
     #         tpath = path + ('%d/' % (i+1))
@@ -12,7 +12,10 @@ class TestExtractWorker(IntegrationTest):
     #             os.remove(os.path.join(tpath, 'meta.json'))
     #             os.rmdir(tpath)
     #
-    #     super(TestExtractWorker, self).tearDown()
+            # Purge the queues if they have content
+        # self.channel_list = [[self.error_worker.channel, 'ErrorHandlerQueue']]
+
+        super(TestExtractWorker, self).tearDown()
 
     def test_extraction_of_non_extracted(self):
 
@@ -83,14 +86,6 @@ class TestExtractWorker(IntegrationTest):
         # self.assertEqual(len(standard_res), self.number_of_standard_files, 'Expected number of normal formats: %d' %
         #                  self.number_of_standard_files)
 
-        # There should be no errors at this stage
-        queue_error = self.check_worker.channel.queue_declare(
-            queue="ErrorHandlerQueue",
-            passive=True
-            )
-        # self.assertTrue(queue_error.method.message_count == 1,
-        #                 "Should be 1, but it is: %d" % queue_error.method.message_count)
-
         # Now the next worker collects the list of files that need to be extracted. The Standard
         # Extractor should extract the content of the given payload and so the number of outputs
         # should match the number before. Given we don't expect any errors here!
@@ -100,16 +95,27 @@ class TestExtractWorker(IntegrationTest):
         time.sleep(10)
         print('continuing')
 
-        # When a file does not exist, it should appear on the ErrorHandler queue, and not crash anything.
+        # There should be no errors at this stage
+        queue_error = self.check_worker.channel.queue_declare(
+            queue="ErrorHandlerQueue",
+            passive=True
+            )
+        self.assertTrue(queue_error.method.message_count == 1,
+                        "Should be 1, but it is: %d" % queue_error.method.message_count)
 
-        # number_of_standard_files_2 = len(json.loads(self.standard_worker.results))
-        # self.assertTrue(number_of_standard_files_2, self.number_of_standard_files)
+        print('starting error handler')
+        self.error_worker.run()
+        time.sleep(10)
+        queue_error = self.check_worker.channel.queue_declare(
+            queue="ErrorHandlerQueue",
+            passive=True
+            )
+        self.assertTrue(queue_error.method.message_count == 0,
+                        "Should be 0, but it is: %d" % queue_error.method.message_count)
 
-
-        # After the extractor, the meta writer should write all the payloads to disk in the correct
-        # folders
-        print('starting meta writer...')
-        self.meta_writer.run()
+        #
+        # print('starting meta writer...')
+        # self.meta_writer.run()
 
         # time.sleep(5)
         # path = '/vagrant/tests/test_unit/stub_data/fu/ll/'
