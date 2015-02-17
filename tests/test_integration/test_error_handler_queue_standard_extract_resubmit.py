@@ -15,11 +15,16 @@ class TestExtractWorker(IntegrationTest):
             # Purge the queues if they have content
         # self.channel_list = [[self.error_worker.channel, 'ErrorHandlerQueue']]
 
+        if os.path.exists(self.meta_list[1]):
+            os.remove(os.path.join(self.meta_list[1], 'fulltext.txt'))
+            os.remove(os.path.join(self.meta_list[1], 'meta.json'))
+            os.rmdir(self.meta_list[1])
+
         super(TestExtractWorker, self).tearDown()
 
     def test_extraction_of_non_extracted(self):
 
-        test_publish='tests/test_integration/stub_data/fulltext_error_handling.links'
+        test_publish='tests/test_integration/stub_data/fulltext_error_handling_standard_extract_resubmitted.links'
 
         # user loads the list of full text files and publishes them to the first queue
         records = read_links_from_file(test_publish)
@@ -112,16 +117,21 @@ class TestExtractWorker(IntegrationTest):
             )
         self.assertTrue(queue_error.method.message_count == 0,
                         "Should be 0, but it is: %d" % queue_error.method.message_count)
-        # The error handler should resubmit each individual payload back to the queue that failed
-        # standard_queue = self.check_worker.channel.queue_declare(
-        #     queue="StandardFileExtractorQueue",
-        #     passive=True
-        #     )
-        #
-        # self.assertTrue(standard_queue.method.message_count,
-        #                 "Standard queue should have at least 1 message, but it has: %d" %
-        #                 (standard_queue.method.message_count))
 
+        # The error handler should resubmit each individual payload back to the queue that failed
+        standard_queue = self.check_worker.channel.queue_declare(
+            queue="WriteMetaFileQueue",
+            passive=True
+            )
+        self.assertTrue(standard_queue.method.message_count,
+                        "WriteMetaFileQueue should have at least 1 message, but it has: %d" %
+                        standard_queue.method.message_count)
+
+        # StandardExtractor should then work its magic on the single resubmission
+        print('starting meta writer')
+        self.meta_writer.run()
+
+        self.assertTrue(os.path.exists(self.meta_list[1]), "Meta path not created: %s" % self.meta_list[1])
 
 
 if __name__ == "__main__":

@@ -150,6 +150,7 @@ class WriteMetaFileWorker(RabbitMQWorker):
     def on_message(self, channel, method_frame, header_frame, body):
         message = json.loads(body)
         try:
+            self.logger.info('WriteMetalFile: type of message: %s, type: %s' % (message, type(message)))
             self.results = self.f(message)
             self.logger.debug("Publishing")
             self.publish(self.results)
@@ -158,7 +159,7 @@ class WriteMetaFileWorker(RabbitMQWorker):
             import traceback
             self.results = "Offloading to ErrorWorker due to exception: %s" % e.message
             self.logger.warning("Offloading to ErrorWorker due to exception: %s (%s)" % (e.message, traceback.format_exc()))
-            #self.publish_to_error_queue(json.dumps({self.__class__.__name__:message}),header_frame=header_frame)
+            self.publish_to_error_queue(json.dumps({self.__class__.__name__: message}), header_frame=header_frame)
 
         # Send delivery acknowledgement
         self.channel.basic_ack(delivery_tag=method_frame.delivery_tag)
@@ -174,43 +175,56 @@ class ErrorHandlerWorker(RabbitMQWorker):
         self.params = params
         self.logger = self.setup_logging()
         self.logger.debug("Initialized")
-#
-#         from pipeline import psettings
-#         from lib import CheckIfExtract
-#         from lib import StandardFileExtract
-#         from lib import WriteMetaFile
-#
-#         self.params['WORKERS'] = psettings.WORKERS
-#
-#
-#
+
+        from pipeline import psettings
+        from lib import CheckIfExtract
+        from lib import StandardFileExtract
+        from lib import WriteMetaFile
+
+        self.params['WORKERS'] = psettings.WORKERS
+
+        self.strategies = {
+            'CheckIfExtractWorker': CheckIfExtract.check_if_extract,
+            'StandardFileExtractWorker': StandardFileExtract.extract_content,
+            'WriteMetaFileWorker': WriteMetaFile.extract_content,
+        }
 
     def on_message(self, channel, method_frame, header_frame, body):
         self.logger.info('Got message')
+
+        message = json.loads(body)
+        producer = message.keys()[0]
+
+        if header_frame.headers and 'redelivered' in header_frame.headers and header_frame.headers['redelivered']:
+            self.channel.basic_ack(delivery_tag=method_frame.delivery_tag)
+            self.logger.info("ErrorHandler: Fail: %s" % message)
+            return
+
+        P = pika.spec.BasicProperties(headers={'redelivered': True})
+
+        for individual_payload in message[producer]:
+            try:
+                self.logger.info('ErrorHandler: Trying to fix payload: %s, type: %s' % (individual_payload,                                                                        type(individual_payload)))
+                new_payload = self.strategies[producer]([individual_payload])
+
+                if producer in ['StandardFileExtractWorker']:
+                    result = new_payload
+                else:
+                    result = json.dumps(new_payload)
+
+                self.logger.info('ErrorHandler: Fixed payload: %s, type: %s' % (result, type(result)))
+            except Exception, e:
+                import traceback
+                self.logger.error('ErrorHandler could not fix this payload: %s: %s' % (individual_payload, traceback.format_exc()))
+                continue
+
+            #Re-publish the single record
+            for e in self.params['WORKERS'][producer]['publish']:
+                self.logger.info('ErrorHandler: Republishing payload to: %s' % e['routing_key'])
+                self.channel.basic_publish(e['exchange'], e['routing_key'], result, properties=P)
+
         self.channel.basic_ack(delivery_tag=method_frame.delivery_tag)
         self.logger.info('Acknowledge delivered')
-
-
-        # message = json.loads(body)
-        # producer = message.keys()[0]
-#  if header_frame.headers and 'redelivered' in header_frame.headers and header_frame.headers['redelivered']:
-# self.channel.basic_ack(delivery_tag=method_frame.delivery_tag)
-# self.logger.info("Fail: %s" % message)
-# return
-# P = pika.spec.BasicProperties(headers={'redelivered':True})
-# #Iterate over each element of the batch, log and discard the failure(s)
-# for content in message[producer]:
-# try:
-# result = json.dumps(self.strategies[producer]([content]))
-# except Exception, e:
-# if producer in ['UpdateRecordsWorker','MongoWriteWorker']:
-# content = content['bibcode']
-# self.logger.error('%s: %s' % (content,traceback.format_exc()))
-# continue
-# #Re-publish the single record
-# for e in self.params['WORKERS'][producer]['publish']:
-# self.channel.basic_publish(e['exchange'],e['routing_key'],result,properties=P)
-#         self.channel.basic_ack(delivery_tag=method_frame.delivery_tag)
 
     def run(self):
         self.connect(self.params['RABBITMQ_URL'])

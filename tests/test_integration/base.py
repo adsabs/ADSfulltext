@@ -65,9 +65,15 @@ class IntegrationTest(unittest.TestCase):
             self.nor = len(lines)
 
         self.bibcode, self.ft_source, self.provider = lines[0].strip().split("\t")
+        self.bibcode_list = [i.strip().split('\t')[0] for i in lines]
 
         self.test_expected = check_if_extract.create_meta_path(
             {"bibcode": self.bibcode}, extract_key='FULLTEXT_EXTRACT_PATH_UNITTEST')
+
+
+        self.meta_list = [check_if_extract.create_meta_path(
+            {"bibcode": j}, extract_key='FULLTEXT_EXTRACT_PATH_UNITTEST').replace('meta.json', '')
+                          for j in self.bibcode_list]
 
 
         self.meta_path = self.test_expected.replace('meta.json', '')

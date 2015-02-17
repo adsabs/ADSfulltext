@@ -82,11 +82,13 @@ def write_content(payload_dictionary):
 
 def extract_content(input_list):
 
+    logger.info('WriteMetaFile: Beginning list with type: %s' % type(input_list))
     for dict_item in input_list:
         try:
             write_content(dict_item)
         except Exception:
             import traceback
-            raise Exception(traceback.format_exc(), dict_item)
+            logger.info("Failed on dict item: %s" % dict_item)
+            raise Exception(traceback.format_exc())
 
     return 1
