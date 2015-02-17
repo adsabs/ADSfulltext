@@ -4,16 +4,6 @@ from base import *
 class TestExtractWorker(IntegrationTest):
 
     def tearDown(self):
-    #     path = '/vagrant/tests/test_unit/stub_data/fu/ll/'
-    #     for i in range(5):
-    #         tpath = path + ('%d/' % (i+1))
-    #         if os.path.exists(tpath):
-    #             os.remove(os.path.join(tpath, 'fulltext.txt'))
-    #             os.remove(os.path.join(tpath, 'meta.json'))
-    #             os.rmdir(tpath)
-    #
-            # Purge the queues if they have content
-        # self.channel_list = [[self.error_worker.channel, 'ErrorHandlerQueue']]
 
         if os.path.exists(self.meta_list[1]):
             os.remove(os.path.join(self.meta_list[1], 'fulltext.txt'))
@@ -69,9 +59,6 @@ class TestExtractWorker(IntegrationTest):
         self.assertTrue(standard_queue.method.message_count,
                         "Standard queue should have at least 1 message, but it has: %d" %
                         (standard_queue.method.message_count))
-        # self.assertTrue(pdf_queue.method.message_count,
-        #                 "PDF queue should have at least 1 message, but it has: %d" %
-        #                 (pdf_queue.method.message_count))
 
         # Double check with the worker output
         pdf_res = json.loads(self.check_worker.results["PDF"])
@@ -81,15 +68,6 @@ class TestExtractWorker(IntegrationTest):
         for res in standard_res:
             self.assertEqual(res[CONSTANTS['UPDATE']], extract_type,
                              'This should be %s, but is in fact: %s' % (extract_type, res[CONSTANTS['UPDATE']]))
-
-        if pdf_res:
-            pdf_res = len(pdf_res)
-        else:
-            pdf_res = 0
-
-        # self.assertEqual(pdf_res, self.number_of_PDFs, 'Expected number of PDFs: %d' % self.number_of_PDFs)
-        # self.assertEqual(len(standard_res), self.number_of_standard_files, 'Expected number of normal formats: %d' %
-        #                  self.number_of_standard_files)
 
         # Now the next worker collects the list of files that need to be extracted. The Standard
         # Extractor should extract the content of the given payload and so the number of outputs
