@@ -66,14 +66,17 @@ def load_meta_file(file_input, extract_key="FULLTEXT_EXTRACT_PATH"):
 def meta_needs_update(dict_input, meta_content, extract_key="FULLTEXT_EXTRACT_PATH"):
 
     import sys
+    import traceback
 
     # Obtain the indexed date within the meta file
     try:
         meta_date = parse(meta_content[CONSTANTS['TIME_STAMP']])
     except KeyError:
-        logger.warning("Malformed meta-file")
-    except:
+        logger.warning("Malformed meta-file: %s", traceback.format_exc())
+        raise KeyError
+    except Exception:
         logger.warning("Unexpected error %s" % sys.exc_info())
+        raise Exception
 
     logger.info('Opened existing meta to determine if an update is required.')
 

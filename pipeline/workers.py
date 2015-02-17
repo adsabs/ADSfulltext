@@ -97,7 +97,7 @@ class CheckIfExtractWorker(RabbitMQWorker):
             import traceback
             self.results = "Offloading to ErrorWorker due to exception: %s" % e.message
             self.logger.warning("Offloading to ErrorWorker due to exception: %s (%s)" % (e.message, traceback.format_exc()))
-            #self.publish_to_error_queue(json.dumps({self.__class__.__name__:message}),header_frame=header_frame)
+            self.publish_to_error_queue(json.dumps({self.__class__.__name__: message}), header_frame=header_frame)
 
         # Send delivery acknowledgement
         self.channel.basic_ack(delivery_tag=method_frame.delivery_tag)
@@ -204,14 +204,8 @@ class ErrorHandlerWorker(RabbitMQWorker):
 
         for individual_payload in message[producer]:
             try:
-                self.logger.info('ErrorHandler: Trying to fix payload: %s, type: %s' % (individual_payload,                                                                        type(individual_payload)))
-                new_payload = self.strategies[producer]([individual_payload])
-
-                if producer in ['StandardFileExtractWorker']:
-                    result = new_payload
-                else:
-                    result = json.dumps(new_payload)
-
+                self.logger.info('ErrorHandler: Trying to fix payload: %s, type: %s' % (individual_payload, type(individual_payload)))
+                result = self.strategies[producer]([individual_payload], self.params['extract_key'])
                 self.logger.info('ErrorHandler: Fixed payload: %s, type: %s' % (result, type(result)))
             except Exception, e:
                 import traceback
@@ -219,9 +213,23 @@ class ErrorHandlerWorker(RabbitMQWorker):
                 continue
 
             #Re-publish the single record
-            for e in self.params['WORKERS'][producer]['publish']:
-                self.logger.info('ErrorHandler: Republishing payload to: %s' % e['routing_key'])
-                self.channel.basic_publish(e['exchange'], e['routing_key'], result, properties=P)
+            self.logger.info('Problem producer: %s' % producer)
+            if producer == 'CheckIfExtractWorker':
+
+                for key in self.params['WORKERS'][producer]['publish'].keys():
+                    for e in self.params['WORKERS'][producer]['publish'][key]:
+
+                        self.logger.info('Payload: %s' % json.loads(result[key]))
+                        if not json.loads(result[key]):
+                            self.logger.debug('%s list is empty, not publishing' % e)
+                            continue
+
+                        self.logger.info('ErrorHandler: Republishing payload to: %s' % e['routing_key'])
+                        self.channel.basic_publish(e['exchange'], e['routing_key'], result[key])
+            else:
+                for e in self.params['WORKERS'][producer]['publish']:
+                    self.logger.info('ErrorHandler: Republishing payload to: %s' % e['routing_key'])
+                    self.channel.basic_publish(e['exchange'], e['routing_key'], result, properties=P)
 
         self.channel.basic_ack(delivery_tag=method_frame.delivery_tag)
         self.logger.info('Acknowledge delivered')
