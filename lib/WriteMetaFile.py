@@ -80,7 +80,7 @@ def write_content(payload_dictionary):
             raise IOError
 
 
-def extract_content(input_list):
+def extract_content(input_list, **kwargs):
 
     logger.info('WriteMetaFile: Beginning list with type: %s' % type(input_list))
     for dict_item in input_list:

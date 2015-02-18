@@ -30,7 +30,7 @@ class TestExtractWorker(IntegrationTest):
                         CONSTANTS['PROVIDER']: 'MNRAS', CONSTANTS['META_PATH']: '/vagrant/tests/test_unit/fu/ll/'},
                         record]
 
-        ret = publish(self.publish_worker, json.dumps(fake_payload), exchange='FulltextExtractionExchange',
+        ret = publish(self.publish_worker, [json.dumps(fake_payload)], exchange='FulltextExtractionExchange',
                       routing_key='WriteMetaFileRoute')
         self.assertTrue(ret)
         time.sleep(10)

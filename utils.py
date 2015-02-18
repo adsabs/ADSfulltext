@@ -5,6 +5,7 @@ from settings import config, PROJ_HOME
 from logging import handlers
 from cloghandler import ConcurrentRotatingFileHandler
 
+
 def setup_logging(file_, name_, level='DEBUG'):
 
     level = getattr(logging, level)
@@ -13,7 +14,7 @@ def setup_logging(file_, name_, level='DEBUG'):
     datefmt= '%m/%d/%Y %H:%M:%S'
     formatter = logging.Formatter(fmt=logfmt, datefmt=datefmt)
     LOGGER = logging.getLogger(name_)
-    fn_path = os.path.join(os.path.dirname(file_), '..', 'logs')
+    fn_path = os.path.join(os.path.dirname(file_), PROJ_HOME, 'logs')
     if not os.path.exists(fn_path):
         os.makedirs(fn_path)
     fn = os.path.join(fn_path, '%s.log' % name_)
@@ -84,7 +85,7 @@ class FileInputStream(object):
         '''
 
         import json
-        if kwargs['packet_size']:
+        if 'packet_size' in kwargs:
             self.payload = [json.dumps(self.raw[i:i+kwargs['packet_size']])
                             for i in range(0, len(self.raw), kwargs['packet_size'])]
         else:

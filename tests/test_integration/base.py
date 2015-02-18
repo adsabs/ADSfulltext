@@ -38,25 +38,21 @@ class IntegrationTest(unittest.TestCase):
         TM = TaskMaster(psettings.RABBITMQ_URL, psettings.RABBITMQ_ROUTES, psettings.WORKERS)
         TM.initialize_rabbitmq()
 
+        self.connect_publisher()
+
+    def connect_publisher(self):
         # The worker connects to the queue
         self.publish_worker = RabbitMQWorker()
-        ret_queue = self.publish_worker.connect(psettings.RABBITMQ_URL)
-        self.assertTrue(ret_queue)
+        self.ret_queue = self.publish_worker.connect(psettings.RABBITMQ_URL)
+
+    def purge_all_queues(self):
+        for queue in psettings.RABBITMQ_ROUTES['QUEUES']:
+            _q = queue['queue']
+            self.publish_worker.channel.queue_purge(queue=_q)
 
     def tearDown(self):
         # Purge the queues if they have content
-
-        try:
-            if not self.channel_list:
-                self.channel_list = [[self.check_worker.channel, 'CheckIfExtractQueue'],
-                                    [self.standard_worker.channel, 'StandardFileExtractorQueue'],
-                                    [self.meta_writer.channel, 'WriteMetaFileQueue']]
-
-            for channel_link, queue_name in self.channel_list:
-
-                single_connection = channel_link.queue_purge(queue=queue_name)
-        except:
-            pass
+        self.purge_all_queues()
 
     def helper_get_details(self, test_publish):
 

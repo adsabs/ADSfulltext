@@ -434,7 +434,7 @@ EXTRACTOR_FACTORY = {
 #-----
 
 
-def extract_content(input_list):
+def extract_content(input_list, **kwargs):
 
     import json
     output_list = []

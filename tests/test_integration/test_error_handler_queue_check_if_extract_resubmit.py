@@ -41,7 +41,7 @@ class TestExtractWorker(IntegrationTest):
                         CONSTANTS['PROVIDER']: 'MNRAS', CONSTANTS['TIME_STAMP']: datetime.utcnow().isoformat()},
                         record]
 
-        ret = publish(self.publish_worker, json.dumps(fake_payload), exchange='FulltextExtractionExchange',
+        ret = publish(self.publish_worker, [json.dumps(fake_payload)], exchange='FulltextExtractionExchange',
                       routing_key='CheckIfExtractRoute')
         self.assertTrue(ret)
         time.sleep(10)
@@ -80,7 +80,6 @@ class TestExtractWorker(IntegrationTest):
         self.assertTrue(standard_queue.method.message_count,
                         "Standard queue should have at least 1 message, but it has: %d" %
                         (standard_queue.method.message_count))
-
 
         # For teardown
         self.channel_list = [[self.check_worker.channel, 'CheckIfExtractQueue'],

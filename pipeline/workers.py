@@ -195,6 +195,7 @@ class ErrorHandlerWorker(RabbitMQWorker):
         message = json.loads(body)
         producer = message.keys()[0]
 
+        self.logger.info('Producer: %s' % producer)
         if header_frame.headers and 'redelivered' in header_frame.headers and header_frame.headers['redelivered']:
             self.channel.basic_ack(delivery_tag=method_frame.delivery_tag)
             self.logger.info("ErrorHandler: Fail: %s" % message)
@@ -205,7 +206,7 @@ class ErrorHandlerWorker(RabbitMQWorker):
         for individual_payload in message[producer]:
             try:
                 self.logger.info('ErrorHandler: Trying to fix payload: %s, type: %s' % (individual_payload, type(individual_payload)))
-                result = self.strategies[producer]([individual_payload], self.params['extract_key'])
+                result = self.strategies[producer]([individual_payload], extract_key=self.params['extract_key'])
                 self.logger.info('ErrorHandler: Fixed payload: %s, type: %s' % (result, type(result)))
             except Exception, e:
                 import traceback
