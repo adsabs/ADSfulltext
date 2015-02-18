@@ -28,6 +28,8 @@ test_stub_html_table = 'tests/test_unit/stub_data/test_table2.html'
 test_stub_text = 'tests/test_unit/stub_data/test.txt'
 test_stub_ocr = 'tests/test_unit/stub_data/test.ocr'
 
+test_functional_stub = 'tests/test_integration/stub_data/fulltext_functional_tests.links'
+
 
 class TestCheckIfExtracted(unittest.TestCase):
 
@@ -187,6 +189,14 @@ class TestFileStreamInput(unittest.TestCase):
         self.assertIn("2015MNRAS.446.4239E", FileInputStream.bibcode)
         self.assertIn("/vagrant/test/data/test.pdf", FileInputStream.full_text_path)
         self.assertIn("MNRAS", FileInputStream.provider)
+
+    def test_split_payload_into_packet_sizes(self):
+
+        FileInputStream = utils.FileInputStream(test_functional_stub)
+        FileInputStream.extract()
+        FileInputStream.make_payload(packet_size=10)
+
+        self.assertTrue(len(FileInputStream.payload)==2)
 
 
 class TestXMLExtractor(unittest.TestCase):

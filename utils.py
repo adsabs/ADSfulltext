@@ -39,52 +39,58 @@ def overrides(interface_class):
 
 class FileInputStream(object):
 
-	def __init__(self, input_stream):
-		self.input_stream = input_stream
-		self.raw = ""
-		self.bibcode = ""
-		self.full_text_path = ""
-		self.provider = ""
+    def __init__(self, input_stream):
+        self.input_stream = input_stream
+        self.raw = ""
+        self.bibcode = ""
+        self.full_text_path = ""
+        self.provider = ""
 
-	def print_info(self):
-		print "Bibcode: %s" % self.bibcode
-		print "Full text path: %s" % self.full_text_path
-		print "Provider: %s" % self.provider
-		print "Raw content: %s" % self.raw
+    def print_info(self):
+        print "Bibcode: %s" % self.bibcode
+        print "Full text path: %s" % self.full_text_path
+        print "Provider: %s" % self.provider
+        print "Raw content: %s" % self.raw
 
-	def extract(self):
+    def extract(self):
 
-		in_file = PROJ_HOME + "/" + self.input_stream
-		try:
-			with open(in_file) as f:
-				input_lines = f.readlines()
-				
-				raw = []
-				bibcode, full_text_path, provider = [], [], []
-				for line in input_lines:
+        in_file = PROJ_HOME + "/" + self.input_stream
+        try:
+            with open(in_file) as f:
+                input_lines = f.readlines()
 
-					l = [i for i in line.strip().split('\t') if i != ""]
-					bibcode.append(l[0])
-					full_text_path.append(l[1])
-					provider.append(l[2])
-					raw.append({"bibcode": bibcode[-1], "ft_source": full_text_path[-1], "provider": provider[-1]})
+                raw = []
+                bibcode, full_text_path, provider = [], [], []
+                for line in input_lines:
 
-			self.bibcode, self.full_text_path, self.provider = bibcode, full_text_path, provider
-			self.raw = raw
+                    l = [i for i in line.strip().split('\t') if i != ""]
+                    bibcode.append(l[0])
+                    full_text_path.append(l[1])
+                    provider.append(l[2])
+                    raw.append({"bibcode": bibcode[-1], "ft_source": full_text_path[-1], "provider": provider[-1]})
 
-		except IOError:
-			print in_file, sys.exc_info()
+            self.bibcode, self.full_text_path, self.provider = bibcode, full_text_path, provider
+            self.raw = raw
 
-		return self.bibcode, self.full_text_path, self.provider, self.raw
+        except IOError:
+            print in_file, sys.exc_info()
 
-	def make_payload(self):
+        return self.bibcode, self.full_text_path, self.provider, self.raw
 
-		'''
-		Convert the file stream input to a payload form defined below
-		'''
-		
-		import json
-		# self.payload = zip(self.bibcode, self.full_text_path, self.provider)
-		self.payload = json.dumps(self.raw)
+    def make_payload(self, **kwargs):
 
-		return self.payload
+        '''
+        Convert the file stream input to a payload form defined below
+        '''
+
+        import json
+        if kwargs['packet_size']:
+            self.payload = [json.dumps(self.raw[i:i+kwargs['packet_size']])
+                            for i in range(0, len(self.raw), kwargs['packet_size'])]
+        else:
+            # self.payload = zip(self.bibcode, self.full_text_path, self.provider)
+            self.payload = [json.dumps(self.raw)]
+
+        return self.payload
+
+    # def split_payload(self):
