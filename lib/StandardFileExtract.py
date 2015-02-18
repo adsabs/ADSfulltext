@@ -358,8 +358,12 @@ class StandardElsevierExtractorXML(StandardExtractorXML):
 
     def parse_xml(self):
         try:
+            logger.info('Parsing EXML with soupparser')
             self.parsed_xml = super(StandardElsevierExtractorXML, self).parse_xml()
+            logger.info('Checking soupparser handled itself correctly')
+            check = self.parsed_xml.xpath('//body')[0].text_content()
         except:
+            logger.info('Parsing EXML in non-standard way')
             self.parsed_xml = document_fromstring(self.raw_xml.encode('utf-8'))
         return self.parsed_xml
 

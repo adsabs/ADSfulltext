@@ -239,7 +239,8 @@ class TestXMLExtractor(unittest.TestCase):
 class TestXMLElsevierExtractor(unittest.TestCase):
 
     def setUp(self):
-        self.dict_item = {CONSTANTS["FILE_SOURCE"]: "%s/%s" % (config["FULLTEXT_EXTRACT_PATH"], test_stub_exml)}
+        self.dict_item = {CONSTANTS["FILE_SOURCE"]: "%s/%s" % (config["FULLTEXT_EXTRACT_PATH"], test_stub_exml),
+                          CONSTANTS['BIBCODE']:  'TEST'}
         self.extractor = std_extract.EXTRACTOR_FACTORY['elsevier'](self.dict_item)
 
     def test_that_we_can_open_an_xml_file(self):
@@ -249,7 +250,6 @@ class TestXMLElsevierExtractor(unittest.TestCase):
     def test_that_we_can_parse_the_xml_content(self):
         full_text_content = self.extractor.open_xml()
         content = self.extractor.parse_xml()
-        # print content.xpath("//dct:title", namespaces={"dct": "http://purl.org/dc/terms/"})
         journal_title = content.xpath("//*[local-name()='title']")[0].text_content()
         self.assertIn("Complex deformation pattern of the", journal_title)
 
@@ -261,6 +261,7 @@ class TestXMLElsevierExtractor(unittest.TestCase):
 
         self.assertItemsEqual(['fulltext', 'acknowledgements'], content.keys(), content.keys())
         self.assertIn("Complex deformation pattern of the", content["fulltext"])
+
 
 class TestHTMLExtractor(unittest.TestCase):
 
