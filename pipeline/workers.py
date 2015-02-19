@@ -68,6 +68,7 @@ class RabbitMQWorker(object):
             self.logger.debug("Subscribing to: %s" % e['queue'])
             self.channel.basic_consume(callback, queue=e['queue'], **kwargs)
             if not self.params.get('TEST_RUN', False):
+                self.logger.info('Worker consuming from queue: %s' % e['queue'])
                 self.channel.start_consuming()
 
     def declare_all(self, exchanges, queues, bindings):
@@ -108,7 +109,6 @@ class CheckIfExtractWorker(RabbitMQWorker):
 
 
 class StandardFileExtractWorker(RabbitMQWorker):
-
     """Extracts the full text from the given location and pushes to the writing queue."""
 
     def __init__(self, params=None):
@@ -140,6 +140,8 @@ class StandardFileExtractWorker(RabbitMQWorker):
 
 
 class WriteMetaFileWorker(RabbitMQWorker):
+    """Writes the full text to file"""
+
     def __init__(self, params=None):
         self.params = params
         from lib import WriteMetaFile
@@ -170,6 +172,7 @@ class WriteMetaFileWorker(RabbitMQWorker):
 
 
 class ErrorHandlerWorker(RabbitMQWorker):
+    """Re-runs all individual bibcodes of a payload that failed, to find the single payload that was a problem."""
 
     def __init__(self, params):
         self.params = params
