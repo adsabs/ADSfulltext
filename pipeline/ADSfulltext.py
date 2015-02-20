@@ -113,7 +113,6 @@ class TaskMaster(Singleton):
 
 def start_pipeline(params_dictionary=False):
 
-
     TM = TaskMaster(psettings.RABBITMQ_URL, psettings.RABBITMQ_ROUTES, psettings.WORKERS)
     TM.initialize_rabbitmq()
     TM.start_workers(extra_params=params_dictionary)
@@ -127,7 +126,7 @@ def start_pipeline(params_dictionary=False):
 
 def main():
     import argparse
-    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser = argparse.ArgumentParser(description='Process user input.')
 
     parser.add_argument('--no-consume-queue', dest='test_run', action='store_true',
                         help='Worker will exit the queue after consuming a single message.')

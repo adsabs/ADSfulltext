@@ -1,9 +1,12 @@
+#!/usr/bin/env python
 '''
 Routine obtains and publishes the desired file list to the RabbitMQ to be full text extracted
 '''
 
+import sys
 import time
 import utils
+import argparse
 from pipeline import psettings, workers, ADSfulltext
 
 from utils import setup_logging
@@ -47,10 +50,7 @@ def read_links_from_file(file_input):
     return FileInputStream
 
 
-def main(full_text_links, **kwargs):
-
-    # TM = ADSfulltext.TaskMaster(psettings.RABBITMQ_URL, psettings.RABBITMQ_ROUTES, psettings.WORKERS)
-    # TM.initialize_rabbitmq()
+def run(full_text_links, **kwargs):
 
     logger.info('Loading records from: %s' % full_text_links)
     records = read_links_from_file(full_text_links)
@@ -68,3 +68,25 @@ def main(full_text_links, **kwargs):
     records.make_payload(packet_size=packet_size)
     publish(publish_worker, records.payload, exchange='FulltextExtractionExchange',
             routing_key='CheckIfExtractRoute')
+
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(description='Process user input.')
+
+    parser.add_argument('-f', '--full_text_links', dest='full_text_links', action='store', type=str,
+                        help='Path to the fulltext.links file that contains the article list.')
+    parser.add_argument('-p', '--packet_size', dest='packet_size', action='store', type=int,
+                        help='Size of the payloads to be sent to RabbitMQ.')
+    parser.set_defaults(fulltext_links=False)
+    parser.set_defaults(packet_size=100)
+
+    args = parser.parse_args()
+
+    if not args.full_text_links:
+        print 'You need to give the input list'
+        parser.print_help()
+        sys.exit(0)
+
+    # Send the files to be put on
+    run(args.full_text_links, packet_size=args.packet_size)

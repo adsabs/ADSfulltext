@@ -1,8 +1,8 @@
-from base import *
+from lib.test_base import *
 from datetime import datetime
 
 
-class TestExtractWorker(IntegrationTest):
+class TestExtractWorker(TestGeneric):
 
     def tearDown(self):
         if os.path.exists(self.meta_path):
@@ -14,7 +14,7 @@ class TestExtractWorker(IntegrationTest):
 
     def test_extraction_of_non_extracted(self):
 
-        test_publish='tests/test_integration/stub_data/fulltext_exists_txt.links'
+        test_publish = os.path.join(PROJ_HOME, 'tests/test_integration/stub_data/fulltext_exists_txt.links')
 
         # user loads the list of full text files and publishes them to the first queue
         records = read_links_from_file(test_publish)

@@ -1,8 +1,8 @@
-from base import *
+from lib.test_base import *
 from datetime import datetime
 
 
-class TestExtractWorker(IntegrationTest):
+class TestExtractWorker(TestGeneric):
 
     def tearDown(self):
         path = '/vagrant/tests/test_unit/stub_data/fu/ll/'

@@ -1,8 +1,8 @@
-from base import *
+from lib.test_base import *
 from datetime import datetime
 
 
-class TestExtractWorker(IntegrationTest):
+class TestExtractWorker(TestGeneric):
 
     def tearDown(self):
         if os.path.exists(self.meta_path):

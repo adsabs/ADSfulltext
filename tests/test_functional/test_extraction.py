@@ -73,7 +73,7 @@ class TestExtractWorker(TestGeneric):
         # Obtain the parameters to publish to the queue
         # Expect that the records are split into the correct number of
         # packet sizes
-        run.main(full_text_links=full_text_links,
+        run.run(full_text_links=full_text_links,
                  packet_size=10)
 
         time.sleep(60)
