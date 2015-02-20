@@ -17,7 +17,7 @@ class TestExtractWorker(TestGeneric):
 
     def test_extraction_of_non_extracted(self):
 
-        test_publish='tests/test_integration/stub_data/fulltext_range_of_formats.links'
+        test_publish = os.path.join(PROJ_HOME,'tests/test_integration/stub_data/fulltext_range_of_formats.links')
 
         # user loads the list of full text files and publishes them to the first queue
         records = read_links_from_file(test_publish)

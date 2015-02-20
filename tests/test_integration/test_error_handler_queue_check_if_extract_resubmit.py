@@ -34,7 +34,7 @@ class TestExtractWorker(TestGeneric):
 
         from datetime import datetime
         # Obtain non-fake parameters
-        test_publish='tests/test_integration/stub_data/fulltext_error_handling_standard_extract_resubmitted.links'
+        test_publish = os.path.join(PROJ_HOME, 'tests/test_integration/stub_data/fulltext_error_handling_standard_extract_resubmitted.links')
         record = read_links_from_file(test_publish).raw[1]
 
         fake_payload = [{CONSTANTS['BIBCODE']: 'full4', CONSTANTS['FILE_SOURCE']: '',
