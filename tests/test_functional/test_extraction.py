@@ -1,6 +1,8 @@
 import run
 import os
 import time
+import subprocess
+import sys
 from base import IntegrationTest
 from settings import PROJ_HOME, CONSTANTS
 from lib import CheckIfExtract as check_if_extract
@@ -9,11 +11,16 @@ from lib import CheckIfExtract as check_if_extract
 class TestExtractWorker(IntegrationTest):
 
     def setUp(self):
-        pass
+        # Start the pipeline
+        self.supervisor_ADS_full_text('start')
+        time.sleep(3)
 
     def tearDown(self):
         self.connect_publisher()
         self.purge_all_queues()
+
+        # Stop the pipeline
+        self.supervisor_ADS_full_text('stop')
 
     def calculate_expected_folders(self, full_text_links):
 
@@ -26,6 +33,22 @@ class TestExtractWorker(IntegrationTest):
 
         return expected_paths
 
+    def supervisor_ADS_full_text(self, action):
+
+        accepted_actions = ['stop', 'start']
+        if action not in accepted_actions:
+            print 'You can only use: %s' % accepted_actions
+            sys.exit(0)
+
+        process = subprocess.Popen(['supervisorctl', '-c', '/vagrant/supervisord.conf', action, 'ADSfulltext'],
+                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        output, error = process.communicate()
+
+        if action not in output:
+            print 'ADSfull text could not be started correctly, exiting'
+            sys.exit(0)
+
     def test_functionality_of_the_system_on_non_existent_files(self):
 
         full_text_links = 'tests/test_integration/stub_data/fulltext_functional_tests.links'
@@ -35,12 +58,13 @@ class TestExtractWorker(IntegrationTest):
         run.main(full_text_links=full_text_links,
                  packet_size=10)
 
-        # time.sleep(10)
+        time.sleep(60)
 
         expected_folders = self.calculate_expected_folders(full_text_links)
 
         for expected_f in expected_folders:
             self.assertTrue(os.path.exists(expected_f), 'Could not find: %s' % expected_f)
+
 
 if __name__ == "__main__":
     unittest.main()

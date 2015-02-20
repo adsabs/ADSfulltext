@@ -11,6 +11,8 @@ import psettings
 import workers
 import multiprocessing
 import time
+import signal
+import sys
 from workers import RabbitMQWorker
 from utils import setup_logging
 
@@ -34,6 +36,17 @@ class TaskMaster(Singleton):
         self.workers = workers
         self.running = False
 
+    def quit(self, signal, frame):
+        # Kill child workers if master gets SIGTERM
+        try:
+            logger.info('Got SIGTERM to stop workers, attempt graceful shutdown.')
+            self.stop_workers()
+        except Exception, err:
+            logger.warning('Workers not stopped gracefully: %s' % err)
+        finally:
+            self.running = False
+            sys.exit(0)
+
     def initialize_rabbitmq(self):
         # Make sure the plumbing in rabbitMQ is correct; this procedure is idempotent
         w = RabbitMQWorker()
@@ -43,6 +56,9 @@ class TaskMaster(Singleton):
 
     def poll_loop(self, poll_interval=psettings.POLL_INTERVAL, ttl=7200, extra_params=False):
         while self.running:
+
+
+
             time.sleep(poll_interval)
             for worker, params in self.workers.iteritems():
                 for active in params['active']:
@@ -90,11 +106,22 @@ class TaskMaster(Singleton):
             logger.info('Successfully started: %d' % len(params['active']))
         self.running = True
 
+    def stop_workers(self):
+        # Closing the main process should gracefully clean up each daemon process.
+        pass
+
 
 def start_pipeline(params_dictionary=False):
+
+
     TM = TaskMaster(psettings.RABBITMQ_URL, psettings.RABBITMQ_ROUTES, psettings.WORKERS)
     TM.initialize_rabbitmq()
     TM.start_workers(extra_params=params_dictionary)
+
+    # Define the SIGTERM handler
+    signal.signal(signal.SIGTERM, TM.quit)
+
+    # Start the main process in a loop
     TM.poll_loop(extra_params=params_dictionary)
 
 
