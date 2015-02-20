@@ -3,14 +3,15 @@ import os
 import time
 import subprocess
 import sys
-from base import IntegrationTest
+from lib.test_base import TestGeneric
 from settings import PROJ_HOME, CONSTANTS
 from lib import CheckIfExtract as check_if_extract
 
 
-class TestExtractWorker(IntegrationTest):
+class TestExtractWorker(TestGeneric):
 
     def setUp(self):
+        self.expected_folders = []
         # Start the pipeline
         self.supervisor_ADS_full_text('start')
         time.sleep(3)
@@ -18,6 +19,7 @@ class TestExtractWorker(IntegrationTest):
     def tearDown(self):
         self.connect_publisher()
         self.purge_all_queues()
+        self.clean_up_path(self.expected_folders)
 
         # Stop the pipeline
         self.supervisor_ADS_full_text('stop')
@@ -32,6 +34,22 @@ class TestExtractWorker(IntegrationTest):
                           for line in lines]
 
         return expected_paths
+
+    def clean_up_path(self, paths):
+
+        for path in paths:
+            if os.path.exists(path):
+                meta = os.path.join(path, 'meta.json')
+                fulltext = os.path.join(path, 'fulltext.txt')
+                if os.path.exists(meta):
+                    os.remove(meta)
+                if os.path.exists(fulltext):
+                    os.remove(fulltext)
+                os.rmdir(path)
+
+                print 'deleted: %s and its content'
+            else:
+                print 'Could not delete %s, does not exist' % path
 
     def supervisor_ADS_full_text(self, action):
 
@@ -51,7 +69,7 @@ class TestExtractWorker(IntegrationTest):
 
     def test_functionality_of_the_system_on_non_existent_files(self):
 
-        full_text_links = 'tests/test_integration/stub_data/fulltext_functional_tests.links'
+        full_text_links = 'tests/test_functional/stub_data/fulltext_functional_tests.links'
         # Obtain the parameters to publish to the queue
         # Expect that the records are split into the correct number of
         # packet sizes
@@ -60,9 +78,9 @@ class TestExtractWorker(IntegrationTest):
 
         time.sleep(60)
 
-        expected_folders = self.calculate_expected_folders(full_text_links)
+        self.expected_folders = self.calculate_expected_folders(full_text_links)
 
-        for expected_f in expected_folders:
+        for expected_f in self.expected_folders:
             self.assertTrue(os.path.exists(expected_f), 'Could not find: %s' % expected_f)
 
 
