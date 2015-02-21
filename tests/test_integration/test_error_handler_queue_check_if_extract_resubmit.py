@@ -22,10 +22,7 @@ class TestExtractWorker(TestGeneric):
 
     def tearDown(self):
 
-        print 'meta', self.meta_path_
-        if os.path.exists(self.meta_path_):
-            os.remove(os.path.join(self.meta_path_, 'meta.json'))
-            os.rmdir(self.meta_path_)
+        self.clean_up_path([self.meta_path_])
 
         super(TestExtractWorker, self).tearDown()
 
@@ -80,10 +77,6 @@ class TestExtractWorker(TestGeneric):
         self.assertTrue(standard_queue.method.message_count,
                         "Standard queue should have at least 1 message, but it has: %d" %
                         (standard_queue.method.message_count))
-
-        # For teardown
-        self.channel_list = [[self.check_worker.channel, 'CheckIfExtractQueue'],
-                             [self.check_worker.channel, 'StandardFileExtractorQueue']]
 
 
 if __name__ == "__main__":

@@ -4,16 +4,6 @@ from lib.test_base import *
 class TestExtractWorker(TestGeneric):
 
     def tearDown(self):
-    #     path = '/vagrant/tests/test_unit/stub_data/fu/ll/'
-    #     for i in range(5):
-    #         tpath = path + ('%d/' % (i+1))
-    #         if os.path.exists(tpath):
-    #             os.remove(os.path.join(tpath, 'fulltext.txt'))
-    #             os.remove(os.path.join(tpath, 'meta.json'))
-    #             os.rmdir(tpath)
-    #
-            # Purge the queues if they have content
-        # self.channel_list = [[self.error_worker.channel, 'ErrorHandlerQueue']]
 
         super(TestExtractWorker, self).tearDown()
 
@@ -112,17 +102,6 @@ class TestExtractWorker(TestGeneric):
             )
         self.assertTrue(queue_error.method.message_count == 0,
                         "Should be 0, but it is: %d" % queue_error.method.message_count)
-        # The error handler should resubmit each individual payload back to the queue that failed
-        # standard_queue = self.check_worker.channel.queue_declare(
-        #     queue="StandardFileExtractorQueue",
-        #     passive=True
-        #     )
-        #
-        # self.assertTrue(standard_queue.method.message_count,
-        #                 "Standard queue should have at least 1 message, but it has: %d" %
-        #                 (standard_queue.method.message_count))
-
-
 
 if __name__ == "__main__":
     unittest.main()

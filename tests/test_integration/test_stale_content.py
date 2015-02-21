@@ -5,21 +5,22 @@ from datetime import datetime
 class TestExtractWorker(TestGeneric):
 
     def tearDown(self):
-        if os.path.exists(self.meta_path):
-            os.remove(os.path.join(self.meta_path, 'fulltext.txt'))
-            os.remove(os.path.join(self.meta_path, 'meta.json'))
-            os.rmdir(self.meta_path)
-
+        self.clean_up_path(self.expected_paths)
         super(TestExtractWorker, self).tearDown()
+
+    def setUp(self):
+        self.test_publish = os.path.join(PROJ_HOME, 'tests/test_integration/stub_data/fulltext_exists_txt.links')
+        self.expected_paths = self.calculate_expected_folders(self.test_publish)
+
+        super(TestExtractWorker, self).setUp()
 
     def test_extraction_of_non_extracted(self):
 
-        test_publish = os.path.join(PROJ_HOME, 'tests/test_integration/stub_data/fulltext_exists_txt.links')
 
         # user loads the list of full text files and publishes them to the first queue
-        records = read_links_from_file(test_publish)
+        records = read_links_from_file(self.test_publish)
 
-        self.helper_get_details(test_publish)
+        self.helper_get_details(self.test_publish)
         self.assertEqual(len(records.bibcode), self.nor,
                          "The number of records should match the number of lines. It does not: %d [%d]"
                          % (len(records.bibcode),self.nor))
@@ -118,11 +119,10 @@ class TestExtractWorker(TestGeneric):
         self.meta_writer.run()
 
         time.sleep(5)
-        meta_json = (os.path.join(self.meta_path, 'meta.json'))
-        fulltext_txt = (os.path.join(self.meta_path, 'fulltext.txt'))
 
-        self.assertTrue(os.path.exists(meta_json), "Meta file not created: %s" % meta_json)
-        self.assertTrue(os.path.exists(fulltext_txt), "Full text file not created: %s" % fulltext_txt)
+        for path in self.expected_paths:
+            self.assertTrue(os.path.exists(os.path.join(path, 'meta.json')), "Meta file not created: %s" % path)
+            self.assertTrue(os.path.exists(os.path.join(path, 'fulltext.txt')), "Full text file not created: %s" % path)
 
 
 if __name__ == "__main__":

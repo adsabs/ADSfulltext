@@ -5,24 +5,24 @@ from datetime import datetime
 class TestExtractWorker(TestGeneric):
 
     def tearDown(self):
-        path = '/vagrant/tests/test_unit/stub_data/fu/ll/'
-        for i in range(5):
-            tpath = path + ('%d/' % (i+1))
-            if os.path.exists(tpath):
-                os.remove(os.path.join(tpath, 'fulltext.txt'))
-                os.remove(os.path.join(tpath, 'meta.json'))
-                os.rmdir(tpath)
+        self.clean_up_path(self.expected_paths)
 
         super(TestExtractWorker, self).tearDown()
 
+
+    def setUp(self):
+        self.test_publish = os.path.join(PROJ_HOME, 'tests/test_integration/stub_data/fulltext_range_of_formats.links')
+        self.expected_paths = self.calculate_expected_folders(self.test_publish)
+
+        super(TestExtractWorker, self).setUp()
+
+
     def test_extraction_of_non_extracted(self):
 
-        test_publish = os.path.join(PROJ_HOME,'tests/test_integration/stub_data/fulltext_range_of_formats.links')
-
         # user loads the list of full text files and publishes them to the first queue
-        records = read_links_from_file(test_publish)
+        records = read_links_from_file(self.test_publish)
 
-        self.helper_get_details(test_publish)
+        self.helper_get_details(self.test_publish)
         self.assertEqual(len(records.bibcode), self.nor,
                          "The number of records should match the number of lines. It does not: %d [%d]"
                          % (len(records.bibcode),self.nor))
@@ -109,15 +109,13 @@ class TestExtractWorker(TestGeneric):
         self.meta_writer.run()
 
         time.sleep(5)
-        path = '/vagrant/tests/test_unit/stub_data/fu/ll/'
-        for i in range(5):
-            tpath = path + ('%d/' % (i+1))
-            self.assertTrue(os.path.exists(tpath),
-                            "Path does not exist: %s" % tpath)
-            self.assertTrue(os.path.exists(os.path.join(tpath, 'meta.json')),
-                            "Meta file was not made in: %s" % tpath)
-            self.assertTrue(os.path.exists(os.path.join(tpath, 'fulltext.txt')),
-                            "Full text was not made in: %s" % tpath)
+
+        for path in self.expected_paths:
+            if '6' in path:
+                print 'Skipping PDF, not implemented yet'
+                continue
+            self.assertTrue(os.path.exists(os.path.join(path, 'meta.json')), "Meta file not created: %s" % path)
+            self.assertTrue(os.path.exists(os.path.join(path, 'fulltext.txt')), "Full text file not created: %s" % path)
 
 
 if __name__ == "__main__":

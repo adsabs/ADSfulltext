@@ -3,25 +3,26 @@ from lib.test_base import *
 
 class TestExtractWorker(TestGeneric):
 
+    def setUp(self):
+        self.test_publish = os.path.join(PROJ_HOME, 'tests/test_integration/stub_data/fulltext_error_handling_standard_extract_resubmitted.links')
+        self.expected_paths = [self.calculate_expected_folders(self.test_publish)[1]]
+
+        super(TestExtractWorker, self).setUp()
+
     def tearDown(self):
 
-        if os.path.exists(self.meta_path):
-            os.remove(os.path.join(self.meta_path, 'fulltext.txt'))
-            os.remove(os.path.join(self.meta_path, 'meta.json'))
-            os.rmdir(self.meta_path)
-
+        self.clean_up_path(self.expected_paths)
         super(TestExtractWorker, self).tearDown()
 
     def test_extraction_of_non_extracted(self):
 
         # Obtain non-fake parameters
-        test_publish = os.path.join(PROJ_HOME, 'tests/test_integration/stub_data/fulltext_error_handling_standard_extract_resubmitted.links')
-        record = read_links_from_file(test_publish).raw[1]
+
+        record = read_links_from_file(self. test_publish).raw[1]
         record[CONSTANTS['META_PATH']] = check_if_extract.create_meta_path(record,
                                                                            extract_key='FULLTEXT_EXTRACT_PATH_UNITTEST')
         record[CONSTANTS['FULL_TEXT']] = 'Full text'
         record[CONSTANTS['FORMAT']] = 'ocr'
-        self.meta_path = record[CONSTANTS['META_PATH']].replace('meta.json', '')
 
         # Currently hard coded as this scenario should not develop naturally
         # This is just to trigger a fail within the WriteMetaFileWorker
@@ -60,7 +61,8 @@ class TestExtractWorker(TestGeneric):
 
         # The failing one should fail, but the non-failing one should pass
         # This means the writing to file should work correctly
-        self.assertTrue(os.path.exists(self.meta_path))
+        for path in self.expected_paths:
+            self.assertTrue(os.path.exists(path))
 
 if __name__ == "__main__":
     unittest.main()

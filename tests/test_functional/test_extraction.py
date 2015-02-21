@@ -24,32 +24,7 @@ class TestExtractWorker(TestGeneric):
         # Stop the pipeline
         self.supervisor_ADS_full_text('stop')
 
-    def calculate_expected_folders(self, full_text_links):
 
-        with open(os.path.join(PROJ_HOME, full_text_links)) as inf:
-            lines = inf.readlines()
-
-        expected_paths = [check_if_extract.create_meta_path({CONSTANTS['BIBCODE']: line.strip().split('\t')[0]},
-                                                            extract_key='FULLTEXT_EXTRACT_PATH_UNITTEST').replace('meta.json', '')
-                          for line in lines]
-
-        return expected_paths
-
-    def clean_up_path(self, paths):
-
-        for path in paths:
-            if os.path.exists(path):
-                meta = os.path.join(path, 'meta.json')
-                fulltext = os.path.join(path, 'fulltext.txt')
-                if os.path.exists(meta):
-                    os.remove(meta)
-                if os.path.exists(fulltext):
-                    os.remove(fulltext)
-                os.rmdir(path)
-
-                print 'deleted: %s and its content'
-            else:
-                print 'Could not delete %s, does not exist' % path
 
     def supervisor_ADS_full_text(self, action):
 

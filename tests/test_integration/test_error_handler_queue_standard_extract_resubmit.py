@@ -4,22 +4,23 @@ from lib.test_base import *
 class TestExtractWorker(TestGeneric):
 
     def tearDown(self):
-
-        if os.path.exists(self.meta_list[1]):
-            os.remove(os.path.join(self.meta_list[1], 'fulltext.txt'))
-            os.remove(os.path.join(self.meta_list[1], 'meta.json'))
-            os.rmdir(self.meta_list[1])
+        self.clean_up_path(self.expected_paths)
 
         super(TestExtractWorker, self).tearDown()
 
+
+    def setUp(self):
+        self.test_publish = os.path.join(PROJ_HOME, 'tests/test_integration/stub_data/fulltext_error_handling_standard_extract_resubmitted.links')
+        self.expected_paths = self.calculate_expected_folders(self.test_publish)
+
+        super(TestExtractWorker, self).setUp()
+
     def test_extraction_of_non_extracted(self):
 
-        test_publish = os.path.join(PROJ_HOME, 'tests/test_integration/stub_data/fulltext_error_handling_standard_extract_resubmitted.links')
-
         # user loads the list of full text files and publishes them to the first queue
-        records = read_links_from_file(test_publish)
+        records = read_links_from_file(self.test_publish)
 
-        self.helper_get_details(test_publish)
+        self.helper_get_details(self.test_publish)
         self.assertEqual(len(records.bibcode), self.nor,
                          "The number of records should match the number of lines. It does not: %d [%d]"
                          % (len(records.bibcode),self.nor))
@@ -109,7 +110,8 @@ class TestExtractWorker(TestGeneric):
         print('starting meta writer')
         self.meta_writer.run()
 
-        self.assertTrue(os.path.exists(self.meta_list[1]), "Meta path not created: %s" % self.meta_list[1])
+        for path in [self.expected_paths[1]]:
+            self.assertTrue(os.path.exists(path), "Meta path not created: %s" % path)
 
 
 if __name__ == "__main__":

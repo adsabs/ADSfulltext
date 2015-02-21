@@ -1,12 +1,10 @@
 from lib.test_base import *
-from datetime import datetime
 
 
 class TestExtractWorker(TestGeneric):
 
     def tearDown(self):
         self.clean_up_path(self.expected_paths)
-
         super(TestExtractWorker, self).tearDown()
 
     def setUp(self):
@@ -25,14 +23,6 @@ class TestExtractWorker(TestGeneric):
                          "The number of records should match the number of lines. It does not: %d [%d]"
                          % (len(records.bibcode),self.nor))
 
-        # Make the fake data to use
-        if not os.path.exists(self.meta_path):
-            os.makedirs(self.meta_path)
-
-        test_meta_content = {"index_date": datetime.utcnow().isoformat()+'Z', "bibcode": "test4", "provider": "mnras",
-                             'ft_source': 'wrong_source'}
-        with open(self.test_expected, 'w') as test_meta_file:
-            json.dump(test_meta_content, test_meta_file)
 
         # The pipeline converts the input into a payload expected by the workers
         records.make_payload()
@@ -78,8 +68,8 @@ class TestExtractWorker(TestGeneric):
         pdf_res = json.loads(self.check_worker.results["PDF"])
         standard_res = json.loads(self.check_worker.results["Standard"])
 
-        self.assertEqual('DIFFERING_FULL_TEXT', standard_res[0][CONSTANTS['UPDATE']],
-                         'This should be DIFFERING_FULL_TEXT, but is in fact: %s' % standard_res[0][CONSTANTS['UPDATE']])
+        self.assertEqual('NOT_EXTRACTED_BEFORE', standard_res[0][CONSTANTS['UPDATE']],
+                         'This should be NOT_EXTRACTED_BEFORE, but is in fact: %s' % standard_res[0][CONSTANTS['UPDATE']])
 
         if pdf_res:
             pdf_res = len(pdf_res)
