@@ -33,3 +33,8 @@ exec {'update_python_path':
 }
 
 Exec['apt_update_1'] -> Package[$build_packages] -> Exec['pip_install_modules'] -> Exec['update_python_path']
+
+class {"supervisor":
+  supervisor_conf => "/etc/supervisord.conf",
+  require => Exec["pip_install_modules"],
+}

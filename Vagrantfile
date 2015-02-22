@@ -40,11 +40,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     docker.pull_images "dockerfile/rabbitmq"
     docker.run "dockerfile/rabbitmq",
       args: "-d -p 5672:5672 -p 15672:15672"
-
   end
 
   config.vm.provision :puppet do |puppet|
     puppet.manifests_path = "manifests"
     puppet.manifest_file = "adsfulltext.pp"
+    puppet.module_path = "puppet/modules"
   end
 end
