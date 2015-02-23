@@ -1,6 +1,6 @@
 # Some const. variables
 $path_var = "/usr/bin:/usr/sbin:/bin:/usr/local/sbin:/usr/sbin:/sbin"
-$build_packages = ['python', 'python-pip', 'python-dev', 'libpq-dev', 'libxml2-dev', 'libxslt1-dev']
+$build_packages = ['python', 'python-pip', 'python-dev', 'libpq-dev', 'libxml2-dev', 'libxslt1-dev', 'sshfs]
 $pip_requirements = "/vagrant/requirements.txt"
 
 # Update package list
@@ -36,5 +36,6 @@ Exec['apt_update_1'] -> Package[$build_packages] -> Exec['pip_install_modules'] 
 
 class {"supervisor":
   supervisor_conf => "/etc/supervisord.conf",
+  upstart_conf => "/etc/init/supervisor.conf",
   require => Exec["pip_install_modules"],
 }

@@ -14,6 +14,16 @@ from utils import setup_logging
 logger = setup_logging(__file__, __name__, level='DEBUG')
 
 
+def purge_queues(queues=psettings.RABBITMQ_ROUTES['QUEUES']):
+    publish_worker = workers.RabbitMQWorker()
+    publish_worker.connect(psettings.RABBITMQ_URL)
+
+    for queue in queues:
+        _q = queue['queue']
+        logger.info('Purging queue: %s' % _q)
+        publish_worker.channel.queue_purge(queue=_q)
+
+
 def publish(w, records, sleep=5, max_queue_size=100000, url=psettings.RABBITMQ_URL,
             exchange='FulltextExtractionExchange', routing_key='CheckIfExtractRoute'):
 
@@ -78,10 +88,18 @@ if __name__ == "__main__":
                         help='Path to the fulltext.links file that contains the article list.')
     parser.add_argument('-p', '--packet_size', dest='packet_size', action='store', type=int,
                         help='Size of the payloads to be sent to RabbitMQ.')
+    parser.add_argument('-q', '--purge_queues', dest='purge_queues', action='store_true',
+                        help='Purge all the queues so there are no remaining packets')
+
     parser.set_defaults(fulltext_links=False)
     parser.set_defaults(packet_size=100)
+    parser.set_defaults(purge_queues=False)
 
     args = parser.parse_args()
+
+    if args.purge_queues:
+        purge_queues()
+        sys.exit(0)
 
     if not args.full_text_links:
         print 'You need to give the input list'

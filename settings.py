@@ -4,7 +4,7 @@ Settings that are expected to be changed by the user. They influence the system 
 
 import os
 
-FULLTEXT_EXTRACT_PATH = ""
+FULLTEXT_EXTRACT_PATH = "/vagrant/live"
 FULLTEXT_EXTRACT_PATH_UNITTEST = "tests/test_unit/stub_data"
 
 PROJ_HOME = os.path.dirname(os.path.realpath(__file__))
