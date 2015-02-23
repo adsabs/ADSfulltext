@@ -10,6 +10,7 @@ import re
 import traceback
 import os
 import unicodedata
+import sys
 from utils import setup_logging, overrides
 from lxml.html import soupparser, document_fromstring, fromstring
 from lib import entitydefs as edef
@@ -295,18 +296,33 @@ class StandardExtractorXML(object):
         self.meta_name = "xml"
 
     def open_xml(self):
+        import getpass
+        import os
+        import pwd
+
+        def get_username():
+            return pwd.getpwuid( os.getuid() )[ 0 ]
 
         raw_xml = None
+
+        logger.info(getpass.getuser())
+        logger.info(get_username())
         try:
-            f = open(self.file_input, 'r')
-            raw_xml = f.read()
+            logger.info('Opening the file: %s' % self.file_input)
+
+            with open(self.file_input, 'r') as f:
+                raw_xml = f.read()
+
+            logger.debug('reading')
+            logger.info('Opened file, trying to massage the input.')
             raw_xml = re.sub('(<!-- body|endbody -->)', '', raw_xml)
             raw_xml = edef.convertentities(raw_xml.decode('utf-8', 'ignore'))
             raw_xml = re.sub('<\?CDATA.+?\?>', '', raw_xml)
+            logger.info('XML file opened successfully')
             self.raw_xml = raw_xml
-            f.close()
-        except IOError:
-            raise IOError
+        except Exception, err:
+            logger.error("Error: %s" % err)
+            raise Exception(err)
 
         return raw_xml
 

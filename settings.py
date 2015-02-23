@@ -10,7 +10,7 @@ FULLTEXT_EXTRACT_PATH_UNITTEST = "tests/test_unit/stub_data"
 PROJ_HOME = os.path.dirname(os.path.realpath(__file__))
 
 config = {
-    "FULLTEXT_EXTRACT_PATH": os.path.join(PROJ_HOME, FULLTEXT_EXTRACT_PATH),
+    "FULLTEXT_EXTRACT_PATH": FULLTEXT_EXTRACT_PATH,
     "FULLTEXT_EXTRACT_PATH_UNITTEST": os.path.join(PROJ_HOME, FULLTEXT_EXTRACT_PATH_UNITTEST),
 }
 

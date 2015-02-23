@@ -80,7 +80,7 @@ class TestGeneric(unittest.TestCase):
 
     def calculate_expected_folders(self, full_text_links):
 
-        with open(os.path.join(PROJ_HOME, full_text_links)) as inf:
+        with open(os.path.join(PROJ_HOME, full_text_links), "r") as inf:
             lines = inf.readlines()
 
         expected_paths = [check_if_extract.create_meta_path({CONSTANTS['BIBCODE']: line.strip().split('\t')[0]},

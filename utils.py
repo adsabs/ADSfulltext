@@ -58,7 +58,7 @@ class FileInputStream(object):
         # in_file = PROJ_HOME + "/" + self.input_stream
         in_file = self.input_stream
         try:
-            with open(in_file) as f:
+            with open(in_file, 'r') as f:
                 input_lines = f.readlines()
 
                 raw = []

@@ -51,7 +51,7 @@ def load_meta_file(file_input, extract_key="FULLTEXT_EXTRACT_PATH"):
     content = None
 
     try:
-        with open(meta_full_path) as f:
+        with open(meta_full_path, 'r') as f:
             content = json.loads(f.read())
 
         logger.info('Meta file already exists')
