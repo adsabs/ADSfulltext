@@ -551,5 +551,19 @@ class TestWriteMetaFileWorker(unittest.TestCase):
         self.assertTrue(os.path.exists(self.acknowledgement_file),
                             msg=os.path.exists(self.acknowledgement_file))
 
+    def test_temporary_file_is_made_and_moved(self):
+
+        writer.extract_content([self.dict_item])
+        os.remove(self.meta_file)
+
+        temp_path = self.meta_file.replace('meta.json', '')
+        temp_file_name = writer.write_to_temp_file(self.dict_item, temp_path)
+        self.assertTrue(os.path.exists(temp_file_name))
+
+        writer.move_temp_file_to_file(temp_file_name, self.meta_file)
+        self.assertFalse(os.path.exists(temp_file_name))
+        self.assertTrue(os.path.exists(self.meta_file))
+
+
 if __name__ == '__main__':
     unittest.main()

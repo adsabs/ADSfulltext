@@ -7,11 +7,46 @@ pair tree directory path.
 
 import os
 import json
-import datetime
+import tempfile
+import shutil
 from settings import CONSTANTS, META_CONTENT
 from utils import setup_logging
 
 logger = setup_logging(__file__, __name__)
+
+
+def write_to_temp_file(payload, temp_path='/tmp/', json_format=True):
+
+    with tempfile.NamedTemporaryFile(mode='w', dir=temp_path, delete=False) as temp_file:
+        temp_file_name = temp_file.name
+        if json_format:
+            json.dump(payload, temp_file)
+        else:
+            temp_file.write(payload)
+
+    print 'Temp file name: %s' % temp_file_name
+    return temp_file_name
+
+
+def move_temp_file_to_file(temp_file_name, new_file_name):
+
+    try:
+        shutil.copy(temp_file_name, new_file_name)
+    except Exception, err:
+        logger.error('Unexpected error from shutil in copying temporary file to new file: %s' % err)
+
+    try:
+        os.remove(temp_file_name)
+    except Exception, err:
+        logger.error('Unexpected error from os removing a file: %s' % err)
+
+
+def write_file(file_name, payload, json_format=True):
+
+    temp_path = os.path.dirname(file_name)
+
+    temp_file_name = write_to_temp_file(payload, temp_path=temp_path, json_format=json_format)
+    move_temp_file_to_file(temp_file_name, file_name)
 
 
 def write_content(payload_dictionary):
@@ -19,9 +54,8 @@ def write_content(payload_dictionary):
     meta_output_file_path = payload_dictionary[CONSTANTS['META_PATH']]
     # full_text_output_file_path = payload_dictionary[CONSTANTS['META_PATH']].replace(
     #         'meta.json', '%s.txt' % CONSTANTS['FULL_TEXT'])
-    bibcode_pair_tree_path = meta_output_file_path.replace('meta.json', '')
+    bibcode_pair_tree_path = os.path.dirname(meta_output_file_path)
     full_text_output_file_path = os.path.join(bibcode_pair_tree_path, 'fulltext.txt')
-
 
     if not os.path.exists(bibcode_pair_tree_path):
         try:
@@ -55,10 +89,7 @@ def write_content(payload_dictionary):
             try:
                 meta_constant_file_path = os.path.join(bibcode_pair_tree_path, meta_key_word) + '.txt'
                 logger.info("Writing %s to file at: %s" % (meta_key_word, meta_constant_file_path))
-
-                with open(meta_constant_file_path, 'w') as meta_constant_file:
-                    meta_constant_file.write(meta_key_word_value)
-
+                write_file(meta_constant_file_path, meta_key_word_value, json_format=False)
                 logger.info("Writing complete.")
             except IOError:
                 raise IOError
@@ -71,25 +102,23 @@ def write_content(payload_dictionary):
     logger.info("Copying full text content")
     full_text_dict = {CONSTANTS['FULL_TEXT']: payload_dictionary[CONSTANTS['FULL_TEXT']]}
 
-    with open(meta_output_file_path, 'w') as meta_output_file:
-        try:
-            logger.info("Writing to file: %s" % meta_output_file_path)
-            logger.info("Content has keys: %s" % (meta_dict.keys()))
-            json.dump(meta_dict, meta_output_file)
-            logger.info("Writing complete.")
-        except IOError:
-            raise IOError
+    try:
+        logger.info("Writing to file: %s" % meta_output_file_path)
+        logger.info("Content has keys: %s" % (meta_dict.keys()))
+        write_file(meta_output_file_path, meta_dict, json_format=True)
+        logger.info("Writing complete.")
+    except IOError:
+        raise IOError
 
-    with open(full_text_output_file_path, 'w') as full_text_output_file:
-        try:
-            logger.info("Writing to file: %s" % full_text_output_file_path)
-            logger.info("Content has length: %d" % (len(full_text_dict[CONSTANTS['FULL_TEXT']])))
-            full_text_output_file.write(full_text_dict[CONSTANTS['FULL_TEXT']].encode('utf-8'))
-            logger.info("Writing complete.")
-        except KeyError:
-            KeyError(full_text_dict)
-        except IOError:
-            raise IOError
+    try:
+        logger.info("Writing to file: %s" % full_text_output_file_path)
+        logger.info("Content has length: %d" % (len(full_text_dict[CONSTANTS['FULL_TEXT']])))
+        write_file(full_text_output_file_path, full_text_dict[CONSTANTS['FULL_TEXT']].encode('utf-8'), json_format=False)
+        logger.info("Writing complete.")
+    except KeyError:
+        KeyError(full_text_dict)
+    except IOError:
+        raise IOError
 
 
 def extract_content(input_list, **kwargs):
