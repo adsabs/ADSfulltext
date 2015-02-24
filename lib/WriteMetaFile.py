@@ -22,7 +22,7 @@ def write_to_temp_file(payload, temp_path='/tmp/', json_format=True):
         if json_format:
             json.dump(payload, temp_file)
         else:
-            temp_file.write(payload)
+            temp_file.write(payload.encode('utf-8'))
 
     print 'Temp file name: %s' % temp_file_name
     return temp_file_name
@@ -52,8 +52,6 @@ def write_file(file_name, payload, json_format=True):
 def write_content(payload_dictionary):
 
     meta_output_file_path = payload_dictionary[CONSTANTS['META_PATH']]
-    # full_text_output_file_path = payload_dictionary[CONSTANTS['META_PATH']].replace(
-    #         'meta.json', '%s.txt' % CONSTANTS['FULL_TEXT'])
     bibcode_pair_tree_path = os.path.dirname(meta_output_file_path)
     full_text_output_file_path = os.path.join(bibcode_pair_tree_path, 'fulltext.txt')
 
@@ -113,7 +111,7 @@ def write_content(payload_dictionary):
     try:
         logger.info("Writing to file: %s" % full_text_output_file_path)
         logger.info("Content has length: %d" % (len(full_text_dict[CONSTANTS['FULL_TEXT']])))
-        write_file(full_text_output_file_path, full_text_dict[CONSTANTS['FULL_TEXT']].encode('utf-8'), json_format=False)
+        write_file(full_text_output_file_path, full_text_dict[CONSTANTS['FULL_TEXT']], json_format=False)
         logger.info("Writing complete.")
     except KeyError:
         KeyError(full_text_dict)
