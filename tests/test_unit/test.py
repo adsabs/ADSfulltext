@@ -445,6 +445,7 @@ class TestWriteMetaFileWorker(unittest.TestCase):
         self.meta_file = self.dict_item[CONSTANTS['META_PATH']]
         self.bibcode_pair_tree = self.dict_item[CONSTANTS['META_PATH']].replace('meta.json', '')
         self.full_text_file = self.bibcode_pair_tree + 'fulltext.txt'
+        self.acknowledgement_file = self.bibcode_pair_tree + 'acknowledgements.txt'
 
     def tearDown(self):
         try:
@@ -540,6 +541,15 @@ class TestWriteMetaFileWorker(unittest.TestCase):
             except Exception:
                 raise Exception
 
+    def test_acknowledgements_file_is_created(self):
+
+        self.dict_item[CONSTANTS['ACKNOWLEDGEMENTS']] = "Thank you"
+        return_payload = writer.extract_content([self.dict_item])
+
+        self.assertTrue(os.path.exists(self.full_text_file),
+                            msg=os.path.exists(self.full_text_file))
+        self.assertTrue(os.path.exists(self.acknowledgement_file),
+                            msg=os.path.exists(self.acknowledgement_file))
 
 if __name__ == '__main__':
     unittest.main()

@@ -23,6 +23,8 @@ CONSTANTS = {
     "FULL_TEXT": 'fulltext',
     "FORMAT": "file_format",
     "TIME_STAMP": 'index_date',
+    "ACKNOWLEDGEMENTS": 'acknowledgements',
+    "DATASET": 'dataset',
 }
 
 META_CONTENT = {

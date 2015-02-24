@@ -17,9 +17,11 @@ logger = setup_logging(__file__, __name__)
 def write_content(payload_dictionary):
 
     meta_output_file_path = payload_dictionary[CONSTANTS['META_PATH']]
-    full_text_output_file_path = payload_dictionary[CONSTANTS['META_PATH']].replace(
-            'meta.json', '%s.txt' % CONSTANTS['FULL_TEXT'])
+    # full_text_output_file_path = payload_dictionary[CONSTANTS['META_PATH']].replace(
+    #         'meta.json', '%s.txt' % CONSTANTS['FULL_TEXT'])
     bibcode_pair_tree_path = meta_output_file_path.replace('meta.json', '')
+    full_text_output_file_path = os.path.join(bibcode_pair_tree_path, 'fulltext.txt')
+
 
     if not os.path.exists(bibcode_pair_tree_path):
         try:
@@ -31,15 +33,13 @@ def write_content(payload_dictionary):
     meta_dict = {}
 
     for const in CONSTANTS:
-        if const == "FULL_TEXT": continue
+        if const in ["FULL_TEXT", "ACKNOWLEDGEMENTS", "DATASET"]: continue
         try:
             meta_dict[CONSTANTS[const]] = payload_dictionary[CONSTANTS[const]]
             logger.info("Adding meta content: %s" % const)
         except KeyError :
             print("Missing meta content: %s" % const)
             continue
-
-
 
     # Write the custom extractions of content to the meta.json
     logger.info("Copying extra meta content")
@@ -51,6 +51,18 @@ def write_content(payload_dictionary):
         try:
             meta_key_word_value = payload_dictionary[meta_key_word]
             meta_dict[meta_key_word] = meta_key_word_value
+
+            try:
+                meta_constant_file_path = os.path.join(bibcode_pair_tree_path, meta_key_word) + '.txt'
+                logger.info("Writing %s to file at: %s" % (meta_key_word, meta_constant_file_path))
+
+                with open(meta_constant_file_path, 'w') as meta_constant_file:
+                    meta_constant_file.write(meta_key_word_value)
+
+                logger.info("Writing complete.")
+            except IOError:
+                raise IOError
+
         except KeyError:
             logger.info("Does not contain the following meta data: %s" % meta_key_word)
             continue

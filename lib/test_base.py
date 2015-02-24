@@ -95,10 +95,13 @@ class TestGeneric(unittest.TestCase):
             if os.path.exists(path):
                 meta = os.path.join(path, 'meta.json')
                 fulltext = os.path.join(path, 'fulltext.txt')
-                if os.path.exists(meta):
-                    os.remove(meta)
-                if os.path.exists(fulltext):
-                    os.remove(fulltext)
+                dataset = os.path.join(path, 'dataset.txt')
+                acknowledgements = os.path.join(path, 'acknowledgements.txt')
+
+                file_list = [meta, fulltext, dataset, acknowledgements]
+                for file_ in file_list:
+                    if os.path.exists(file_):
+                        os.remove(file_)
                 os.rmdir(path)
 
                 print 'deleted: %s and its content' % path
