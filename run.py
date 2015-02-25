@@ -7,6 +7,8 @@ import sys
 import time
 import utils
 import argparse
+import json
+from settings import CONSTANTS
 from pipeline import psettings, workers, ADSfulltext
 
 from utils import setup_logging
@@ -24,7 +26,7 @@ def purge_queues(queues=psettings.RABBITMQ_ROUTES['QUEUES']):
         publish_worker.channel.queue_purge(queue=_q)
 
 
-def publish(w, records, sleep=5, max_queue_size=100000, url=psettings.RABBITMQ_URL,
+def publish(w, records, sleep=5, max_queue_size=200, url=psettings.RABBITMQ_URL,
             exchange='FulltextExtractionExchange', routing_key='CheckIfExtractRoute'):
 
     '''
@@ -36,18 +38,23 @@ def publish(w, records, sleep=5, max_queue_size=100000, url=psettings.RABBITMQ_U
     logger.info('Connecting to the queue (passively)')
     response = w.channel.queue_declare(queue='CheckIfExtractQueue', passive=True)
 
-    while response.method.message_count >= max_queue_size:
-        logger.info('Max queue size reached, sleeping until can inject to the queue safely')
-        time.sleep(sleep)
-        response = w.channel.queue_declare(queue='CheckIfExtractQueue', passive=True)
-
     logger.info('Injecting into the queue')
     n = len(records)
     ni = 1
     for record in records:
-        logger.info('Publishing [%d/%d]: %s' % (ni, n, record))
+
+        while response.method.message_count >= max_queue_size:
+            logger.info('Max queue size reached [%d], sleeping until can inject to the queue safely' % max_queue_size)
+            time.sleep(sleep)
+            response = w.channel.queue_declare(queue='CheckIfExtractQueue', passive=True)
+
+        temp = json.loads(record)
+        first, last = temp[0][CONSTANTS['BIBCODE']], temp[-1][CONSTANTS['BIBCODE']]
+        logger.info('Publishing [%d/%d, %d]: [%s] ---> [%s]' % (ni, n, len(temp), first, last))
         w.channel.basic_publish(exchange, routing_key, record)
         ni += 1
+
+        response = w.channel.queue_declare(queue='CheckIfExtractQueue', passive=True)
 
     return True
 
