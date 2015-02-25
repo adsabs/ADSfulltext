@@ -26,7 +26,7 @@ def purge_queues(queues=psettings.RABBITMQ_ROUTES['QUEUES']):
         publish_worker.channel.queue_purge(queue=_q)
 
 
-def publish(w, records, sleep=5, max_queue_size=200, url=psettings.RABBITMQ_URL,
+def publish(w, records, sleep=5, max_queue_size=10000, url=psettings.RABBITMQ_URL,
             exchange='FulltextExtractionExchange', routing_key='CheckIfExtractRoute'):
 
     '''
@@ -35,14 +35,15 @@ def publish(w, records, sleep=5, max_queue_size=200, url=psettings.RABBITMQ_URL,
 
     #Treat CheckIfExtractQueue a bit differently, since it can consume messages at a much higher rate
 
-    logger.info('Connecting to the queue (passively)')
-    response = w.channel.queue_declare(queue='CheckIfExtractQueue', passive=True)
+    # logger.info('Connecting to the queue (passively)')
+    # response = w.channel.queue_declare(queue='CheckIfExtractQueue', passive=True)
 
     logger.info('Injecting into the queue')
     n = len(records)
     ni = 1
     for record in records:
 
+        response = w.channel.queue_declare(queue='CheckIfExtractQueue', passive=True)
         while response.method.message_count >= max_queue_size:
             logger.info('Max queue size reached [%d], sleeping until can inject to the queue safely' % max_queue_size)
             time.sleep(sleep)
@@ -53,8 +54,6 @@ def publish(w, records, sleep=5, max_queue_size=200, url=psettings.RABBITMQ_URL,
         logger.info('Publishing [%d/%d, %d]: [%s] ---> [%s]' % (ni, n, len(temp), first, last))
         w.channel.basic_publish(exchange, routing_key, record)
         ni += 1
-
-        response = w.channel.queue_declare(queue='CheckIfExtractQueue', passive=True)
 
     return True
 
@@ -70,21 +69,27 @@ def read_links_from_file(file_input):
 def run(full_text_links, **kwargs):
 
     logger.info('Loading records from: %s' % full_text_links)
+
     records = read_links_from_file(full_text_links)
 
     logger.info('Constructing temporary worker for publising records.')
     publish_worker = workers.RabbitMQWorker()
     publish_worker.connect(psettings.RABBITMQ_URL)
 
-    logger.info('Publishing records to CheckIfExtract queue')
+    logger.info('Publishing records to: CheckIfExtract')
 
     packet_size = 10
     if 'packet_size' in kwargs:
         packet_size = kwargs['packet_size']
+        logger.info('Packet size overridden: %d' % kwargs['packet_size'])
+
+    if 'max_queue_size' in kwargs:
+        max_queue_size = kwargs['max_queue_size']
+        logger.info('Max queue size overridden: %d' % kwargs['max_queue_size'])
 
     records.make_payload(packet_size=packet_size)
-    publish(publish_worker, records.payload, exchange='FulltextExtractionExchange',
-            routing_key='CheckIfExtractRoute')
+    publish(publish_worker, records=records.payload, max_queue_size=max_queue_size,
+            exchange='FulltextExtractionExchange', routing_key='CheckIfExtractRoute')
 
 
 if __name__ == "__main__":
@@ -97,10 +102,12 @@ if __name__ == "__main__":
                         help='Size of the payloads to be sent to RabbitMQ.')
     parser.add_argument('-q', '--purge_queues', dest='purge_queues', action='store_true',
                         help='Purge all the queues so there are no remaining packets')
+    parser.add_argument('-m', '--max_queue_size', dest='max_queue_size', action='store', type=int)
 
     parser.set_defaults(fulltext_links=False)
     parser.set_defaults(packet_size=100)
     parser.set_defaults(purge_queues=False)
+    parser.set_defaults(max_queue_size=10000)
 
     args = parser.parse_args()
 
@@ -114,4 +121,4 @@ if __name__ == "__main__":
         sys.exit(0)
 
     # Send the files to be put on
-    run(args.full_text_links, packet_size=args.packet_size)
+    run(args.full_text_links, packet_size=args.packet_size, max_queue_size=args.max_queue_size)
