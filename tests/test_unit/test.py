@@ -15,20 +15,22 @@ from lib import StandardFileExtract as std_extract
 from lib import WriteMetaFile as writer
 from requests.exceptions import HTTPError
 
-test_file = 'tests/test_integration/stub_data/fulltext.links'
-test_file_stub = 'tests/test_integration/stub_data/fulltext_stub.links'
-test_file_wrong = 'tests/test_integration/stub_data/fulltext_wrong.links'
-test_file_exists = 'tests/test_integration/stub_data/fulltext_exists.links'
-test_single_document = 'tests/test_integration/stub_data/fulltext_single_document.links'
+print PROJ_HOME
 
-test_stub_xml = 'tests/test_unit/stub_data/test.xml'
-test_stub_exml = 'tests/test_unit/stub_data/test_elsevier.xml'
-test_stub_html = 'tests/test_unit/stub_data/test.html'
-test_stub_html_table = 'tests/test_unit/stub_data/test_table2.html'
-test_stub_text = 'tests/test_unit/stub_data/test.txt'
-test_stub_ocr = 'tests/test_unit/stub_data/test.ocr'
+test_file = os.path.join(PROJ_HOME, 'tests/test_integration/stub_data/fulltext.links')
+test_file_stub = os.path.join(PROJ_HOME, 'tests/test_integration/stub_data/fulltext_stub.links')
+test_file_wrong = os.path.join(PROJ_HOME, 'tests/test_integration/stub_data/fulltext_wrong.links')
+test_file_exists = os.path.join(PROJ_HOME, 'tests/test_integration/stub_data/fulltext_exists.links')
+test_single_document = os.path.join(PROJ_HOME, 'tests/test_integration/stub_data/fulltext_single_document.links')
 
-test_functional_stub = 'tests/test_integration/stub_data/fulltext_functional_tests.links'
+test_stub_xml = os.path.join(PROJ_HOME, 'tests/test_unit/stub_data/test.xml')
+test_stub_exml = os.path.join(PROJ_HOME, 'tests/test_unit/stub_data/test_elsevier.xml')
+test_stub_html = os.path.join(PROJ_HOME, 'tests/test_unit/stub_data/test.html')
+test_stub_html_table = os.path.join(PROJ_HOME, 'tests/test_unit/stub_data/test_table2.html')
+test_stub_text = os.path.join(PROJ_HOME, 'tests/test_unit/stub_data/test.txt')
+test_stub_ocr = os.path.join(PROJ_HOME, 'tests/test_unit/stub_data/test.ocr')
+
+test_functional_stub = os.path.join(PROJ_HOME, 'tests/test_functional/stub_data/fulltext_functional_tests.links')
 
 
 class TestCheckIfExtracted(unittest.TestCase):
@@ -176,7 +178,7 @@ class TestFileStreamInput(unittest.TestCase):
         FileInputStream = utils.FileInputStream(test_file)
         ext = FileInputStream.extract()
 
-        with open(PROJ_HOME + "/" + test_file, 'r') as f:
+        with open(test_file, 'r') as f:
             nor = len(f.readlines())
 
         self.assertEqual(len(FileInputStream.bibcode), nor, "Did not extract the correct number of records from the input file")
@@ -196,13 +198,13 @@ class TestFileStreamInput(unittest.TestCase):
         FileInputStream.extract()
         FileInputStream.make_payload(packet_size=10)
 
-        self.assertTrue(len(FileInputStream.payload)==2)
+        self.assertTrue(len(FileInputStream.payload) == 2)
 
 
 class TestXMLExtractor(unittest.TestCase):
 
     def setUp(self):
-        self.dict_item = {CONSTANTS["FILE_SOURCE"]: "%s/%s" % (config["FULLTEXT_EXTRACT_PATH"], test_stub_xml),
+        self.dict_item = {CONSTANTS["FILE_SOURCE"]: test_stub_xml,
                           CONSTANTS['FORMAT']: 'xml', CONSTANTS['PROVIDER']: 'MNRAS'}
         self.extractor = std_extract.EXTRACTOR_FACTORY['xml'](self.dict_item)
 
@@ -212,6 +214,7 @@ class TestXMLExtractor(unittest.TestCase):
         self.assertIn("<journal-title>Review of Scientific Instruments</journal-title>", full_text_content)
 
     def test_that_we_can_parse_the_xml_content(self):
+        print self.dict_item
         full_text_content = self.extractor.open_xml()
         content = self.extractor.parse_xml()
         journal_title = content.xpath('//journal-title')[0].text_content()
@@ -239,7 +242,7 @@ class TestXMLExtractor(unittest.TestCase):
 class TestXMLElsevierExtractor(unittest.TestCase):
 
     def setUp(self):
-        self.dict_item = {CONSTANTS["FILE_SOURCE"]: "%s/%s" % (config["FULLTEXT_EXTRACT_PATH"], test_stub_exml),
+        self.dict_item = {CONSTANTS["FILE_SOURCE"]: test_stub_exml,
                           CONSTANTS['BIBCODE']:  'TEST'}
         self.extractor = std_extract.EXTRACTOR_FACTORY['elsevier'](self.dict_item)
 
@@ -266,8 +269,7 @@ class TestXMLElsevierExtractor(unittest.TestCase):
 class TestHTMLExtractor(unittest.TestCase):
 
     def setUp(self):
-        self.dict_item = {CONSTANTS["FILE_SOURCE"]: "%s/%s,%s/%s" % (PROJ_HOME, test_stub_html,
-                                                                     PROJ_HOME, test_stub_html_table),
+        self.dict_item = {CONSTANTS["FILE_SOURCE"]: "%s,%s" % (test_stub_html, test_stub_html_table),
                           CONSTANTS['BIBCODE']: "TEST"}
 
         self.extractor = std_extract.EXTRACTOR_FACTORY['html'](self.dict_item)
@@ -314,9 +316,9 @@ class TestHTMLExtractor(unittest.TestCase):
 class TestOCRandTXTExtractor(unittest.TestCase):
 
     def setUp(self):
-        self.dict_item = {CONSTANTS["FILE_SOURCE"]: "%s/%s" % (PROJ_HOME, test_stub_text),
+        self.dict_item = {CONSTANTS["FILE_SOURCE"]: test_stub_text,
                           CONSTANTS['BIBCODE']: "TEST"}
-        self.dict_item_ocr = {CONSTANTS["FILE_SOURCE"]: "%s/%s" % (PROJ_HOME, test_stub_ocr),
+        self.dict_item_ocr = {CONSTANTS["FILE_SOURCE"]: test_stub_ocr,
                           CONSTANTS['BIBCODE']: "TEST"}
 
         self.extractor = std_extract.EXTRACTOR_FACTORY['txt'](self.dict_item)
