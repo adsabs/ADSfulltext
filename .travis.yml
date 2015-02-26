@@ -5,4 +5,4 @@ install:
 - pip install -r requirements.txt
 services:
 - rabbitmq
-script: tests/unittests.py
+script: nosetests -w tests/test_unit/ test.py
