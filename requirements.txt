@@ -6,4 +6,5 @@ lxml
 BeautifulSoup
 dateutils
 httpretty
+requests
 supervisor
