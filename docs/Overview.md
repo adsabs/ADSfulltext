@@ -134,4 +134,3 @@ The new addition to the dictionary, could be:
 ```
 "simbad-id": ['//named-content[@content-type="simbad-id"]']
 ```
-
