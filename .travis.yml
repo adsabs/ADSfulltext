@@ -9,4 +9,4 @@ before_script:
 - export PYTHONPATH=$PYTHONPATH:$(pwd)
 script:
 - nosetests -w tests/test_unit/ test.py
-- exec tests/test_integration.sh
+- exec tests/integration_test.sh
