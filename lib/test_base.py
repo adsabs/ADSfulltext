@@ -45,12 +45,16 @@ def build_links(test_name):
                                              'file': ['tests/test_unit/stub_data/test.txt'],
                                              'provider': ['TEST']}},
 
+        {'fulltext_exists.links': {'bibcode': ['test'],
+                                             'file': ['tests/test_unit/stub_data/te/st/test.pdf'],
+                                             'provider': ['TEST']}},
+
         {'fulltext.links': {'bibcode': ['test1'],
                                              'file': ['tests/test_unit/stub_data/test.txt'],
                                              'provider': ['MNRAS']}},
 
         {'fulltext_stub.links': {'bibcode': ['2015MNRAS.446.4239E'],
-                                             'file': ['test/data/test.pdf'],
+                                             'file': ['test.pdf'],
                                              'provider': ['MNRAS']}},
 
         {'fulltext_exists.links': {'bibcode': ['test'],
@@ -76,7 +80,6 @@ def build_links(test_name):
             file_name = file_dictionary.keys()[0]
             file_ = file_dictionary[file_name]
 
-            print file_
             test_bibcode_ = file_['bibcode']
             test_file_ = file_['file']
             test_provider_ = file_['provider']

@@ -189,7 +189,7 @@ class TestFileStreamInput(test_base.TestUnit):
         ext = FileInputStream.extract()
 
         self.assertIn("2015MNRAS.446.4239E", FileInputStream.bibcode)
-        self.assertIn("/vagrant/test/data/test.pdf", FileInputStream.full_text_path)
+        self.assertIn(os.path.join(PROJ_HOME, "test.pdf"), FileInputStream.full_text_path)
         self.assertIn("MNRAS", FileInputStream.provider)
 
     def test_split_payload_into_packet_sizes(self):
@@ -214,7 +214,6 @@ class TestXMLExtractor(unittest.TestCase):
         self.assertIn("<journal-title>JOURNAL TITLE</journal-title>", full_text_content)
 
     def test_that_we_can_parse_the_xml_content(self):
-        print self.dict_item
         full_text_content = self.extractor.open_xml()
         content = self.extractor.parse_xml()
         journal_title = content.xpath('//journal-title')[0].text_content()
