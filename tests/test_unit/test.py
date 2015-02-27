@@ -114,7 +114,7 @@ class TestCheckIfExtracted(test_base.TestUnit):
 
         updated = check.meta_needs_update(payload, meta_content, extract_key="FULLTEXT_EXTRACT_PATH_UNITTEST")
 
-        self.assertEqual(updated, 'STALE_CONTENT', "The file content should be stale, not %s" % updated)
+        self.assertEqual(updated, 'STALE_CONTENT', "The file content should be stale, not %s (%s)" % (updated, payload))
 
     def test_file_should_be_extracted(self):
 
