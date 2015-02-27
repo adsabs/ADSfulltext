@@ -26,7 +26,7 @@ test_single_document = os.path.join(PROJ_HOME, 'tests/test_integration/stub_data
 test_stub_xml = os.path.join(PROJ_HOME, 'tests/test_unit/stub_data/test.xml')
 test_stub_exml = os.path.join(PROJ_HOME, 'tests/test_unit/stub_data/test_elsevier.xml')
 test_stub_html = os.path.join(PROJ_HOME, 'tests/test_unit/stub_data/test.html')
-test_stub_html_table = os.path.join(PROJ_HOME, 'tests/test_unit/stub_data/test_table2.html')
+test_stub_html_table = os.path.join(PROJ_HOME, 'tests/test_unit/stub_data/test_table.html')
 test_stub_text = os.path.join(PROJ_HOME, 'tests/test_unit/stub_data/test.txt')
 test_stub_ocr = os.path.join(PROJ_HOME, 'tests/test_unit/stub_data/test.ocr')
 
@@ -121,10 +121,6 @@ class TestCheckIfExtracted(test_base.TestUnit):
         pdf_number = len(pdf_re.findall(text))
         standard_number = len([i for i in text.split('\n') if i!= '']) - pdf_number
 
-        print 'pdf number', pdf_number
-        print 'standard number', standard_number
-        print FileInputStream.raw
-
         payload = check.check_if_extract(FileInputStream.raw, extract_key="FULLTEXT_EXTRACT_PATH_UNITTEST")
         pdf_payload = json.loads(payload["PDF"])
         standard_payload = json.loads(payload["Standard"])
@@ -215,7 +211,7 @@ class TestXMLExtractor(unittest.TestCase):
     def test_that_we_can_open_an_xml_file(self):
         full_text_content = self.extractor.open_xml()
 
-        self.assertIn("<journal-title>Review of Scientific Instruments</journal-title>", full_text_content)
+        self.assertIn("<journal-title>JOURNAL TITLE</journal-title>", full_text_content)
 
     def test_that_we_can_parse_the_xml_content(self):
         print self.dict_item
@@ -223,7 +219,7 @@ class TestXMLExtractor(unittest.TestCase):
         content = self.extractor.parse_xml()
         journal_title = content.xpath('//journal-title')[0].text_content()
 
-        self.assertEqual(journal_title, "Review of Scientific Instruments")
+        self.assertEqual(journal_title, "JOURNAL TITLE")
 
     def test_that_we_can_extract_using_settings_template(self):
 
@@ -252,13 +248,13 @@ class TestXMLElsevierExtractor(unittest.TestCase):
 
     def test_that_we_can_open_an_xml_file(self):
         full_text_content = self.extractor.open_xml()
-        self.assertIn("Copyright  2014 Elsevier", full_text_content)
+        self.assertIn("JOURNAL CONTENT", full_text_content)
 
     def test_that_we_can_parse_the_xml_content(self):
         full_text_content = self.extractor.open_xml()
         content = self.extractor.parse_xml()
         journal_title = content.xpath("//*[local-name()='title']")[0].text_content()
-        self.assertIn("Complex deformation pattern of the", journal_title)
+        self.assertIn("JOURNAL TITLE", journal_title)
 
     def test_that_we_can_extract_using_settings_template(self):
 
@@ -267,7 +263,7 @@ class TestXMLElsevierExtractor(unittest.TestCase):
         content = self.extractor.extract_multi_content()
 
         self.assertItemsEqual(['fulltext', 'acknowledgements'], content.keys(), content.keys())
-        self.assertIn("Complex deformation pattern of the", content["fulltext"])
+        self.assertIn("JOURNAL CONTENT", content["fulltext"])
 
 
 class TestHTMLExtractor(unittest.TestCase):
@@ -281,14 +277,14 @@ class TestHTMLExtractor(unittest.TestCase):
     def test_that_we_can_open_an_html_file(self):
 
         full_text_content = self.extractor.open_html()
-        self.assertIn("Projected properties of a family of", full_text_content)
+        self.assertIn("TITLE", full_text_content)
 
     def test_can_parse_an_html_file(self):
 
         raw_html = self.extractor.open_html()
         parsed_html = self.extractor.parse_html()
         header = parsed_html.xpath('//h2')[0].text
-        self.assertIn("Projected properties of a family of", header, PROJ_HOME)
+        self.assertIn("TITLE", header, PROJ_HOME)
 
     def test_that_we_can_extract_table_contents_correctly(self):
 
@@ -307,14 +303,8 @@ class TestHTMLExtractor(unittest.TestCase):
 
         self.assertEqual(content.keys(), ["fulltext"])
 
-        self.assertIn("and the maximum variations in axial ratios.", content['fulltext'],
-                      "Table 1 is not in the fulltext")
-        self.assertIn("Profiles of the isophotal shape parameter", content['fulltext'],
-                      "Table 2 is not in the fulltext")
-        self.assertIn("expressed in terms of", content['fulltext'],
-                      "Table E.1 is not in the fulltext")
-        self.assertIn("Projected properties of a family of", content['fulltext'],
-                      "Fulltext seems incorrect")
+        self.assertIn("ONLY IN TABLE", content['fulltext'],
+                      "Table is not in the fulltext: %s" % content['fulltext'])
 
 
 class TestOCRandTXTExtractor(unittest.TestCase):
@@ -342,7 +332,7 @@ class TestOCRandTXTExtractor(unittest.TestCase):
         raw_text = self.extractor.open_text()
         parsed_text = self.extractor.parse_text(translate=True, decode=True)
         self.assertIn("introduction", parsed_text.lower())
-        self.assertIn("A STUDY OF OPTICAL OBSERVING TECHNIQUES FOR", parsed_text)
+        self.assertIn("THIS IS AN INTERESTING TITLE", parsed_text)
         self.assertNotIn("\x00", parsed_text)
 
     def test_ASCII_parsing(self):
@@ -440,7 +430,7 @@ class TestHTTPExtractor(unittest.TestCase):
 class TestWriteMetaFileWorker(unittest.TestCase):
 
     def setUp(self):
-        self.dict_item = {CONSTANTS['META_PATH']: '/vagrant/tests/test_unit/stub_data/te/st/1/meta.json',
+        self.dict_item = {CONSTANTS['META_PATH']: os.path.join(PROJ_HOME, 'tests/test_unit/stub_data/te/st/1/meta.json'),
                           CONSTANTS['FULL_TEXT']: 'hehehe I am the full text',
                           CONSTANTS['FORMAT']: 'xml',
                           CONSTANTS['FILE_SOURCE']: '/vagrant/source.txt',

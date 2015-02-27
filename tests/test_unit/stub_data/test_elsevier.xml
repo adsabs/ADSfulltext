@@ -1,0 +1,170 @@
+<doc:document xmlns:doc="http://www.source.com" xmlns:dp="http://www.source.com" xmlns:cp="http://www.source.com" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dct="http://source.com" xmlns:prism="http://prismstandard.org/namespaces/basic/2.0/" xmlns:oa="http://source.com" xmlns:cja="http://www.source.com" xmlns:ja="http://www.elsevier.com/xml/ja/schema" xmlns:bk="http://www.elsevier.com/xml/bk/schema" xmlns:ce="http://www.source.com" xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:cals="http://www.source.com" xmlns:tb="http://www.source.com" xmlns:sa="http://www.source.com" xmlns:sb="http://www.source.com" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <rdf:RDF><rdf:Description rdf:about="http://dx.doi.org/99.9999/9.99999.9999.99.999">
+        <dct:format>application/xml</dct:format>
+        <dct:title>JOURNAL TITLE</dct:title>
+        <dct:creator>CREATOR</dct:creator>
+        <dct:subject>
+            <rdf:Bag>
+                <rdf:li>SUBJECT</rdf:li>
+            </rdf:Bag></dct:subject>
+        <dct:description>DESCRIPTION</dct:description>
+
+        <prism:aggregationType>JOURNAL</prism:aggregationType>
+        <prism:publicationName>NAME</prism:publicationName>
+        <prism:copyright>COPYRIGHT</prism:copyright>
+        <dct:publisher>PUBLISHER</dct:publisher>
+        <prism:issn>9999-9999</prism:issn>
+        <prism:volume>VOLUME</prism:volume>
+        <prism:coverDisplayDate>DAY MONTH YEAR</prism:coverDisplayDate>
+        <prism:coverDate>1999-99-99</prism:coverDate>
+        <prism:pageRange>999-999</prism:pageRange>
+        <prism:startingPage>999</prism:startingPage>
+        <prism:endingPage>999</prism:endingPage>
+        <prism:doi>99.9999/9.99999.9999.99.999</prism:doi>
+        <prism:url>http://dx.doi.org/99.9999/9.99999.9999.99.999</prism:url>
+        <dct:identifier>doi:99.9999/9.99999.9999.99.999</dct:identifier>
+    </rdf:Description></rdf:RDF>
+
+    <dp:document-properties>
+        <dp:aggregation-type>Journals</dp:aggregation-type>
+        <dp:version-number>S300.1</dp:version-number>
+    </dp:document-properties>
+
+    <ja:article version="5.2" docsubtype="fla" xml:lang="en">
+        <ja:item-info>
+            <ja:jid>JOURNAL</ja:jid>
+            <ja:aid>999999</ja:aid>
+            <ce:pii>99999-9999(99)99999-9</ce:pii>
+            <ce:doi>99.9999/9.99999.9999.99.999</ce:doi>
+            <ce:copyright type="full-transfer" year="YEAR">COPYRIGHT</ce:copyright>
+        </ja:item-info>
+        <ce:floats>
+            <ce:figure id="f0005">
+                <ce:label>Fig.&#160;1</ce:label>
+                <ce:caption id="ca0005">
+                    <ce:simple-para id="sp0010" view="all">
+                        CONTENT
+                    </ce:simple-para>
+                </ce:caption>
+                <ce:link locator="gr1" id="lk0005"/>
+            </ce:figure>
+
+        </ce:floats>
+
+        <ja:head>
+            <ce:title id="ti0005">TITLE</ce:title>
+
+            <ce:author-group id="ag0005">
+                <ce:author id="au0005">
+                    <ce:given-name>GIVEN NAME</ce:given-name>
+                    <ce:surname>SURNAME</ce:surname>
+                    <ce:cross-ref refid="af0005" id="cf0030">
+                        <ce:sup loc="post">a</ce:sup>
+                    </ce:cross-ref>
+                    <ce:cross-ref refid="cr0005" id="cf0035">
+                        <ce:sup loc="post">&#x204e;</ce:sup>
+                    </ce:cross-ref>
+
+                    <ce:e-address id="em0005" type="email">EMAIL@EMAIL.COM</ce:e-address>
+                </ce:author>
+
+                <ce:affiliation id="af0005"><ce:label>a</ce:label>
+
+                <ce:textfn id="tn0005">AFFILIATION</ce:textfn>
+
+                <ce:correspondence id="cr0005"><ce:label>&#x204e;</ce:label>
+                    <ce:text id="tx0005">AUTHOR</ce:text>
+                </ce:correspondence>
+            </ce:author-group>
+
+            <ce:date-received day="99" month="99" year="1999"/>
+            <ce:date-revised day="99" month="99" year="1999"/>
+            <ce:date-accepted day="99" month="99" year="1999"/>
+            <ce:abstract id="ab0005" view="all" class="author">
+                <ce:section-title id="st0005">Abstract</ce:section-title>
+                <ce:abstract-sec id="as0005" view="all"><ce:simple-para id="sp0005" view="all">ABSTRACT</ce:simple-para>
+                </ce:abstract-sec>
+            </ce:abstract>
+
+            <ce:abstract class="author-highlights" id="ab0010" view="all">
+                <ce:section-title id="st0010">Highlights</ce:section-title>
+                <ce:abstract-sec id="as0010" view="all">
+                    <ce:simple-para id="sp0055" view="all">HIGHLIGHTS</ce:simple-para>
+                </ce:abstract-sec></ce:abstract>
+
+            <ce:keywords id="ks0005" view="all" class="keyword">
+
+                <ce:section-title id="st0015">Keywords</ce:section-title>
+                <ce:keyword id="kw0030">
+                    <ce:text id="tx0010">KEYWORD</ce:text>
+                </ce:keyword>
+        </ja:head>
+
+        <ja:body view="all">
+        <ce:sections>
+            <ce:section id="s0005" view="all"><ce:label>1</ce:label>
+                <ce:section-title id="st0020">Introduction</ce:section-title>
+                <ce:para id="p0005" view="all">JOURNAL CONTENT</ce:para>
+            </ce:section>
+        </ce:sections>
+
+        <ce:acknowledgment id="ac0005" view="all">
+            <ce:section-title id="st0040">Acknowledgments</ce:section-title>
+            <ce:para id="p0125" view="all">THANK YOU</ce:para>
+        </ce:acknowledgment>
+
+            <ce:appendices view="all">
+            <ce:section id="s0035" view="extended"><ce:label>Appendix A</ce:label>
+                <ce:section-title id="st0060">APPENDIX TITLE</ce:section-title>
+                <ce:para id="p0165" view="all">APPENDIX</ce:para>
+            </ce:section>
+            </ce:appendices>
+
+        </ja:body>
+
+        <ja:tail view="all">
+            <ce:bibliography id="bi0005" view="all">
+                <ce:section-title id="st0045">References</ce:section-title>
+
+                <ce:bibliography-sec id="bs0005" view="all">
+                    <ce:bib-reference id="bb0015"><ce:label>AUTHOR et al., 1999</ce:label>
+                        <sb:reference id="rf0015">
+                            <sb:contribution langtype="en">
+                                <sb:authors>
+                                    <sb:author>
+                                        <ce:given-name>GIVEN NAME</ce:given-name>
+                                        <ce:surname>SURNAME</ce:surname>
+                                    </sb:author>
+
+                               </sb:authors>
+                            <sb:title>
+                                <sb:maintitle>TITLE</sb:maintitle>
+                            </sb:title>
+                            </sb:contribution>
+
+                            <sb:host>
+                                <sb:issue>
+                                    <sb:series>
+                                        <sb:title>
+                                            <sb:maintitle>TITLE
+                                            </sb:maintitle>
+                                        </sb:title>
+                                        <sb:volume-nr>VOLUME</sb:volume-nr>
+                                    </sb:series>
+                                    <sb:date>YEAR</sb:date>
+                                </sb:issue>
+                                <sb:pages>
+                                    <sb:first-page>99</sb:first-page>
+                                    <sb:last-page>99</sb:last-page>
+                                </sb:pages>
+                            </sb:host>
+                        </sb:reference>
+                    </ce:bib-reference>
+
+
+                </ce:bibliography-sec>
+            </ce:bibliography>
+
+        </ja:tail>
+    </ja:article>
+</doc:document>

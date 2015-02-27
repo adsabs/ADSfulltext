@@ -104,7 +104,6 @@ class TestGeneric(unittest.TestCase):
         # Build the link files
         build_links(test_name='integration')
 
-
         # Load the extraction worker
         check_params = psettings.WORKERS['CheckIfExtractWorker']
         standard_params = psettings.WORKERS['StandardFileExtractWorker']
