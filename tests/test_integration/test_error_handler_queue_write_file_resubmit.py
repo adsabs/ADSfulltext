@@ -4,10 +4,9 @@ from lib.test_base import *
 class TestExtractWorker(TestGeneric):
 
     def setUp(self):
+        super(TestExtractWorker, self).setUp()
         self.test_publish = os.path.join(PROJ_HOME, 'tests/test_integration/stub_data/fulltext_error_handling_standard_extract_resubmitted.links')
         self.expected_paths = [self.calculate_expected_folders(self.test_publish)[1]]
-
-        super(TestExtractWorker, self).setUp()
 
     def tearDown(self):
 

@@ -10,10 +10,9 @@ class TestExtractWorker(TestGeneric):
         super(TestExtractWorker, self).tearDown()
 
     def setUp(self):
+        super(TestExtractWorker, self).setUp()
         self.test_publish = os.path.join(PROJ_HOME, 'tests/test_integration/stub_data/fulltext_exists_txt.links')
         self.expected_paths = self.calculate_expected_folders(self.test_publish)
-
-        super(TestExtractWorker, self).setUp()
 
     def test_extraction_of_non_extracted(self):
 

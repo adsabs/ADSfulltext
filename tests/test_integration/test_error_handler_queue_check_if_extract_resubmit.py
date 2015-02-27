@@ -5,6 +5,8 @@ class TestExtractWorker(TestGeneric):
 
     def setUp(self):
 
+        super(TestExtractWorker, self).setUp()
+
         test_file = os.path.join(PROJ_HOME, 'tests/test_unit/stub_data/te/st/meta.json')
         with open(test_file) as f:
             meta_stored = json.load(f)
@@ -18,7 +20,6 @@ class TestExtractWorker(TestGeneric):
         with open(os.path.join(self.meta_path_, 'meta.json'), 'w') as f:
             json.dump(meta_stored, f)
 
-        super(TestExtractWorker, self).setUp()
 
     def tearDown(self):
 
