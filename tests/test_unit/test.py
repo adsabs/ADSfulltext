@@ -112,7 +112,7 @@ class TestCheckIfExtracted(test_base.TestUnit):
         meta_content = check.load_meta_file(payload, extract_key="FULLTEXT_EXTRACT_PATH_UNITTEST")
         meta_content[CONSTANTS['FILE_SOURCE']] = os.path.join(PROJ_HOME, meta_content[CONSTANTS['FILE_SOURCE']])
 
-        updated = check.meta_needs_update(paylcooad, meta_content, extract_key="FULLTEXT_EXTRACT_PATH_UNITTEST")
+        updated = check.meta_needs_update(payload, meta_content, extract_key="FULLTEXT_EXTRACT_PATH_UNITTEST")
 
         self.assertEqual(updated, 'STALE_CONTENT', "The file content should be stale, not %s (%s\n%s)" % (updated, payload, meta_content))
 
