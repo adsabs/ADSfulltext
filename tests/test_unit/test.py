@@ -101,10 +101,16 @@ class TestCheckIfExtracted(test_base.TestUnit):
 
         FileInputStream = utils.FileInputStream(test_file_exists)
         FileInputStream.extract()
+        FileInputStream.make_payload()
 
+        # Ensure the PDF more new than the meta.json
         payload = FileInputStream.raw[0]
+        with open(payload[CONSTANTS['FILE_SOURCE']], 'w') as not_stale:
+            not_stale.write("PDF")
 
+        # Not a nicer way to do this without cleaning up some tests
         meta_content = check.load_meta_file(payload, extract_key="FULLTEXT_EXTRACT_PATH_UNITTEST")
+        meta_content[CONSTANTS['FILE_SOURCE']] = os.path.join(PROJ_HOME, meta_content[CONSTANTS['FILE_SOURCE']])
 
         updated = check.meta_needs_update(payload, meta_content, extract_key="FULLTEXT_EXTRACT_PATH_UNITTEST")
 
