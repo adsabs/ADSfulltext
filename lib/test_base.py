@@ -132,6 +132,7 @@ class TestGeneric(unittest.TestCase):
         TM.initialize_rabbitmq()
 
         self.connect_publisher()
+        self.purge_all_queues()
 
     def connect_publisher(self):
         # The worker connects to the queue
@@ -146,6 +147,7 @@ class TestGeneric(unittest.TestCase):
     def tearDown(self):
         # Purge the queues if they have content
         self.purge_all_queues()
+        time.sleep(5)
 
     def helper_get_details(self, test_publish):
 

@@ -9,13 +9,13 @@ class TestExtractWorker(TestGeneric):
         super(TestExtractWorker, self).tearDown()
 
     def setUp(self):
-        self.test_publish = os.path.join(PROJ_HOME, 'tests/test_integration/stub_data/fulltext_exists_txt.links')
-        self.expected_paths = self.calculate_expected_folders(self.test_publish)
 
         super(TestExtractWorker, self).setUp()
 
-    def test_extraction_of_non_extracted(self):
+        self.test_publish = os.path.join(PROJ_HOME, 'tests/test_integration/stub_data/fulltext_exists_txt.links')
+        self.expected_paths = self.calculate_expected_folders(self.test_publish)
 
+    def test_extraction_of_non_extracted(self):
 
         # user loads the list of full text files and publishes them to the first queue
         records = read_links_from_file(self.test_publish)

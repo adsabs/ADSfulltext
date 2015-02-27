@@ -7,4 +7,6 @@ services:
 - rabbitmq
 before_script:
 - export PYTHONPATH=$PYTHONPATH:$(pwd)
-script: nosetests -w tests/test_unit/ test.py
+script:
+- nosetests -w tests/test_unit/ test.py
+- nosetests -w tests/test_integration/ test_stale_content.py
