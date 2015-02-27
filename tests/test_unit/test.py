@@ -13,9 +13,9 @@ from settings import PROJ_HOME, config, CONSTANTS, META_CONTENT
 from lib import CheckIfExtract as check
 from lib import StandardFileExtract as std_extract
 from lib import WriteMetaFile as writer
+from lib import test_base
 from requests.exceptions import HTTPError
 
-print PROJ_HOME
 
 test_file = os.path.join(PROJ_HOME, 'tests/test_integration/stub_data/fulltext.links')
 test_file_stub = os.path.join(PROJ_HOME, 'tests/test_integration/stub_data/fulltext_stub.links')
@@ -33,7 +33,7 @@ test_stub_ocr = os.path.join(PROJ_HOME, 'tests/test_unit/stub_data/test.ocr')
 test_functional_stub = os.path.join(PROJ_HOME, 'tests/test_functional/stub_data/fulltext_functional_tests.links')
 
 
-class TestCheckIfExtracted(unittest.TestCase):
+class TestCheckIfExtracted(test_base.TestUnit):
 
     def test_file_not_extracted_before(self):
 
@@ -115,11 +115,15 @@ class TestCheckIfExtracted(unittest.TestCase):
         FileInputStream = utils.FileInputStream(test_file)
         FileInputStream.extract()
 
-        with open(os.path.join(PROJ_HOME, test_file), 'r') as in_f:
+        with open(test_file, 'r') as in_f:
             text = in_f.read()
         pdf_re = re.compile('pdf')
         pdf_number = len(pdf_re.findall(text))
-        standard_number = len(text.split('\n')) - pdf_number
+        standard_number = len([i for i in text.split('\n') if i!= '']) - pdf_number
+
+        print 'pdf number', pdf_number
+        print 'standard number', standard_number
+        print FileInputStream.raw
 
         payload = check.check_if_extract(FileInputStream.raw, extract_key="FULLTEXT_EXTRACT_PATH_UNITTEST")
         pdf_payload = json.loads(payload["PDF"])
@@ -171,7 +175,7 @@ class TestCheckIfExtracted(unittest.TestCase):
         self.assertTrue(len(json.loads(payload['Standard'])) != 0)
 
 
-class TestFileStreamInput(unittest.TestCase):
+class TestFileStreamInput(test_base.TestUnit):
 
     def test_file_stream_input_extract_file(self):
 

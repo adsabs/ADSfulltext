@@ -11,9 +11,100 @@ from run import publish, read_links_from_file
 from settings import META_CONTENT, PROJ_HOME, CONSTANTS
 
 
+def build_links(test_name):
+
+        integration_path = 'tests/test_integration/stub_data/'
+        integration_files = [
+        {'fulltext_single_document.links': {'bibcode': ['test1',],
+                                             'file': ['tests/test_unit/stub_data/test.txt'],
+                                             'provider': ['MNRAS']}},
+
+        {'fulltext_xml_doc_with_acknowledgement.links': {'bibcode': ['test1'],
+                                             'file': ['tests/test_integration/stub_data/full_test_elsevier.xml'],
+                                             'provider': ['MNRAS']}},
+
+        {'fulltext_range_of_formats.links': {'bibcode': ['full1', 'full2', 'full3', 'full4', 'full5', 'full6'],
+                                             'file': ['tests/test_integration/stub_data/full_test.txt',
+                                                      'tests/test_integration/stub_data/full_test.ocr',
+                                                      'tests/test_integration/stub_data/full_test.xml',
+                                                      'tests/test_integration/stub_data/full_test_elsevier.xml',
+                                                      'tests/test_integration/stub_data/full_test.html',
+                                                      'tests/test_integration/stub_data/full_test.pdf',],
+                                             'provider': ['MNRAS', 'MNRAS','MNRAS','Elsevier','MNRAS','MNRAS']}},
+
+        {'fulltext_error_handling_standard_extract_resubmitted.links': {'bibcode': ['full1', 'full2'],
+                                             'file': ['tests/test_integration/stub_data/does_not_exist.xml',
+                                                      'tests/test_integration/stub_data/full_test.ocr'],
+                                             'provider': ['Elsevier', 'MNRAS']}},
+
+        {'fulltext_error_handling.links': {'bibcode': ['full1'],
+                                             'file': ['tests/test_integration/stub_data/does_not_exist.xml'],
+                                             'provider': ['Elsevier']}},
+
+        {'fulltext_exists_txt.links': {'bibcode': ['test4'],
+                                             'file': ['tests/test_unit/stub_data/test.txt'],
+                                             'provider': ['TEST']}},
+
+        {'fulltext.links': {'bibcode': ['test1'],
+                                             'file': ['tests/test_unit/stub_data/test.txt'],
+                                             'provider': ['MNRAS']}},
+
+        {'fulltext_stub.links': {'bibcode': ['2015MNRAS.446.4239E'],
+                                             'file': ['test/data/test.pdf'],
+                                             'provider': ['MNRAS']}},
+
+        {'fulltext_exists.links': {'bibcode': ['test'],
+                                             'file': ['tests/test_unit/stub_data/te/st/test.pdf'],
+                                             'provider': ['TEST']}},
+
+        {'fulltext_wrong.links': {'bibcode': ['test'],
+                                             'file': ['tests/test_unit/stub_data/te/st/test.ocr'],
+                                             'provider': ['']}}
+        ]
+
+
+        stub_data = {
+            'integration': {'path': integration_path,
+                            'files': integration_files}
+        }
+
+        path = stub_data[test_name]['path']
+        files = stub_data[test_name]['files']
+
+        for file_dictionary in files:
+
+            file_name = file_dictionary.keys()[0]
+            file_ = file_dictionary[file_name]
+
+            print file_
+            test_bibcode_ = file_['bibcode']
+            test_file_ = file_['file']
+            test_provider_ = file_['provider']
+
+            links_file_path = os.path.join(PROJ_HOME, path) + file_name
+
+            if not os.path.exists(links_file_path):
+                with open(links_file_path, 'w') as output_file:
+                    for i in range(len(test_bibcode_)):
+
+                        output_string = "%s\t%s\t%s\n" % (test_bibcode_[i], os.path.join(PROJ_HOME, test_file_[i]), test_provider_[i])
+                        output_file.write(output_string)
+
+
+class TestUnit(unittest.TestCase):
+
+    def setUp(self):
+        build_links(test_name='integration')
+
+
 class TestGeneric(unittest.TestCase):
 
     def setUp(self):
+
+        # Build the link files
+        build_links(test_name='integration')
+
+
         # Load the extraction worker
         check_params = psettings.WORKERS['CheckIfExtractWorker']
         standard_params = psettings.WORKERS['StandardFileExtractWorker']
@@ -107,3 +198,4 @@ class TestGeneric(unittest.TestCase):
                 print 'deleted: %s and its content' % path
             else:
                 print 'Could not delete %s, does not exist' % path
+
