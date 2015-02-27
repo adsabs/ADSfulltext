@@ -288,7 +288,7 @@ class TestHTMLExtractor(unittest.TestCase):
         raw_html = self.extractor.open_html()
         parsed_html = self.extractor.parse_html()
         header = parsed_html.xpath('//h2')[0].text
-        self.assertIn("Projected properties of a family of", header)
+        self.assertIn("Projected properties of a family of", header, PROJ_HOME)
 
     def test_that_we_can_extract_table_contents_correctly(self):
 
