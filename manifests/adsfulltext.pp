@@ -1,7 +1,12 @@
 # Some const. variables
 $path_var = "/usr/bin:/usr/sbin:/bin:/usr/local/sbin:/usr/sbin:/sbin"
-$build_packages = ['python', 'python-pip', 'python-dev', 'libpq-dev', 'libxml2-dev', 'libxslt1-dev', 'sshfs']
+$build_packages = ['python', 'python-pip', 'python-dev', 'libpq-dev', 'libxml2-dev', 'libxslt1-dev', 'sshfs', 'oracle-java8-installer', 'maven']
 $pip_requirements = "/vagrant/requirements.txt"
+
+exec {'add_repo_1':
+    command => 'echo "oracle-java8-installer shared/accepted-oracle-license-v1-1 select true" | debconf-set-selections && add-apt-repository ppa:webupd8team/java'
+    path => $path_var,
+}
 
 # Update package list
 exec {'apt_update_1':
@@ -32,7 +37,7 @@ exec {'update_python_path':
     path => $path_var,
 }
 
-Exec['apt_update_1'] -> Package[$build_packages] -> Exec['pip_install_modules'] -> Exec['update_python_path']
+Exec['add_repo_1'] -> Exec['apt_update_1'] -> Package[$build_packages] -> Exec['pip_install_modules'] -> Exec['update_python_path']
 
 class {"supervisor":
   supervisor_conf => "/etc/supervisord.conf",
