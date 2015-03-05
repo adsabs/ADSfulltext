@@ -2,49 +2,41 @@ package org.adslabs.adsfulltext;
 
 import com.esotericsoftware.yamlbeans.YamlReader;
 
-import javax.sound.midi.SysexMessage;
 import java.io.FileReader;
 import java.util.Map;
 
 
 public class ConfigLoader {
 
-
     // Definitions of constants
-    private String name;
+    private String configFileName;
+
+
+    public void setConfigFileName (String configFileName) {this.configFileName = configFileName; }
+    public String getConfigFileName () {return this.configFileName; }
+
+    public YamlConfig data;
 
     // Class Constructor
     public ConfigLoader () {
-        this.setName("/settings.yml");
+        this.setConfigFileName("/settings.yml");
     }
 
-    private void setName(String givenName) {
-        this.name = givenName;
-    }
-
-    public String getName() {
-        return this.name;
-    }
-
-    public void loadYAML () {
+    public void loadConfig () {
 
         try {
-            String resource = getClass().getResource(this.getName()).getFile();
+            String resource = getClass().getResource(this.getConfigFileName()).getFile();
             FileReader newInputFile = new FileReader(resource);
 
             YamlReader reader = new YamlReader(newInputFile);
-            Object object = reader.read();
-            System.out.println(object);
-            Map map = (Map) object;
-
-            this.setName(map.get("FULLTEXT_EXTRACT_PATH").toString());
+            this.data = reader.read(YamlConfig.class);
 
         } catch (java.io.FileNotFoundException error) {
-            System.out.println(error.getStackTrace());
-            this.setName("failed");
+            System.out.println("FileNotFoundError: " + error.getStackTrace());
+
         } catch (com.esotericsoftware.yamlbeans.YamlException error) {
-            System.out.println(error.getStackTrace());
+            System.out.println("YamlExceptionError: " + error.getStackTrace());
+
         }
     }
-
 }
