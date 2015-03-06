@@ -8,6 +8,10 @@ import com.rabbitmq.client.QueueingConsumer;
 
 import org.adslabs.adsfulltext.ConfigLoader;
 
+import java.util.HashMap;
+import java.util.Map;
+//import org.adslabs.adsfulltext.Exchanges;
+
 public class Worker {
 
     public Connection connection;
@@ -126,14 +130,24 @@ public class Worker {
 
     public boolean declare_all() {
 
-//        try {
-//            this.channel.exchangeDeclare(this.config.data.exchange.exchange, this.config.data.exchange.exchange_type, this.config.data.exchange.passive, this.config.data.exchange.durable);
-//            return false;
-//        } catch (java.io.IOException error) {
-//            System.out.println("IO Error, is RabbitMQ running, check the passive/active settings!: " + error.getMessage());
-//            return false;
-//        }
-        return true;
+        Exchanges[] exchange = config.data.EXCHANGES;
 
+        for (int i = 0; i < exchange.length; i++) {
+            try {
+                // OUTDATED
+                // Parameters are exchange name, type, passive, durable, autoDelete, arguments
+                // OUTDATED
+                // On github of the client api: exchange name, type, durable, autoDelete, internal
+                // internal: internal true if the exchange is internal, i.e. can't be directly published to by a client.
+
+                this.channel.exchangeDeclare(exchange[i].exchange, exchange[i].exchange_type, exchange[i].durable, exchange[i].autoDelete, null);
+
+            } catch (java.io.IOException error) {
+
+                System.out.println("IO Error, is RabbitMQ running, check the passive/active settings!: " + error.getMessage() + error.getStackTrace());
+                return false;
+            }
+        }
+        return true;
     }
 }

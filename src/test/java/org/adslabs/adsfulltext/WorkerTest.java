@@ -16,9 +16,9 @@ public class WorkerTest {
 
         // Connect to RabbitMQ
         boolean result = this.worker.connect();
-        assertEquals(result, true);
+        assertEquals(true, result);
         boolean closed = this.worker.disconnect();
-        assertEquals(closed, true);
+        assertEquals(true, closed);
     }
 
     @Test
@@ -30,7 +30,9 @@ public class WorkerTest {
         // Declare all the queues
         boolean result = this.worker.declare_all();
 
-        assertEquals(result, true);
+        assertEquals(true, result);
+
+        this.worker.disconnect();
 
     }
 
@@ -46,7 +48,7 @@ public class WorkerTest {
         // Consume from the queue
         String message = this.worker.subscribe();
 
-        assertEquals(message, "Test");
+        assertEquals("Test", message);
 
         this.worker.disconnect();
 
