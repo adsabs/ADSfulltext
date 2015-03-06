@@ -6,7 +6,7 @@ import org.junit.runners.Suite;
 
 // The SuiteClasses annotation specifies the classes to be executed when a class annotated with @RunWith(Suite.class) is run.
 @Suite.SuiteClasses({
-   ConfigLoaderTest.class,
+   ConfigLoaderTestSuite.class,
 })
 
 public class FulltextTestSuite {

@@ -11,9 +11,17 @@ public class ConfigLoaderTest {
     public ConfigLoader config = new ConfigLoader();
 
     @Test
-    public void testCanExtracCorrectContentFromConfig() {
+    public void testCanExtractCorrectContentFromConfig() {
         config.loadConfig();
-        assertThat(config.data.RABBITMQ_URL, containsString("amqp"));
+        assertThat(config.data.RABBITMQ_URI, containsString("amqp"));
         assertEquals(config.data.ERROR_HANDLER.exchange, "FulltextExtractionExchange");
+    }
+
+    @Test
+    public void testCanExtractArrayfromYAML() {
+        config.loadConfig();
+        assertTrue(config.data.EXCHANGES.length > 0);
+        System.out.println("Array content: " + config.data.EXCHANGES[0].exchange);
+        assertThat(config.data.EXCHANGES[0].exchange, containsString("Exchange"));
     }
 }
