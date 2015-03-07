@@ -10,7 +10,9 @@ import org.adslabs.adsfulltext.ConfigLoader;
 
 import java.util.HashMap;
 import java.util.Map;
-//import org.adslabs.adsfulltext.Exchanges;
+
+import org.adslabs.adsfulltext.Exchanges;
+import org.adslabs.adsfulltext.Queues;
 
 public class Worker {
 
@@ -102,8 +104,6 @@ public class Worker {
         //   start basic_consume
         //   if this is not a testing phase, then stay consuming
 
-        String message = "Test";
-
         String QueueName = "PDFFileExtractorQueue";
         boolean autoAck = false; // This means it WILL acknowledge
 
@@ -112,20 +112,19 @@ public class Worker {
         try {
             this.channel.basicConsume(QueueName, autoAck, consumer);
 
-//            QueueingConsumer.Delivery delivery = consumer.nextDelivery();
-//            message = new String(delivery.getBody());
+            QueueingConsumer.Delivery delivery = consumer.nextDelivery();
+            String message = new String(delivery.getBody());
 
             return message;
 
         } catch (java.io.IOException error) {
             System.out.println("IO Error, does the queue exist and is RabbitMQ running???: " + error.getMessage());
             return error.getMessage();
-
-        } //catch (java.lang.InterruptedException error) {
-//            System.out.println("Interruption I guess there is no .next delivery");
-//            return error.getMessage();
-//        }
-
+        }
+         catch (java.lang.InterruptedException error) {
+            System.out.println("Interruption I guess there is no .next delivery");
+            return error.getMessage();
+        }
     }
 
     public boolean declare_all() {
@@ -150,4 +149,27 @@ public class Worker {
         }
         return true;
     }
+
+    public boolean purge_all() {
+
+        Queues[] queues = config.data.QUEUES;
+        for (int i = 0; i < queues.length; i++) {
+            try {
+//                System.out.println("Purging queue: " + queues[i].queue);
+                this.channel.queuePurge(queues[i].queue);
+
+            } catch (java.io.IOException error) {
+
+                System.out.println("IO Error, is RabbitMQ running, check the passive/active settings!: " + error.getMessage() + error.getStackTrace());
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public void run() {
+        this.connect();
+        this.subscribe();
+    }
+
 }

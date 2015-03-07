@@ -1,17 +1,29 @@
 import org.junit.Test; // for @Test annotation
 import org.junit.Ignore; // for @Ignore annotation
+import org.junit.Before;
+import org.junit.After;
 import static org.junit.Assert.*; // for assertThat()
 import static org.hamcrest.CoreMatchers.containsString;
 //import static org.junit.matchers.JUnitMatchers.*; // for hasItem()
 
 import org.adslabs.adsfulltext.Worker;
-import org.adslabs.adsfulltext.TaskManager;
+import org.adslabs.adsfulltext.TaskMaster;
 
 public class WorkerTest {
 
     public Worker worker = new Worker();
 
-    @Test
+    @Before
+    public void setUp() {
+        this.worker.connect();
+    }
+
+    @After
+    public void tearDown() {
+        this.worker.disconnect();
+    }
+
+    @Ignore("Now a part of setUp and tearDown") @Test
     public void testWorkerCanConnectToRabbitMQ() {
 
         // Connect to RabbitMQ
@@ -24,33 +36,78 @@ public class WorkerTest {
     @Test
     public void testWorkerCanDeclareQueues() {
 
-        // Connect to the queue
-        this.worker.connect();
-
         // Declare all the queues
         boolean result = this.worker.declare_all();
-
         assertEquals(true, result);
 
-        this.worker.disconnect();
+    }
+
+    @Test
+    public void testWorkerCanPurgeQueues() {
+
+        boolean result = this.worker.purge_all();
+        assertEquals(true, result);
 
     }
 
     @Test
     public void testWorkerCanSubscribetoAPDFQueue() {
 
-        // Connect to the queue
-        this.worker.connect();
+        // Make sure the queues exist
+        TaskMaster TM = new TaskMaster();
+        TM.initialize_rabbitmq();
 
-        // Publish a fake message to the queue
-        TaskManagerTest TM = new TaskManagerTest();
+        // Publish message to the queue
+        String messageBody = "Test";
+        String exchangeName = "FulltextExtractionExchange";
+        String routeKey = "PDFFileExtractorRoute";
+        boolean result = TM.publish(exchangeName, routeKey, messageBody);
 
         // Consume from the queue
-        String message = this.worker.subscribe();
+        String messageReturn = this.worker.subscribe();
 
-        assertEquals("Test", message);
+        assertEquals(messageBody, messageReturn);
 
-        this.worker.disconnect();
+        // Clean up
+        TM.purge_queues();
+    }
+
+    @Test
+    public void testWorkerCanExtractcontentFromMessage() {
+
+        // Make sure the queues exist
+        TaskMaster TM = new TaskMaster();
+        TM.initialize_rabbitmq();
+
+        // Publish message to the queue
+        String messageBody = "Test";
+        String exchangeName = "FulltextExtractionExchange";
+        String routeKey = "PDFFileExtractorRoute";
+        String queueName = "PDFFileExtractorQueue";
+        boolean result = TM.publish(exchangeName, routeKey, messageBody);
+
+        int queue_number;
+        try {
+            queue_number = this.worker.channel.queueDeclarePassive(queueName).getMessageCount();
+            assertEquals(1, queue_number);
+        } catch (java.io.IOException error) {
+            System.out.println("IO Error: " + error.getMessage());
+        }
+
+        // Consume from the queue
+        this.worker.run();
+
+        // Check the queue is empty
+        try {
+            queue_number = this.worker.channel.queueDeclarePassive(queueName).getMessageCount();
+            assertEquals(0, queue_number);
+        } catch (java.io.IOException error) {
+            System.out.println("IO Error: " + error.getMessage());
+        }
+
+        // Clean up
+        TM.purge_queues();
 
     }
+
 }

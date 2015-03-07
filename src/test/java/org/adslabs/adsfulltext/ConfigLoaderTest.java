@@ -23,5 +23,6 @@ public class ConfigLoaderTest {
         assertTrue(config.data.EXCHANGES.length > 0);
         System.out.println("Array content: " + config.data.EXCHANGES[0].exchange);
         assertThat(config.data.EXCHANGES[0].exchange, containsString("Exchange"));
+        assertThat(config.data.QUEUES[0].queue, containsString("Queue"));
     }
 }

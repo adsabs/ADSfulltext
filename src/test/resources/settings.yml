@@ -8,3 +8,19 @@ EXCHANGES:
     durable: true
     passive: false
     autoDelete: false
+QUEUES:
+  -
+    queue: CheckIfExtractQueue
+    durable: true
+  -
+    queue: PDFFileExtractorQueue
+    durable: true
+  -
+    queue: StandardFileExtractorQueue
+    durable: true
+  -
+    queue: WriteMetaFileQueue
+    durable: true
+  -
+    queue: ErrorHandlerQueue
+    durable: true
