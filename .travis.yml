@@ -1,12 +1,18 @@
 language: python
 python:
-- "2.7"
+ - "2.7"
+before_install:
+ - echo "oracle-java8-installer shared/accepted-oracle-license-v1-1 select true" | sudo debconf-set-selections
+ - sudo add-apt-repository ppa:webupd8team/java
+ - sudo apt-get update
+ - sudo apt-get install oracle-java8-installer maven
 install:
-- pip install -r requirements.txt
+ - pip install -r requirements.txt
 services:
-- rabbitmq
+ - rabbitmq
 before_script:
-- export PYTHONPATH=$PYTHONPATH:$(pwd)
+ - export PYTHONPATH=$PYTHONPATH:$(pwd)
 script:
-- nosetests -w tests/test_unit/ test.py
-- exec tests/integration_test.sh
+ - nosetests -w tests/test_unit/ test.py
+ - exec tests/integration_test.sh
+ - mvn -X clean -DrunSuite=FulltextTestSuite.class -Dmaven.junit.usefile=false test
