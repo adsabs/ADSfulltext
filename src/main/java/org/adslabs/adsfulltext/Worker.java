@@ -5,6 +5,8 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.QueueingConsumer;
+import com.rabbitmq.client.AMQP;
+import com.rabbitmq.client.Envelope;
 
 import org.adslabs.adsfulltext.ConfigLoader;
 
@@ -13,6 +15,7 @@ import java.util.Map;
 
 import org.adslabs.adsfulltext.Exchanges;
 import org.adslabs.adsfulltext.Queues;
+import org.adslabs.adsfulltext.Callback;
 
 public class Worker {
 
@@ -93,37 +96,53 @@ public class Worker {
         }
     }
 
-//    public QueuingConsumer callBack () {
-//
-//        return new QueuingConsumer();
-//    }
+    public String process(String message) {
+        String newMessage = message + " Processed";
+        return newMessage;
+    }
 
-    public String subscribe() {
+    public void subscribe() {
 
         // for array in subscribe array:
         //   start basic_consume
         //   if this is not a testing phase, then stay consuming
 
-        String QueueName = "PDFFileExtractorQueue";
+        String queueName = "PDFFileExtractorQueue";
         boolean autoAck = false; // This means it WILL acknowledge
+        boolean testRun = true;
+        String exchangeName = "FulltextExtractionExchange";
+        String routingKey = "WriteMetaFileRoute";
 
-        QueueingConsumer consumer = new QueueingConsumer(channel);
+        while (true) {
+            try {
+//                System.out.println("Start");
+                QueueingConsumer consumer = new QueueingConsumer(this.channel);
+                this.channel.basicConsume(queueName, autoAck, consumer);
 
-        try {
-            this.channel.basicConsume(QueueName, autoAck, consumer);
+                QueueingConsumer.Delivery delivery = consumer.nextDelivery();
+                String message = new String(delivery.getBody());
+                long deliveryTag = delivery.getEnvelope().getDeliveryTag();
 
-            QueueingConsumer.Delivery delivery = consumer.nextDelivery();
-            String message = new String(delivery.getBody());
+                // Process the message
+                String newMessage = this.process(message);
 
-            return message;
+                // Publish to the next queue
+                this.channel.basicPublish(exchangeName, routingKey, null, newMessage.getBytes());
 
-        } catch (java.io.IOException error) {
-            System.out.println("IO Error, does the queue exist and is RabbitMQ running???: " + error.getMessage());
-            return error.getMessage();
-        }
-         catch (java.lang.InterruptedException error) {
-            System.out.println("Interruption I guess there is no .next delivery");
-            return error.getMessage();
+                // Acknowledge the receipt of the message
+                this.channel.basicAck(deliveryTag, false);
+
+//                System.out.println("End");
+
+                if (testRun){
+                    break;
+                }
+
+            } catch (java.io.IOException error) {
+                System.out.println("IO Error, does the queue exist and is RabbitMQ running?: " + error.getMessage());
+            } catch(java.lang.InterruptedException error) {
+                System.out.println("IO Error, does the queue exist and is RabbitMQ running?: " + error.getMessage());
+            }
         }
     }
 

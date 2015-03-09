@@ -6,23 +6,58 @@ import static org.junit.Assert.*; // for assertThat()
 import static org.hamcrest.CoreMatchers.containsString;
 //import static org.junit.matchers.JUnitMatchers.*; // for hasItem()
 
+import com.rabbitmq.client.DefaultConsumer;
+import com.rabbitmq.client.QueueingConsumer;
+
 import org.adslabs.adsfulltext.Worker;
 import org.adslabs.adsfulltext.TaskMaster;
+
+import java.util.concurrent.TimeUnit;
 
 public class WorkerTest {
 
     public Worker worker = new Worker();
+    public TaskMaster TM = new TaskMaster();
 
+    // Junit init of master classes
+    //
     @Before
     public void setUp() {
+
+        // Make sure the queues exist
+        this.TM.initialize_rabbitmq();
+
+        // Connect the worker
         this.worker.connect();
     }
 
     @After
     public void tearDown() {
+
+        // Disconnect the worker from the queue
         this.worker.disconnect();
+
+        // Purge all queues / clean up
+        this.TM.purge_queues();
     }
 
+    // Helper methods
+    //
+    @Ignore("Helper method")
+    public int helper_message_count(String queueName) {
+
+        int queue_number = 100;
+        try {
+            queue_number = this.worker.channel.queueDeclarePassive(queueName).getMessageCount();
+            return queue_number;
+        } catch (java.io.IOException error) {
+            System.out.println("IO Error: " + error.getMessage());
+            return queue_number;
+        }
+    }
+
+    // Old tests
+    //
     @Ignore("Now a part of setUp and tearDown") @Test
     public void testWorkerCanConnectToRabbitMQ() {
 
@@ -33,81 +68,77 @@ public class WorkerTest {
         assertEquals(true, closed);
     }
 
+    // Full test suite
+    //
     @Test
     public void testWorkerCanDeclareQueues() {
 
         // Declare all the queues
         boolean result = this.worker.declare_all();
         assertEquals(true, result);
-
     }
 
     @Test
     public void testWorkerCanPurgeQueues() {
 
+        // Purge all the queues
         boolean result = this.worker.purge_all();
         assertEquals(true, result);
 
     }
 
     @Test
-    public void testWorkerCanSubscribetoAPDFQueue() {
-
-        // Make sure the queues exist
-        TaskMaster TM = new TaskMaster();
-        TM.initialize_rabbitmq();
-
-        // Publish message to the queue
-        String messageBody = "Test";
-        String exchangeName = "FulltextExtractionExchange";
-        String routeKey = "PDFFileExtractorRoute";
-        boolean result = TM.publish(exchangeName, routeKey, messageBody);
-
-        // Consume from the queue
-        String messageReturn = this.worker.subscribe();
-
-        assertEquals(messageBody, messageReturn);
-
-        // Clean up
-        TM.purge_queues();
-    }
-
-    @Test
     public void testWorkerCanExtractcontentFromMessage() {
 
-        // Make sure the queues exist
-        TaskMaster TM = new TaskMaster();
-        TM.initialize_rabbitmq();
-
-        // Publish message to the queue
+        // Define some constants
+        // -----------------------------------
         String messageBody = "Test";
         String exchangeName = "FulltextExtractionExchange";
         String routeKey = "PDFFileExtractorRoute";
         String queueName = "PDFFileExtractorQueue";
-        boolean result = TM.publish(exchangeName, routeKey, messageBody);
+        String expectedBody = "Test Processed";
+        boolean autoAck = false;
+        // -----------------------------------
 
-        int queue_number;
-        try {
-            queue_number = this.worker.channel.queueDeclarePassive(queueName).getMessageCount();
-            assertEquals(1, queue_number);
-        } catch (java.io.IOException error) {
-            System.out.println("IO Error: " + error.getMessage());
-        }
+        // Publish to the queue the fake message
+        //
+        boolean result = this.TM.publish(exchangeName, routeKey, messageBody);
+        assertEquals(true, result);
+        assertEquals(1, helper_message_count(queueName));
 
         // Consume from the queue
+        //
         this.worker.run();
 
-        // Check the queue is empty
+        // Check the queue has a message
+        //
+        assertEquals(1, helper_message_count("WriteMetaFileQueue"));
+
+        // Obtain the message and check it was processed as expected
+        //
         try {
-            queue_number = this.worker.channel.queueDeclarePassive(queueName).getMessageCount();
-            assertEquals(0, queue_number);
+            // We want to check that the message that got sent to the next queue
+            // is the message we expected
+            QueueingConsumer consumer = new QueueingConsumer(this.worker.channel);
+            this.worker.channel.basicConsume("WriteMetaFileQueue", false, consumer);
+            QueueingConsumer.Delivery delivery = consumer.nextDelivery();
+            String message = new String(delivery.getBody());
+            long deliveryTag = delivery.getEnvelope().getDeliveryTag();
+            this.worker.channel.basicAck(deliveryTag, false);
+
+            // Check with expected
+            assertEquals(expectedBody, message);
+
         } catch (java.io.IOException error) {
-            System.out.println("IO Error: " + error.getMessage());
+            System.out.println("IOError");
+            assertEquals(1, 0);
+        } catch (java.lang.InterruptedException error) {
+            System.out.println("IOError");
+            assertEquals(1,0);
         }
-
-        // Clean up
-        TM.purge_queues();
-
+        // Check the queue is empty
+        //
+        assertEquals(0, helper_message_count("WriteMetaFileQueue"));
     }
 
 }
