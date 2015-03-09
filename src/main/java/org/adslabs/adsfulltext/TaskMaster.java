@@ -1,3 +1,18 @@
+//
+// * @author     Jonny Elliott
+// * @year       2015
+// * @copyright  GNU General Public License v2
+// * @credits
+// * @version    0.1
+// * @status     Development
+//
+// This class is meant to reflect the same class that exists in the Python library. However, the functionality
+// is only intended to be a helper function for the integration tests of the worker function. This is simply,
+// to do things such as:
+// 1. Purge all the queues
+// 2. Publish messages to a queue
+// 3. Generate all of the queues
+//
 package org.adslabs.adsfulltext;
 
 import org.adslabs.adsfulltext.ConfigLoader;
@@ -13,6 +28,8 @@ public class TaskMaster {
         config.loadConfig();
     }
 
+    // Initialise all of the queues from the settings.yaml file
+    //
     public boolean initialize_rabbitmq() {
 
         w = new Worker();
@@ -23,6 +40,8 @@ public class TaskMaster {
         return true;
     }
 
+    // Publish a message to the queue specified
+    //
     public boolean publish(String exchangeName, String routingKey, String messageBody) {
 
         try {
@@ -37,6 +56,8 @@ public class TaskMaster {
         }
     }
 
+    // Purge all the queues from the settings.yaml file
+    //
     public boolean purge_queues() {
 
         w = new Worker();

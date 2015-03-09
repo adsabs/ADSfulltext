@@ -1,3 +1,21 @@
+//
+// * @author     Jonny Elliott
+// * @year       2015
+// * @copyright  GNU General Public License v2
+// * @credits
+// * @version    0.1
+// * @status     Development
+//
+// This class contains the functionality of the PDF Extractor Worker that includes:
+// 1. Connecting to queues
+// 2. Consuming from the queues
+// 3. Reducing/Parsing the correct content
+// 4. Publishing to the next queue
+//
+// The idea is that the number of workers will be controlled by supervisord, as it will remove the need
+// to manage two different daemon systems - given that supervisord already controls the Python system.
+//
+
 package org.adslabs.adsfulltext;
 
 import com.rabbitmq.client.Connection;
@@ -19,12 +37,16 @@ import org.adslabs.adsfulltext.Callback;
 
 public class Worker {
 
+    // --------------------------
+    // Variable declaration
+    // --------------------------
     public Connection connection;
     public Channel channel;
     int prefetchCount;
     ConfigLoader config;
 
     // Class constructor
+    //
     public Worker() {
         prefetchCount = 1;
         config = new ConfigLoader();
@@ -96,17 +118,26 @@ public class Worker {
         }
     }
 
+    // The function to be used on the message obtained from the queue. Currently it doesn't
+    // do anything meaningful, and should be replaced by Grobid or PDFBox functions.
+    //
     public String process(String message) {
         String newMessage = message + " Processed";
         return newMessage;
     }
 
+    // Connect to the specified queue and start consuming messages. This will break from the
+    // consuming if the user passes information that this is actually for a test.
+    //
     public void subscribe() {
 
         // for array in subscribe array:
         //   start basic_consume
         //   if this is not a testing phase, then stay consuming
 
+        // --------------------------------------------------------
+        // Variable declaration
+        // --------------------------------------------------------
         String queueName = "PDFFileExtractorQueue";
         boolean autoAck = false; // This means it WILL acknowledge
         boolean testRun = true;
@@ -115,7 +146,7 @@ public class Worker {
 
         while (true) {
             try {
-//                System.out.println("Start");
+                //System.out.println("Start");
                 QueueingConsumer consumer = new QueueingConsumer(this.channel);
                 this.channel.basicConsume(queueName, autoAck, consumer);
 
@@ -132,7 +163,7 @@ public class Worker {
                 // Acknowledge the receipt of the message
                 this.channel.basicAck(deliveryTag, false);
 
-//                System.out.println("End");
+                // System.out.println("End");
 
                 if (testRun){
                     break;
@@ -146,6 +177,8 @@ public class Worker {
         }
     }
 
+    // Declares all the relevant queues needed on RabbitMQ
+    //
     public boolean declare_all() {
 
         Exchanges[] exchange = config.data.EXCHANGES;
@@ -169,12 +202,14 @@ public class Worker {
         return true;
     }
 
+    // Purges/empties all of the content on all of the queues
+    //
     public boolean purge_all() {
 
         Queues[] queues = config.data.QUEUES;
         for (int i = 0; i < queues.length; i++) {
             try {
-//                System.out.println("Purging queue: " + queues[i].queue);
+                // System.out.println("Purging queue: " + queues[i].queue);
                 this.channel.queuePurge(queues[i].queue);
 
             } catch (java.io.IOException error) {
@@ -186,6 +221,8 @@ public class Worker {
         return true;
     }
 
+    // Simple packaging of its execution methods
+    //
     public void run() {
         this.connect();
         this.subscribe();

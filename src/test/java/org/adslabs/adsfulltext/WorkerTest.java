@@ -1,3 +1,19 @@
+//
+// * @author     Jonny Elliott
+// * @year       2015
+// * @copyright  GNU General Public License v2
+// * @credits
+// * @version    0.1
+// * @status     Development
+//
+// This class is to test the Worker class. This is a set of integration tests to ensure that the worker
+// can do the following when interacting with RabbitMQ:
+// 1. Connect to the queue
+// 2. Consume from the queue
+// 3. Publish to the queue
+//
+// All tests should be self explanatory along with the descriptive annotations
+
 import org.junit.Test; // for @Test annotation
 import org.junit.Ignore; // for @Ignore annotation
 import org.junit.Before;
@@ -16,8 +32,11 @@ import java.util.concurrent.TimeUnit;
 
 public class WorkerTest {
 
+    // Variable declaration
+    // -------------------------------------
     public Worker worker = new Worker();
     public TaskMaster TM = new TaskMaster();
+    // -------------------------------------
 
     // Junit init of master classes
     //
