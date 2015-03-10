@@ -111,17 +111,32 @@ public class WorkerTest {
 
         // Define some constants
         // -----------------------------------
-        String messageBody = "Test";
+
+        // JSON payload, typical payload should be received as a byte:
+        // {
+        // "bibcode": "test",
+        // "file_format": "pdf",
+        // "UPDATE": "NOT_EXTRACTED_BEFORE",
+        // "meta_path": "some_path.json",
+        // "index_date": "2015-03-02T19:12:57.387093Z",
+        // "provider": "Elsevier",
+        // "ft_source": "/vagrant/src/test/resources/test_doc.pdf";
+        // }
+
+        String testMessageJSON = "[{\"bibcode\": \"test\", \"file_format\": \"pdf\", \"UPDATE\": \"NOT_EXTRACTED_BEFORE\", \"meta_path\": \"some_path.json\", \"index_date\": \"2015-03-02T19:12:57.387093Z\", \"provider\": \"Elsevier\", \"ft_source\": \"/vagrant/src/test/resources/test_doc.pdf\"}]";
+
         String exchangeName = "FulltextExtractionExchange";
         String routeKey = "PDFFileExtractorRoute";
         String queueName = "PDFFileExtractorQueue";
-        String expectedBody = "Test Processed";
+//        String expectedBody = "This is a PDF document";
+//        assertThat(message, containsString("This is a PDF document"));
+
         boolean autoAck = false;
         // -----------------------------------
 
         // Publish to the queue the fake message
         //
-        boolean result = this.TM.publish(exchangeName, routeKey, messageBody);
+        boolean result = this.TM.publish(exchangeName, routeKey, testMessageJSON);
         assertEquals(true, result);
         assertEquals(1, helper_message_count(queueName));
 

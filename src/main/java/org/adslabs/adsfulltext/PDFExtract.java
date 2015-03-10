@@ -47,6 +47,14 @@ public class PDFExtract {
         }
     }
 
+    public void extract (String fileSource) {
+
+    }
+
+    public void convertJSONArrayToList (String RabbitMQPayload) {
+
+    }
+
     // Main function that takes care of all the extraction regardless of the underlying process
     //
     public String f (String fileSource) {
