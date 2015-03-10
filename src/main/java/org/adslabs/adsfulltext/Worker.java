@@ -122,7 +122,9 @@ public class Worker {
     // do anything meaningful, and should be replaced by Grobid or PDFBox functions.
     //
     public String process(String message) {
-        String newMessage = message + " Processed";
+
+        PDFExtract PDFExtractorWorker = new PDFExtract();
+        String newMessage = PDFExtractorWorker.f(message);
         return newMessage;
     }
 
