@@ -13,5 +13,5 @@ before_script:
  - export PYTHONPATH=$PYTHONPATH:$(pwd)
 script:
  - nosetests -w tests/test_unit/ test.py
+ - mvn test
  - exec tests/integration_test.sh
- - mvn -X clean -DrunSuite=FulltextTestSuite.class -Dmaven.junit.usefile=false test
