@@ -13,4 +13,5 @@ before_script:
  - export PYTHONPATH=$PYTHONPATH:$(pwd)
 script:
  - nosetests -w tests/test_unit/ test.py
- - exec tests/integration_test.sh && mvn test
+ - tests/integration_test.sh
+ - mvn test
