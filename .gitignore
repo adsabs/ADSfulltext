@@ -11,3 +11,4 @@ do_not_commit*
 *setup.sh
 live/
 fulltext*.links
+do_not_commit/
