@@ -38,7 +38,7 @@ public class PDFExtractTest {
     public void testWorkerCanExtract() {
         // Input file:
         //
-        String test_pdf = "/vagrant/src/test/resources/test_doc.pdf";
+        String test_pdf = getClass().getResource("/test_doc.pdf").getFile();
         String message = extractor.f(test_pdf);
         assertThat(message, containsString("This is a PDF document"));
     }
