@@ -106,7 +106,7 @@ public class WorkerTest {
 
     }
 
-    @Ignore("until the other test is complete") @Test
+    @Test
     public void testWorkerCanExtractcontentFromMessage() {
 
         // Define some constants
@@ -128,7 +128,7 @@ public class WorkerTest {
         String exchangeName = "FulltextExtractionExchange";
         String routeKey = "PDFFileExtractorRoute";
         String queueName = "PDFFileExtractorQueue";
-//        String expectedBody = "This is a PDF document";
+        String expectedBody = "This is a PDF document";
 //        assertThat(message, containsString("This is a PDF document"));
 
         boolean autoAck = false;
@@ -150,33 +150,29 @@ public class WorkerTest {
 
         // Obtain the message and check it was processed as expected
         //
+        try {
+            // We want to check that the message that got sent to the next queue
+            // is the message we expected
+            QueueingConsumer consumer = new QueueingConsumer(this.worker.channel);
+            this.worker.channel.basicConsume("WriteMetaFileQueue", false, consumer);
+            QueueingConsumer.Delivery delivery = consumer.nextDelivery();
+            String message = new String(delivery.getBody());
+            long deliveryTag = delivery.getEnvelope().getDeliveryTag();
+            this.worker.channel.basicAck(deliveryTag, false);
 
-//        -------------------------------------------------------
-//        Ignore this part until the PDFExtractor is implemented
-//        -------------------------------------------------------
-//        try {
-//            // We want to check that the message that got sent to the next queue
-//            // is the message we expected
-//            QueueingConsumer consumer = new QueueingConsumer(this.worker.channel);
-//            this.worker.channel.basicConsume("WriteMetaFileQueue", false, consumer);
-//            QueueingConsumer.Delivery delivery = consumer.nextDelivery();
-//            String message = new String(delivery.getBody());
-//            long deliveryTag = delivery.getEnvelope().getDeliveryTag();
-//            this.worker.channel.basicAck(deliveryTag, false);
-//
-//            // Check with expected
-//            assertEquals(expectedBody, message);
-//
-//        } catch (java.io.IOException error) {
-//            System.out.println("IOError");
-//            assertEquals(1, 0);
-//        } catch (java.lang.InterruptedException error) {
-//            System.out.println("IOError");
-//            assertEquals(1,0);
-//        }
-//        // Check the queue is empty
-//        //
-//        assertEquals(0, helper_message_count("WriteMetaFileQueue"));
+            // Check with expected
+            assertThat(message, containsString(expectedBody));
+
+        } catch (java.io.IOException error) {
+            System.out.println("IOError");
+            assertEquals(1, 0);
+        } catch (java.lang.InterruptedException error) {
+            System.out.println("IOError");
+            assertEquals(1,0);
+        }
+        // Check the queue is empty
+        //
+        assertEquals(0, helper_message_count("WriteMetaFileQueue"));
     }
 
 }

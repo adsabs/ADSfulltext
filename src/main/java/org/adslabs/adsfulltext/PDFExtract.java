@@ -26,6 +26,12 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.cos.COSDocument;
 import org.apache.pdfbox.pdfparser.PDFParser;
 
+import org.json.JSONObject;
+import org.json.JSONArray;
+
+import java.util.ArrayList;
+import java.util.List;
+
 public class PDFExtract {
 
     // Variable declaration
@@ -47,17 +53,9 @@ public class PDFExtract {
         }
     }
 
-    public void extract (String fileSource) {
-
-    }
-
-    public void convertJSONArrayToList (String RabbitMQPayload) {
-
-    }
-
     // Main function that takes care of all the extraction regardless of the underlying process
     //
-    public String f (String fileSource) {
+    public String extract (String fileSource) {
 
 
         // Create the path to the PDF

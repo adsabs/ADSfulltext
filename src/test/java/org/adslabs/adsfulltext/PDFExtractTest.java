@@ -18,6 +18,7 @@ import static org.junit.Assert.*; // for assertThat()
 import static org.hamcrest.CoreMatchers.containsString;
 import org.json.JSONObject;
 import org.json.JSONArray;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.adslabs.adsfulltext.PDFExtract;
@@ -27,26 +28,11 @@ public class PDFExtractTest {
     PDFExtract extractor = new PDFExtract();
 
     @Test
-    public void testCanExtractJSONContent() {
-        String test_JSON = "[{\"test\": \"test\" }, {\"test2\": \"test2\"}]";
-        JSONArray obj = new JSONArray(test_JSON);
-//        String test = (String) obj.get("test");
-//        assertEquals("test", test);
-    }
-
-    @Test
     public void testWorkerCanExtract() {
         // Input file:
         //
         String test_pdf = getClass().getResource("/test_doc.pdf").getFile();
-        String message = extractor.f(test_pdf);
+        String message = extractor.extract(test_pdf);
         assertThat(message, containsString("This is a PDF document"));
     }
-
-//    @Ignore("To be done") @Test
-//    public void testWorkerCanExtractFromAList() {
-//
-//
-//    }
-
 }

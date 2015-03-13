@@ -33,7 +33,7 @@ import java.util.Map;
 
 import org.adslabs.adsfulltext.Exchanges;
 import org.adslabs.adsfulltext.Queues;
-import org.adslabs.adsfulltext.Callback;
+import org.adslabs.adsfulltext.PDFExtractList;
 
 public class Worker {
 
@@ -123,7 +123,7 @@ public class Worker {
     //
     public String process(String message) {
 
-        PDFExtract PDFExtractorWorker = new PDFExtract();
+        PDFExtractList PDFExtractorWorker = new PDFExtractList();
         String newMessage = PDFExtractorWorker.f(message);
         return newMessage;
     }
