@@ -55,22 +55,22 @@ public class PDFExtract {
 
     // Main function that takes care of all the extraction regardless of the underlying process
     //
-    public String extract (String fileSource) {
+    public String extract (String fileSource) throws Exception {
 
 
         // Create the path to the PDF
         //
-        try {
+        try{
             this.pdfFile = new FileInputStream(fileSource);
         } catch (java.io.FileNotFoundException error) {
-            System.out.println("File not found: " + error.getMessage());
+            throw new Exception("File not found: " + error.getMessage(), error);
         }
 
         // Create the PDF parser of the document of interest
         try {
             this.pdfParser = new PDFParser(pdfFile);
         } catch (java.io.IOException error) {
-            System.err.println("There is an error loading the COSDocument: " + error.getMessage());
+            throw new Exception("There is an error loading the COSDocument: " + error.getMessage(), error);
         }
 
         // Parse the document and obtain the PDDocument, followed by extracting the content
@@ -81,12 +81,12 @@ public class PDFExtract {
             this.message = this.stripper.getText(pdDocument);
 
         } catch (java.io.IOException error) {
-            System.err.println("There is an error parsing or loading the PDDocument or PDFBox Stripper: " + error.getMessage());
+            throw new Exception("There is an error parsing or loading the PDDocument or PDFBox Stripper: " + error.getMessage(), error);
         } finally {
             try {
                 this.pdDocument.close();
             } catch (java.io.IOException error) {
-                System.err.println("There is an error loading the PDFBox Stripper properties: " + error.getMessage());
+                throw new Exception("There is an error loading the PDFBox Stripper properties: " + error.getMessage(), error);
             }
 
         }

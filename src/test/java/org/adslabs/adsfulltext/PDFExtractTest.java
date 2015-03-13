@@ -28,7 +28,7 @@ public class PDFExtractTest {
     PDFExtract extractor = new PDFExtract();
 
     @Test
-    public void testWorkerCanExtract() {
+    public void testWorkerCanExtract() throws Exception {
         // Input file:
         //
         String test_pdf = getClass().getResource("/test_doc.pdf").getFile();

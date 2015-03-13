@@ -37,8 +37,9 @@ public class PDFExtractListTest {
     }
 
     @Test
-    public void testWorkerCanExtractFromAnEntireList() {
-        String testMessageJSON = "[{\"bibcode\": \"test\", \"file_format\": \"pdf\", \"UPDATE\": \"NOT_EXTRACTED_BEFORE\", \"meta_path\": \"some_path.json\", \"index_date\": \"2015-03-02T19:12:57.387093Z\", \"provider\": \"Elsevier\", \"ft_source\": \"/vagrant/src/test/resources/test_doc.pdf\"}, {\"bibcode\": \"test\", \"file_format\": \"pdf\", \"UPDATE\": \"NOT_EXTRACTED_BEFORE\", \"meta_path\": \"some_path.json\", \"index_date\": \"2015-03-02T19:12:57.387093Z\", \"provider\": \"Elsevier\", \"ft_source\": \"/vagrant/src/test/resources/test_doc.pdf\"}]";
+    public void testWorkerCanExtractFromAnEntireList() throws Exception {
+        String pdf_path = getClass().getResource("/test_doc.pdf").getFile();
+        String testMessageJSON = "[{\"bibcode\": \"test\", \"file_format\": \"pdf\", \"UPDATE\": \"NOT_EXTRACTED_BEFORE\", \"meta_path\": \"some_path.json\", \"index_date\": \"2015-03-02T19:12:57.387093Z\", \"provider\": \"Elsevier\", \"ft_source\": \"" + pdf_path + "\"}, {\"bibcode\": \"test\", \"file_format\": \"pdf\", \"UPDATE\": \"NOT_EXTRACTED_BEFORE\", \"meta_path\": \"some_path.json\", \"index_date\": \"2015-03-02T19:12:57.387093Z\", \"provider\": \"Elsevier\", \"ft_source\": \"" + pdf_path+ "\"}]";
 
         String result =  extractor.f(testMessageJSON);
 

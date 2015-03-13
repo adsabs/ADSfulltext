@@ -28,6 +28,7 @@ import com.rabbitmq.client.QueueingConsumer;
 import org.adslabs.adsfulltext.Worker;
 import org.adslabs.adsfulltext.TaskMaster;
 
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class WorkerTest {
@@ -36,6 +37,28 @@ public class WorkerTest {
     // -------------------------------------
     public Worker worker = new Worker();
     public TaskMaster TM = new TaskMaster();
+
+    // JSON payload, typical payload should be received as a byte:
+    // {
+    // "bibcode": "test",
+    // "file_format": "pdf",
+    // "UPDATE": "NOT_EXTRACTED_BEFORE",
+    // "meta_path": "some_path.json",
+    // "index_date": "2015-03-02T19:12:57.387093Z",
+    // "provider": "Elsevier",
+    // "ft_source": "/vagrant/src/test/resources/test_doc.pdf";
+    // }
+    String pdf_path = getClass().getResource("/test_doc.pdf").getFile();
+    String testMessageJSON = "[{\"bibcode\": \"test\", \"file_format\": \"pdf\", \"UPDATE\": \"NOT_EXTRACTED_BEFORE\", \"meta_path\": \"some_path.json\", \"index_date\": \"2015-03-02T19:12:57.387093Z\", \"provider\": \"Elsevier\", \"ft_source\": \"" + pdf_path + "\"}]";
+    String testMessageJSONNonExistentFile = "[{\"bibcode\": \"test\", \"file_format\": \"pdf\", \"UPDATE\": \"NOT_EXTRACTED_BEFORE\", \"meta_path\": \"some_path.json\", \"index_date\": \"2015-03-02T19:12:57.387093Z\", \"provider\": \"Elsevier\", \"ft_source\": \"/vagrant/src/test/resources/test_non_existent.pdf\"}]";
+
+    // Queues
+    String exchangeName = "FulltextExtractionExchange";
+    String routeKey = "PDFFileExtractorRoute";
+    String queueName = "PDFFileExtractorQueue";
+    String expectedBody = "This is a PDF document";
+    String WriteMetaFileQueue = "WriteMetaFileQueue";
+    String ErrorQueue = "ErrorHandlerQueue";
     // -------------------------------------
 
     // Junit init of master classes
@@ -107,38 +130,13 @@ public class WorkerTest {
     }
 
     @Test
-    public void testWorkerCanExtractcontentFromMessage() {
-
-        // Define some constants
-        // -----------------------------------
-
-        // JSON payload, typical payload should be received as a byte:
-        // {
-        // "bibcode": "test",
-        // "file_format": "pdf",
-        // "UPDATE": "NOT_EXTRACTED_BEFORE",
-        // "meta_path": "some_path.json",
-        // "index_date": "2015-03-02T19:12:57.387093Z",
-        // "provider": "Elsevier",
-        // "ft_source": "/vagrant/src/test/resources/test_doc.pdf";
-        // }
-
-        String testMessageJSON = "[{\"bibcode\": \"test\", \"file_format\": \"pdf\", \"UPDATE\": \"NOT_EXTRACTED_BEFORE\", \"meta_path\": \"some_path.json\", \"index_date\": \"2015-03-02T19:12:57.387093Z\", \"provider\": \"Elsevier\", \"ft_source\": \"/vagrant/src/test/resources/test_doc.pdf\"}]";
-
-        String exchangeName = "FulltextExtractionExchange";
-        String routeKey = "PDFFileExtractorRoute";
-        String queueName = "PDFFileExtractorQueue";
-        String expectedBody = "This is a PDF document";
-//        assertThat(message, containsString("This is a PDF document"));
-
-        boolean autoAck = false;
-        // -----------------------------------
+    public void testWorkerCanExtractcontentFromMessage() throws Exception {
 
         // Publish to the queue the fake message
         //
-        boolean result = this.TM.publish(exchangeName, routeKey, testMessageJSON);
+        boolean result = this.TM.publish(this.exchangeName, this.routeKey, this.testMessageJSON);
         assertEquals(true, result);
-        assertEquals(1, helper_message_count(queueName));
+        assertEquals(1, helper_message_count(this.queueName));
 
         // Consume from the queue
         //
@@ -150,29 +148,56 @@ public class WorkerTest {
 
         // Obtain the message and check it was processed as expected
         //
-        try {
-            // We want to check that the message that got sent to the next queue
-            // is the message we expected
-            QueueingConsumer consumer = new QueueingConsumer(this.worker.channel);
-            this.worker.channel.basicConsume("WriteMetaFileQueue", false, consumer);
-            QueueingConsumer.Delivery delivery = consumer.nextDelivery();
-            String message = new String(delivery.getBody());
-            long deliveryTag = delivery.getEnvelope().getDeliveryTag();
-            this.worker.channel.basicAck(deliveryTag, false);
+        // We want to check that the message that got sent to the next queue
+        // is the message we expected
+        QueueingConsumer consumer = new QueueingConsumer(this.worker.channel);
+        this.worker.channel.basicConsume(this.WriteMetaFileQueue, false, consumer);
+        QueueingConsumer.Delivery delivery = consumer.nextDelivery();
+        String message = new String(delivery.getBody());
+        long deliveryTag = delivery.getEnvelope().getDeliveryTag();
+        this.worker.channel.basicAck(deliveryTag, false);
 
-            // Check with expected
-            assertThat(message, containsString(expectedBody));
+        // Check with expected
+        assertThat(message, containsString(this.expectedBody));
 
-        } catch (java.io.IOException error) {
-            System.out.println("IOError");
-            assertEquals(1, 0);
-        } catch (java.lang.InterruptedException error) {
-            System.out.println("IOError");
-            assertEquals(1,0);
-        }
         // Check the queue is empty
         //
-        assertEquals(0, helper_message_count("WriteMetaFileQueue"));
+        assertEquals(0, helper_message_count(this.WriteMetaFileQueue));
+    }
+
+    @Test
+    public void testWorkerPublishesToErrorHandlerIfProblem() throws Exception {
+
+        // Publish to the queue the fake message
+        //
+        boolean result = this.TM.publish(this.exchangeName, this.routeKey, this.testMessageJSONNonExistentFile);
+        assertEquals(true, result);
+        assertEquals(1, helper_message_count(this.queueName));
+
+        // Consume from the queue
+        //
+        this.worker.run();
+
+        // Check the queue has a message
+        //
+        assertEquals(0, helper_message_count(this.WriteMetaFileQueue));
+        assertEquals(1, helper_message_count(this.ErrorQueue));
+
+        // We want to check that the message that got sent to the next queue
+        // is the message we expected
+        QueueingConsumer consumer = new QueueingConsumer(this.worker.channel);
+        this.worker.channel.basicConsume(this.ErrorQueue, false, consumer);
+        QueueingConsumer.Delivery delivery = consumer.nextDelivery();
+
+        Map<String, Object> ErrorHeader = delivery.getProperties().getHeaders();
+        String PACKET_FROM = ErrorHeader.get("PACKET_FROM").toString();
+
+        long deliveryTag = delivery.getEnvelope().getDeliveryTag();
+        this.worker.channel.basicAck(deliveryTag, false);
+
+        // Check with expected
+        assertEquals("JAVA_PDF_QUEUE", PACKET_FROM);
+        assertEquals(0, helper_message_count(this.ErrorQueue));
     }
 
 }

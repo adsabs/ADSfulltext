@@ -38,7 +38,7 @@ public class PDFExtractList {
         return payloadList;
     }
 
-    public String f (String UnparsedRabbitMQPayload){
+    public String f (String UnparsedRabbitMQPayload) throws Exception {
 
         // Variable declaration
         // ------------------------

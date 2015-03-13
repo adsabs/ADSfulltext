@@ -23,8 +23,8 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.QueueingConsumer;
-import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Envelope;
+import com.rabbitmq.client.AMQP;
 
 import org.adslabs.adsfulltext.ConfigLoader;
 
@@ -121,7 +121,7 @@ public class Worker {
     // The function to be used on the message obtained from the queue. Currently it doesn't
     // do anything meaningful, and should be replaced by Grobid or PDFBox functions.
     //
-    public String process(String message) {
+    public String process(String message) throws Exception {
 
         PDFExtractList PDFExtractorWorker = new PDFExtractList();
         String newMessage = PDFExtractorWorker.f(message);
@@ -141,10 +141,11 @@ public class Worker {
         // Variable declaration
         // --------------------------------------------------------
         String queueName = "PDFFileExtractorQueue";
-        boolean autoAck = false; // This means it WILL acknowledge
+        boolean autoAck = false; // This means it has to acknowledged manually
         boolean testRun = true;
         String exchangeName = "FulltextExtractionExchange";
         String routingKey = "WriteMetaFileRoute";
+        String errorHandler = "ErrorHandlerRoute";
 
         while (true) {
             try {
@@ -157,16 +158,30 @@ public class Worker {
                 long deliveryTag = delivery.getEnvelope().getDeliveryTag();
 
                 // Process the message
-                String newMessage = this.process(message);
+                try {
 
-                // Publish to the next queue
-                this.channel.basicPublish(exchangeName, routingKey, null, newMessage.getBytes());
+                    // Process and publish to the next queue
+                    String newMessage = this.process(message);
+                    this.channel.basicPublish(exchangeName, routingKey, null, newMessage.getBytes());
 
-                // Acknowledge the receipt of the message
-                this.channel.basicAck(deliveryTag, false);
+                } catch (Exception error) {
 
-                // System.out.println("End");
+                    // Publish to the error handler
+                    AMQP.BasicProperties.Builder builder = new AMQP.BasicProperties().builder();
+                    Map<String,Object> headerMap = new HashMap<String, Object>();
+                    headerMap.put("PACKET_FROM", "JAVA_PDF_QUEUE");
+                    builder.headers(headerMap);
 
+                    this.channel.basicPublish(exchangeName, errorHandler, builder.build(), message.getBytes());
+
+                } finally {
+
+                    // Acknowledge the receipt of the message for either situation
+                    this.channel.basicAck(deliveryTag, false);
+                }
+
+                // If it's a test, we don't want to sit here forever
+                //
                 if (testRun){
                     break;
                 }
