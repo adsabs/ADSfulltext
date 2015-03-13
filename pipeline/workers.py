@@ -193,7 +193,7 @@ class ErrorHandlerWorker(RabbitMQWorker):
         }
 
     def on_message(self, channel, method_frame, header_frame, body):
-        self.logger.info('Got message')
+        self.logger.info('Error Handler: Got message')
 
         message = json.loads(body)
         producer = message.keys()[0]
@@ -207,6 +207,17 @@ class ErrorHandlerWorker(RabbitMQWorker):
         P = pika.spec.BasicProperties(headers={'redelivered': True})
 
         for individual_payload in message[producer]:
+
+            if producer == "PDFFileExtractorWorker":
+                self.logger.info('Payload: %s' % individual_payload)
+                if not message:
+                    self.logger.debug('%s list is empty, not publishing' % producer)
+                    continue
+
+                self.logger.info('ErrorHandler: Republishing payload to: %s' % self.params['PDF_EXTRACTOR']['routing_key'])
+                self.channel.basic_publish(self.params['PDF_EXTRACTOR']['exchange'], self.params['PDF_EXTRACTOR']['routing_key'], json.dumps(individual_payload))
+                continue
+
             try:
                 self.logger.info('ErrorHandler: Trying to fix payload: %s, type: %s' % (individual_payload, type(individual_payload)))
                 result = self.strategies[producer]([individual_payload], extract_key=self.params['extract_key'])

@@ -118,7 +118,9 @@ class TestGeneric(unittest.TestCase):
             params['ERROR_HANDLER'] = psettings.ERROR_HANDLER
             params['extract_key'] = "FULLTEXT_EXTRACT_PATH_UNITTEST"
             params['TEST_RUN'] = True
+            params['PDF_EXTRACTOR'] = psettings.PDF_EXTRACTOR
 
+        self.params = params
         self.check_worker = CheckIfExtractWorker(params=check_params)
         self.standard_worker = StandardFileExtractWorker(params=standard_params)
         self.standard_worker.logger.debug("params: %s" % standard_params)

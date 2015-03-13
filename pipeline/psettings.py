@@ -11,6 +11,11 @@ ERROR_HANDLER = {
     'routing_key': 'ErrorHandlerRoute',
 }
 
+PDF_EXTRACTOR = {
+    'exchange': 'FulltextExtractionExchange',
+    'routing_key': 'PDFFileExtractorRoute',
+}
+
 RABBITMQ_ROUTES = {
   'EXCHANGES':[
     {
@@ -92,15 +97,6 @@ WORKERS = {
       {'queue': 'StandardFileExtractorQueue',},
     ],
   },
-  # 'PDFFileExtractorWorker': { 
-  #   'concurrency': 1,
-  #   'publish': [
-  #     {'exchange': 'FulltextExtractionExchange', 'routing_key': 'WriteMetaFileQueue',},
-  #   ],
-  #   'subscribe': [
-  #     {'queue': 'ReadRecordsQueue',},
-  #   ],
-  # },
     'WriteMetaFileWorker': {
     'concurrency': 1,
     'publish': [
