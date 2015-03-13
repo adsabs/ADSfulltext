@@ -39,8 +39,12 @@ exec {'update_python_path':
 
 Exec['add_repo_1'] -> Exec['apt_update_1'] -> Package[$build_packages] -> Exec['pip_install_modules'] -> Exec['update_python_path']
 
-class {"supervisor":
+class {'supervisor':
   supervisor_conf => "/etc/supervisord.conf",
-  upstart_conf => "/etc/init/supervisor.conf",
   require => Exec["pip_install_modules"],
+}
+
+class {'upstart':
+    supervisor_conf => '/etc/init/supervisord.conf',
+    rabbitmq_conf => '/etc/init/rabbitmq.conf',
 }
