@@ -21,42 +21,23 @@ import org.adslabs.adsfulltext.PDFExtract;
 
 public class PDFExtractList {
 
-
-    public List<JSONObject> convertJSONArrayToList (String RabbitMQPayload) {
-
-        // This converts the incoming string from RabbitMQ into a usable
-        // Java ArrayList that contains JSONObjects. JSONObjects are similar
-        // to the lists
-
-        JSONArray jsonPayload = new JSONArray(RabbitMQPayload);
-        List<JSONObject> payloadList = new ArrayList<JSONObject>();
-
-        for(int i=0; i<jsonPayload.length(); i++){
-            payloadList.add(jsonPayload.getJSONObject(i));
-        }
-
-        return payloadList;
-    }
-
     public String f (String UnparsedRabbitMQPayload) throws Exception {
 
         // Variable declaration
         // ------------------------
-        List<JSONObject> ParsedRabbitMQPayload;
-        String JSONFullTextPayload;
+        JSONArray ParsedRabbitMQPayload;
         // ------------------------
 
         // Parse the content of the input
-        ParsedRabbitMQPayload = this.convertJSONArrayToList(UnparsedRabbitMQPayload);
+        ParsedRabbitMQPayload = new JSONArray(UnparsedRabbitMQPayload);
 
         // For each of the articles in the payload
-        for(int i=0; i<ParsedRabbitMQPayload.size(); i++){
+        for(int i=0; i<ParsedRabbitMQPayload.length(); i++){
 
             PDFExtract pdfFile = new PDFExtract();
 
             // Extract the full text
-//            System.out.println(ParsedRabbitMQPayload.get(i).get("ft_source").getClass().getName());
-            JSONObject tempPayload = ParsedRabbitMQPayload.get(i);
+            JSONObject tempPayload = ParsedRabbitMQPayload.getJSONObject(i);
             String fileSource = (String) tempPayload.get("ft_source");
             String message = pdfFile.extract(fileSource);
 
@@ -64,10 +45,6 @@ public class PDFExtractList {
             tempPayload.put("fulltext", message);
         }
 
-        // Convert back to JSON
-        JSONFullTextPayload = ParsedRabbitMQPayload.toString();
-
-        return JSONFullTextPayload;
+        return ParsedRabbitMQPayload.toString();
     }
-
 }

@@ -14,6 +14,7 @@
 //
 // All tests should be self explanatory along with the descriptive annotations
 
+import org.json.JSONObject;
 import org.junit.Test; // for @Test annotation
 import org.junit.Ignore; // for @Ignore annotation
 import org.junit.Before;
@@ -59,6 +60,7 @@ public class WorkerTest {
     String expectedBody = "This is a PDF document";
     String WriteMetaFileQueue = "WriteMetaFileQueue";
     String ErrorQueue = "ErrorHandlerQueue";
+    String PDFClassName = "org.adslabs.adsfulltext.PDFExtractList";
     // -------------------------------------
 
     // Junit init of master classes
@@ -144,7 +146,7 @@ public class WorkerTest {
 
         // Check the queue has a message
         //
-        assertEquals(1, helper_message_count("WriteMetaFileQueue"));
+        assertEquals(1, helper_message_count(WriteMetaFileQueue));
 
         // Obtain the message and check it was processed as expected
         //
@@ -189,15 +191,14 @@ public class WorkerTest {
         this.worker.channel.basicConsume(this.ErrorQueue, false, consumer);
         QueueingConsumer.Delivery delivery = consumer.nextDelivery();
 
-        Map<String, Object> ErrorHeader = delivery.getProperties().getHeaders();
-        String PACKET_FROM = ErrorHeader.get("PACKET_FROM").toString();
+        String message = new String(delivery.getBody());
+        JSONObject payload = new JSONObject(message);
 
         long deliveryTag = delivery.getEnvelope().getDeliveryTag();
         this.worker.channel.basicAck(deliveryTag, false);
 
         // Check with expected
-        assertEquals("JAVA_PDF_QUEUE", PACKET_FROM);
-        assertEquals(0, helper_message_count(this.ErrorQueue));
+        assertTrue(payload.has(PDFClassName));
     }
 
 }

@@ -27,16 +27,6 @@ public class PDFExtractListTest {
     PDFExtractList extractor = new PDFExtractList();
 
     @Test
-    public void testCanExtractJSONContentFromList() {
-        String test_JSON = "[{\"test\": \"test\" }, {\"test2\": \"test2\"}]";
-
-        List<JSONObject> result = extractor.convertJSONArrayToList(test_JSON);
-
-        assertEquals(result.get(0).get("test"), "test");
-        assertEquals(result.get(1).get("test2"), "test2");
-    }
-
-    @Test
     public void testWorkerCanExtractFromAnEntireList() throws Exception {
         String pdf_path = getClass().getResource("/test_doc.pdf").getFile();
         String testMessageJSON = "[{\"bibcode\": \"test\", \"file_format\": \"pdf\", \"UPDATE\": \"NOT_EXTRACTED_BEFORE\", \"meta_path\": \"some_path.json\", \"index_date\": \"2015-03-02T19:12:57.387093Z\", \"provider\": \"Elsevier\", \"ft_source\": \"" + pdf_path + "\"}, {\"bibcode\": \"test\", \"file_format\": \"pdf\", \"UPDATE\": \"NOT_EXTRACTED_BEFORE\", \"meta_path\": \"some_path.json\", \"index_date\": \"2015-03-02T19:12:57.387093Z\", \"provider\": \"Elsevier\", \"ft_source\": \"" + pdf_path+ "\"}]";

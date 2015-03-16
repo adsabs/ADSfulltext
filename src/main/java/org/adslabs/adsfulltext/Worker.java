@@ -30,6 +30,7 @@ import org.adslabs.adsfulltext.ConfigLoader;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.json.JSONObject;
 
 import org.adslabs.adsfulltext.Exchanges;
 import org.adslabs.adsfulltext.Queues;
@@ -146,6 +147,7 @@ public class Worker {
         String exchangeName = "FulltextExtractionExchange";
         String routingKey = "WriteMetaFileRoute";
         String errorHandler = "ErrorHandlerRoute";
+        String PDFClassName = "org.adslabs.adsfulltext.PDFExtractList";
 
         while (true) {
             try {
@@ -167,12 +169,15 @@ public class Worker {
                 } catch (Exception error) {
 
                     // Publish to the error handler
-                    AMQP.BasicProperties.Builder builder = new AMQP.BasicProperties().builder();
-                    Map<String,Object> headerMap = new HashMap<String, Object>();
-                    headerMap.put("PACKET_FROM", "JAVA_PDF_QUEUE");
-                    builder.headers(headerMap);
+                    JSONObject ErrorMessage = new JSONObject();
+                    ErrorMessage.put(PDFClassName, message);
 
-                    this.channel.basicPublish(exchangeName, errorHandler, builder.build(), message.getBytes());
+//                    AMQP.BasicProperties.Builder builder = new AMQP.BasicProperties().builder();
+//                    Map<String,Object> headerMap = new HashMap<String, Object>();
+//                    headerMap.put("PACKET_FROM", "JAVA_PDF_QUEUE");
+//                    builder.headers(headerMap);
+
+                    this.channel.basicPublish(exchangeName, errorHandler, null, ErrorMessage.toString().getBytes());
 
                 } finally {
 
