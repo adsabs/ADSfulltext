@@ -158,13 +158,14 @@ public class Worker {
                 QueueingConsumer.Delivery delivery = consumer.nextDelivery();
                 String message = new String(delivery.getBody());
                 long deliveryTag = delivery.getEnvelope().getDeliveryTag();
+                AMQP.BasicProperties properties = delivery.getProperties();
 
                 // Process the message
                 try {
 
                     // Process and publish to the next queue
                     String newMessage = this.process(message);
-                    this.channel.basicPublish(exchangeName, routingKey, null, newMessage.getBytes());
+                    this.channel.basicPublish(exchangeName, routingKey, properties, newMessage.getBytes());
 
                 } catch (Exception error) {
 
@@ -177,7 +178,7 @@ public class Worker {
 //                    headerMap.put("PACKET_FROM", "JAVA_PDF_QUEUE");
 //                    builder.headers(headerMap);
 
-                    this.channel.basicPublish(exchangeName, errorHandler, null, ErrorMessage.toString().getBytes());
+                    this.channel.basicPublish(exchangeName, errorHandler, properties, ErrorMessage.toString().getBytes());
 
                 } finally {
 

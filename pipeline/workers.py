@@ -215,7 +215,7 @@ class ErrorHandlerWorker(RabbitMQWorker):
                     continue
 
                 self.logger.info('ErrorHandler: Republishing payload to: %s' % self.params['PDF_EXTRACTOR']['routing_key'])
-                self.channel.basic_publish(self.params['PDF_EXTRACTOR']['exchange'], self.params['PDF_EXTRACTOR']['routing_key'], json.dumps(individual_payload))
+                self.channel.basic_publish(self.params['PDF_EXTRACTOR']['exchange'], self.params['PDF_EXTRACTOR']['routing_key'], json.dumps(individual_payload), properties=P)
                 continue
 
             try:
@@ -240,7 +240,7 @@ class ErrorHandlerWorker(RabbitMQWorker):
                             continue
 
                         self.logger.info('ErrorHandler: Republishing payload to: %s' % e['routing_key'])
-                        self.channel.basic_publish(e['exchange'], e['routing_key'], result[key])
+                        self.channel.basic_publish(e['exchange'], e['routing_key'], result[key], properties=P)
             else:
                 for e in self.params['WORKERS'][producer]['publish']:
                     self.logger.info('ErrorHandler: Republishing payload to: %s' % e['routing_key'])

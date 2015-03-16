@@ -17,6 +17,7 @@ package org.adslabs.adsfulltext;
 
 import org.adslabs.adsfulltext.ConfigLoader;
 import org.adslabs.adsfulltext.Worker;
+import com.rabbitmq.client.AMQP;
 
 public class TaskMaster {
 
@@ -42,18 +43,22 @@ public class TaskMaster {
 
     // Publish a message to the queue specified
     //
-    public boolean publish(String exchangeName, String routingKey, String messageBody) {
+    public boolean publish(String exchangeName, String routingKey, String messageBody, AMQP.BasicProperties properties) {
 
         try {
             w = new Worker();
             w.connect();
-            w.channel.basicPublish(exchangeName, routingKey, null, messageBody.getBytes());
+            w.channel.basicPublish(exchangeName, routingKey, properties, messageBody.getBytes());
             w.disconnect();
             return true;
         } catch (java.io.IOException error){
             System.out.println("IOError, is rabbitMQ on? Does the exchange exist?" + error.getMessage());
             return false;
         }
+    }
+    // Method overloading
+    public boolean publish(String exchangeName, String routingKey, String messageBody){
+        return publish(exchangeName, routingKey, messageBody, null);
     }
 
     // Purge all the queues from the settings.yaml file

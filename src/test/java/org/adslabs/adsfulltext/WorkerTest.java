@@ -25,10 +25,12 @@ import static org.hamcrest.CoreMatchers.containsString;
 
 import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.QueueingConsumer;
+import com.rabbitmq.client.AMQP;
 
 import org.adslabs.adsfulltext.Worker;
 import org.adslabs.adsfulltext.TaskMaster;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -82,7 +84,7 @@ public class WorkerTest {
         this.worker.disconnect();
 
         // Purge all queues / clean up
-        this.TM.purge_queues();
+//        this.TM.purge_queues();
     }
 
     // Helper methods
@@ -199,6 +201,43 @@ public class WorkerTest {
 
         // Check with expected
         assertTrue(payload.has(PDFClassName));
+    }
+
+    @Test
+    public void testWorkerDoesNotChangeTheHeaderFromReturnedToFalse() throws Exception {
+        // Publish to the queue the fake message
+        //
+
+        AMQP.BasicProperties.Builder builder = new AMQP.BasicProperties().builder();
+        Map<String,Object> headerMap = new HashMap<String, Object>();
+        headerMap.put("redelivered", true);
+        builder.headers(headerMap);
+
+        boolean result = this.TM.publish(this.exchangeName, this.routeKey, this.testMessageJSONNonExistentFile, builder.build());
+        assertEquals(true, result);
+        assertEquals(1, helper_message_count(this.queueName));
+
+        // Consume from the queue
+        //
+        this.worker.run();
+
+        // Check the queue has a message
+        //
+        assertEquals(0, helper_message_count(this.WriteMetaFileQueue));
+        assertEquals(1, helper_message_count(this.ErrorQueue));
+
+        // We want to check that the message that got sent to the next queue
+        // is the message we expected
+        QueueingConsumer consumer = new QueueingConsumer(this.worker.channel);
+        this.worker.channel.basicConsume(this.ErrorQueue, false, consumer);
+        QueueingConsumer.Delivery delivery = consumer.nextDelivery();
+
+        Map<String, Object> newHeaderMap = delivery.getProperties().getHeaders();
+        long deliveryTag = delivery.getEnvelope().getDeliveryTag();
+        this.worker.channel.basicAck(deliveryTag, false);
+
+        // Check with expected
+        assertTrue(newHeaderMap.containsKey("redelivered"));
     }
 
 }
