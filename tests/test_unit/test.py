@@ -204,7 +204,10 @@ class TestFileStreamInput(test_base.TestUnit):
         FileInputStream.extract()
         FileInputStream.make_payload(packet_size=10)
 
-        self.assertTrue(len(FileInputStream.payload) == 2)
+        import math
+        num_packets = int(math.ceil(len(FileInputStream.raw) / 10.0))
+
+        self.assertTrue(len(FileInputStream.payload) == num_packets, "Found %d packets" % num_packets)
 
 
 class TestXMLExtractor(unittest.TestCase):
