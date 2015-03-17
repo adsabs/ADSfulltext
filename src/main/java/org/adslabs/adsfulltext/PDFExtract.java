@@ -29,6 +29,9 @@ import org.apache.pdfbox.pdfparser.PDFParser;
 import org.json.JSONObject;
 import org.json.JSONArray;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,6 +44,7 @@ public class PDFExtract {
     PDFTextStripper stripper;
     PDDocument pdDocument;
     PDFParser pdfParser;
+    static Logger logger = LoggerFactory.getLogger(PDFExtract.class);
     // ------------------------
 
     // Constructor
@@ -61,32 +65,44 @@ public class PDFExtract {
         // Create the path to the PDF
         //
         try{
+            logger.info("Creating pdf file");
             this.pdfFile = new FileInputStream(fileSource);
         } catch (java.io.FileNotFoundException error) {
-            throw new Exception("File not found: " + error.getMessage(), error);
+            String message = "File not found: " + error.getMessage();
+            logger.error(message);
+            throw new Exception(message, error);
         }
 
         // Create the PDF parser of the document of interest
         try {
+            logger.info("Creating PDF parser for the PDF file");
             this.pdfParser = new PDFParser(pdfFile);
         } catch (java.io.IOException error) {
-            throw new Exception("There is an error loading the COSDocument: " + error.getMessage(), error);
+            String message = "There is an error loading the COSDocument: " + error.getMessage();
+            logger.error(message);
+            throw new Exception(message, error);
         }
 
         // Parse the document and obtain the PDDocument, followed by extracting the content
         // Make sure we close the PDDocument at the end
         try {
+            logger.info("Parsing and extracting the PDF file");
             this.pdfParser.parse();
             this.pdDocument = this.pdfParser.getPDDocument();
             this.message = this.stripper.getText(pdDocument);
 
         } catch (java.io.IOException error) {
-            throw new Exception("There is an error parsing or loading the PDDocument or PDFBox Stripper: " + error.getMessage(), error);
+            String message = "There is an error parsing or loading the PDDocument or PDFBox Stripper: " + error.getMessage();
+            logger.error(message);
+            throw new Exception(message, error);
         } finally {
             try {
+                logger.info("Closing all relevant PDF content.");
                 this.pdDocument.close();
             } catch (java.io.IOException error) {
-                throw new Exception("There is an error loading the PDFBox Stripper properties: " + error.getMessage(), error);
+                String message = "There is an error loading the PDFBox Stripper properties: " + error.getMessage();
+                logger.error(message);
+                throw new Exception(message, error);
             }
 
         }

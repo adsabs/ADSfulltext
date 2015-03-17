@@ -24,8 +24,11 @@ package org.adslabs.adsfulltext;
 import com.esotericsoftware.yamlbeans.YamlReader;
 
 import java.io.FileReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Map;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ConfigLoader {
 
@@ -38,6 +41,8 @@ public class ConfigLoader {
     public String getConfigFileName () {return this.configFileName; }
 
     public YamlConfig data;
+
+    static Logger logger = LoggerFactory.getLogger(ConfigLoader.class);
     // -------------------------------------------------------------------------------------------
 
 
@@ -53,18 +58,18 @@ public class ConfigLoader {
     //
     public void loadConfig () {
 
+        logger.info("Loading YAML config");
         try {
-            String resource = getClass().getResource(this.getConfigFileName()).getFile();
-            FileReader newInputFile = new FileReader(resource);
+            InputStream resource = getClass().getResourceAsStream(this.getConfigFileName());
+            logger.info("Config file being used: {}", resource);
 
-            YamlReader reader = new YamlReader(newInputFile);
+            InputStreamReader newInputStream = new InputStreamReader(resource);
+
+            YamlReader reader = new YamlReader(newInputStream);
             this.data = reader.read(YamlConfig.class);
 
-        } catch (java.io.FileNotFoundException error) {
-            System.out.println("FileNotFoundError: " + error.getStackTrace());
-
         } catch (com.esotericsoftware.yamlbeans.YamlException error) {
-            System.out.println("YamlExceptionError: " + error.getStackTrace());
+            logger.error("YamlExceptionError: {}", error.getStackTrace());
 
         }
     }

@@ -17,9 +17,17 @@ import java.util.List;
 import org.json.JSONObject;
 import org.json.JSONArray;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.adslabs.adsfulltext.PDFExtract;
 
 public class PDFExtractList {
+
+    // Variable declaration
+    // ----------------------------------------------------------
+    static Logger logger = LoggerFactory.getLogger(PDFExtractList.class);
+    // ----------------------------------------------------------
 
     public String f (String UnparsedRabbitMQPayload) throws Exception {
 
@@ -31,8 +39,11 @@ public class PDFExtractList {
         // Parse the content of the input
         ParsedRabbitMQPayload = new JSONArray(UnparsedRabbitMQPayload);
 
+        logger.info("Extracting from the payload");
         // For each of the articles in the payload
         for(int i=0; i<ParsedRabbitMQPayload.length(); i++){
+
+            logger.info("File {} out of {}", i, ParsedRabbitMQPayload.length());
 
             PDFExtract pdfFile = new PDFExtract();
 
@@ -44,6 +55,7 @@ public class PDFExtractList {
             // Put the fulltext into the RabbitMQ payload
             tempPayload.put("fulltext", message);
         }
+        logger.info("Extraction complete.");
 
         return ParsedRabbitMQPayload.toString();
     }

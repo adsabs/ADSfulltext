@@ -31,6 +31,8 @@ import org.adslabs.adsfulltext.ConfigLoader;
 import java.util.HashMap;
 import java.util.Map;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.adslabs.adsfulltext.Exchanges;
 import org.adslabs.adsfulltext.Queues;
@@ -38,13 +40,15 @@ import org.adslabs.adsfulltext.PDFExtractList;
 
 public class Worker {
 
-    // --------------------------
     // Variable declaration
     // --------------------------
     public Connection connection;
     public Channel channel;
     int prefetchCount;
     ConfigLoader config;
+    boolean testRun;
+    static Logger logger = LoggerFactory.getLogger(Worker.class);
+    // --------------------------
 
     // Class constructor
     //
@@ -52,18 +56,27 @@ public class Worker {
         prefetchCount = 1;
         config = new ConfigLoader();
         config.loadConfig();
+        this.testRun = true;
+    }
+
+    // Constructor overload with option of testRun
+    public Worker(boolean _testRun) {
+        prefetchCount = 1;
+        config = new ConfigLoader();
+        config.loadConfig();
+        this.testRun = _testRun;
     }
 
     public boolean disconnect() {
         try {
-
+            logger.info("Cleaning up connections.");
             this.channel.close();
             this.connection.close();
             return true;
 
         } catch (java.io.IOException error) {
 
-            System.out.println("There is probably no connection with RabbitMQ currently made: " + error.getMessage());
+            logger.error("There is probably no connection with RabbitMQ currently made: ", error.getMessage());
             return false;
 
         }
@@ -84,7 +97,7 @@ public class Worker {
         try {
 
             rabbitMQInstance = new ConnectionFactory();
-            System.out.println();
+            logger.info("Connecting to RabbitMQ instance: {}", this.config.data.RABBITMQ_URI);
             rabbitMQInstance.setUri(this.config.data.RABBITMQ_URI);
             this.connection = rabbitMQInstance.newConnection();
             this.channel = this.connection.createChannel();
@@ -98,22 +111,22 @@ public class Worker {
 
         } catch (java.net.URISyntaxException error) {
 
-            System.out.println("URI error: " + error.getMessage());
+            logger.error("URI error: {}", error.getMessage());
             return false;
 
         } catch (java.io.IOException error) {
 
-            System.out.println("IO Error, is RabbitMQ running???: " + error.getMessage());
+            logger.error("IO Error, is RabbitMQ running???: {}", error.getMessage());
             return false;
 
         } catch (java.security.NoSuchAlgorithmException error) {
 
-            System.out.println("Most likely an SSL related error: " + error.getMessage());
+            logger.error("Most likely an SSL related error: ", error.getMessage());
             return false;
 
         } catch (java.security.KeyManagementException error) {
 
-            System.out.println("Most likely an SSL related error: " + error.getMessage());
+            logger.error("Most likely an SSL related error: ", error.getMessage());
             return false;
 
         }
@@ -123,7 +136,7 @@ public class Worker {
     // do anything meaningful, and should be replaced by Grobid or PDFBox functions.
     //
     public String process(String message) throws Exception {
-
+        logger.info("Processing the PDF full text.");
         PDFExtractList PDFExtractorWorker = new PDFExtractList();
         String newMessage = PDFExtractorWorker.f(message);
         return newMessage;
@@ -143,18 +156,22 @@ public class Worker {
         // --------------------------------------------------------
         String queueName = "PDFFileExtractorQueue";
         boolean autoAck = false; // This means it has to acknowledged manually
-        boolean testRun = true;
         String exchangeName = "FulltextExtractionExchange";
         String routingKey = "WriteMetaFileRoute";
         String errorHandler = "ErrorHandlerRoute";
         String PDFClassName = "org.adslabs.adsfulltext.PDFExtractList";
 
+        logger.info("Subscribing to the queue: {}", queueName);
+        QueueingConsumer consumer = new QueueingConsumer(this.channel);
+        
+        try {
+            this.channel.basicConsume(queueName, autoAck, consumer);
+        } catch (java.io.IOException error) {
+            logger.error("IO Error, does the queue exist and is RabbitMQ running?: {}", error.getMessage());
+        }
+
         while (true) {
             try {
-                //System.out.println("Start");
-                QueueingConsumer consumer = new QueueingConsumer(this.channel);
-                this.channel.basicConsume(queueName, autoAck, consumer);
-
                 QueueingConsumer.Delivery delivery = consumer.nextDelivery();
                 String message = new String(delivery.getBody());
                 long deliveryTag = delivery.getEnvelope().getDeliveryTag();
@@ -165,11 +182,13 @@ public class Worker {
 
                     // Process and publish to the next queue
                     String newMessage = this.process(message);
+                    logger.info("Processing successful, publishing to: {}", routingKey);
                     this.channel.basicPublish(exchangeName, routingKey, properties, newMessage.getBytes());
 
                 } catch (Exception error) {
 
                     // Publish to the error handler
+                    logger.error("Failed to process, publishing to: {}", errorHandler);
                     JSONObject ErrorMessage = new JSONObject();
                     ErrorMessage.put(PDFClassName, message);
 
@@ -181,21 +200,23 @@ public class Worker {
                     this.channel.basicPublish(exchangeName, errorHandler, properties, ErrorMessage.toString().getBytes());
 
                 } finally {
-
+                    logger.info("Acknowledging message");
+                    logger.info("TestRun: {}", this.testRun);
                     // Acknowledge the receipt of the message for either situation
                     this.channel.basicAck(deliveryTag, false);
                 }
 
                 // If it's a test, we don't want to sit here forever
                 //
-                if (testRun){
+                if (this.testRun){
+                    logger.info("Test has been defined, breaking out of consume.");
                     break;
                 }
 
             } catch (java.io.IOException error) {
-                System.out.println("IO Error, does the queue exist and is RabbitMQ running?: " + error.getMessage());
+                logger.error("IO Error, does the queue exist and is RabbitMQ running?: {}", error.getMessage());
             } catch(java.lang.InterruptedException error) {
-                System.out.println("IO Error, does the queue exist and is RabbitMQ running?: " + error.getMessage());
+                logger.error("IO Error, does the queue exist and is RabbitMQ running?: {}", error.getMessage());
             }
         }
     }
@@ -213,12 +234,12 @@ public class Worker {
                 // OUTDATED
                 // On github of the client api: exchange name, type, durable, autoDelete, internal
                 // internal: internal true if the exchange is internal, i.e. can't be directly published to by a client.
-
+                logger.info("Declaring the following queue; exchange: {}, type: {}, durable: {}, auto-delete: {}", exchange[i].exchange, exchange[i].exchange_type, exchange[i].durable, exchange[i].autoDelete);
                 this.channel.exchangeDeclare(exchange[i].exchange, exchange[i].exchange_type, exchange[i].durable, exchange[i].autoDelete, null);
 
             } catch (java.io.IOException error) {
 
-                System.out.println("IO Error, is RabbitMQ running, check the passive/active settings!: " + error.getMessage() + error.getStackTrace());
+                logger.error("IO Error, is RabbitMQ running, check the passive/active settings!: {},{}", error.getMessage(), error.getStackTrace());
                 return false;
             }
         }
@@ -229,15 +250,17 @@ public class Worker {
     //
     public boolean purge_all() {
 
+        logger.info("Purging queues:");
         Queues[] queues = config.data.QUEUES;
         for (int i = 0; i < queues.length; i++) {
             try {
+                logger.info("{}: {}", i, queues[i].queue);
                 // System.out.println("Purging queue: " + queues[i].queue);
                 this.channel.queuePurge(queues[i].queue);
 
             } catch (java.io.IOException error) {
 
-                System.out.println("IO Error, is RabbitMQ running, check the passive/active settings!: " + error.getMessage() + error.getStackTrace());
+                logger.error("IO Error, is RabbitMQ running, check the passive/active settings!: {}, {}", error.getMessage(), error.getStackTrace());
                 return false;
             }
         }
@@ -247,8 +270,8 @@ public class Worker {
     // Simple packaging of its execution methods
     //
     public void run() {
+        logger.info("Running worker....");
         this.connect();
         this.subscribe();
     }
-
 }

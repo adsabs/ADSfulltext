@@ -76,18 +76,23 @@ def run(full_text_links, **kwargs):
     publish_worker = workers.RabbitMQWorker()
     publish_worker.connect(psettings.RABBITMQ_URL)
 
-    logger.info('Publishing records to: CheckIfExtract')
-
-    packet_size = 10
+    logger.info('Setting variables')
     if 'packet_size' in kwargs:
         packet_size = kwargs['packet_size']
         logger.info('Packet size overridden: %d' % kwargs['packet_size'])
+    else:
+        packet_size = 10
 
     if 'max_queue_size' in kwargs:
         max_queue_size = kwargs['max_queue_size']
         logger.info('Max queue size overridden: %d' % kwargs['max_queue_size'])
+    else:
+        max_queue_size = 10000
 
+    logger.info('Making payload')
     records.make_payload(packet_size=packet_size)
+
+    logger.info('Publishing records to: CheckIfExtract')
     publish(publish_worker, records=records.payload, max_queue_size=max_queue_size,
             exchange='FulltextExtractionExchange', routing_key='CheckIfExtractRoute')
 

@@ -19,10 +19,14 @@ import org.adslabs.adsfulltext.ConfigLoader;
 import org.adslabs.adsfulltext.Worker;
 import com.rabbitmq.client.AMQP;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class TaskMaster {
 
     public Worker w;
     public ConfigLoader config;
+    static Logger logger = LoggerFactory.getLogger(TaskMaster.class);
 
     public TaskMaster() {
         config = new ConfigLoader();
@@ -32,7 +36,7 @@ public class TaskMaster {
     // Initialise all of the queues from the settings.yaml file
     //
     public boolean initialize_rabbitmq() {
-
+        logger.info("Initalising settings for RabbitMQ Instance");
         w = new Worker();
         w.connect();
         w.declare_all();
@@ -45,6 +49,7 @@ public class TaskMaster {
     //
     public boolean publish(String exchangeName, String routingKey, String messageBody, AMQP.BasicProperties properties) {
 
+        logger.info("Publishing content to: {}", routingKey);
         try {
             w = new Worker();
             w.connect();
@@ -65,6 +70,7 @@ public class TaskMaster {
     //
     public boolean purge_queues() {
 
+        logger.info("Puring the content of all queues");
         w = new Worker();
         w.connect();
         boolean result = w.purge_all();
