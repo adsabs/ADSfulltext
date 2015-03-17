@@ -52,7 +52,8 @@ META_CONTENT = {
     },
     "txt": {"fulltext": [""]},
     "ocr": {"fulltext": [""]},
-    "http": {"fulltext": [""]}
+    "http": {"fulltext": [""]},
+    "pdf": {"fulltext": [""]},
 }
 
 

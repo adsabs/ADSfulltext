@@ -18,3 +18,9 @@ ftq	/vagrant/tests/test_integration/stub_data/full_test.txt	MNRAS
 ftr	/vagrant/tests/test_integration/stub_data/full_test.txt	MNRAS
 fts	/vagrant/tests/test_integration/stub_data/full_test.txt	MNRAS
 ftt	/vagrant/tests/test_integration/stub_data/full_test.txt	MNRAS
+ftu	/vagrant/src/test/resources/test_doc.pdf	MNRAS
+ftv	/vagrant/src/test/resources/test_doc.pdf	MNRAS
+ftw	/vagrant/src/test/resources/test_doc.pdf	MNRAS
+ftx	/vagrant/src/test/resources/test_doc.pdf	MNRAS
+fty	/vagrant/src/test/resources/test_doc.pdf	MNRAS
+ftz	/vagrant/src/test/resources/test_doc.pdf	MNRAS
