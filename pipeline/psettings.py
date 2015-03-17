@@ -14,6 +14,7 @@ ERROR_HANDLER = {
 PDF_EXTRACTOR = {
     'exchange': 'FulltextExtractionExchange',
     'routing_key': 'PDFFileExtractorRoute',
+    'class_name': 'org.adslabs.adsfulltext.PDFExtractList',
 }
 
 RABBITMQ_ROUTES = {

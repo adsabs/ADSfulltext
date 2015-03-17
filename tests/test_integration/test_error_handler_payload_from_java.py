@@ -6,22 +6,22 @@ class TestExtractWorker(TestGeneric):
 
     def tearDown(self):
         pass
-        #super(TestExtractWorker, self).tearDown()
+        super(TestExtractWorker, self).tearDown()
 
     def test_extraction_of_non_extracted(self):
 
         # Fake message from Java pipeline
         print('Generating fake data')
-        fake_payload = {"PDFFileExtractorWorker": [{"ft_source": "/file.pdf"}]}
+        fake_payload = {self.params['PDF_EXTRACTOR']['class_name']: [{"ft_source": "/file.pdf"}]}
         fake_payload = json.dumps(fake_payload)
-        prop = BasicProperties(headers={"SENT_FROM": "JAVA_PDF_QUEUE"})
+        # prop = BasicProperties(headers={"SENT_FROM": "JAVA_PDF_QUEUE"})
 
         # Submit to ErrorQueue
         print('Publishing to the queue')
         self.publish_worker.channel.basic_publish(exchange=self.params['ERROR_HANDLER']['exchange'],
                                                 routing_key=self.params['ERROR_HANDLER']['routing_key'],
                                                 body=fake_payload,
-                                                properties=prop,
+                                                # properties=prop,
                                                 )
         # Run the ErrorHandler
         print('starting error handler')

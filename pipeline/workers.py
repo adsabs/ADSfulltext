@@ -208,7 +208,7 @@ class ErrorHandlerWorker(RabbitMQWorker):
 
         for individual_payload in message[producer]:
 
-            if producer == "PDFFileExtractorWorker":
+            if producer == self.params['PDF_EXTRACTOR']['class_name']:
                 self.logger.info('Payload: %s' % individual_payload)
                 if not message:
                     self.logger.debug('%s list is empty, not publishing' % producer)
