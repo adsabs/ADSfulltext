@@ -163,7 +163,7 @@ public class Worker {
 
         logger.info("Subscribing to the queue: {}", queueName);
         QueueingConsumer consumer = new QueueingConsumer(this.channel);
-        
+
         try {
             this.channel.basicConsume(queueName, autoAck, consumer);
         } catch (java.io.IOException error) {

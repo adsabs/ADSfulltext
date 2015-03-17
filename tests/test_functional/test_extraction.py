@@ -14,15 +14,15 @@ class TestExtractWorker(TestGeneric):
         self.expected_folders = []
         # Start the pipeline
         try:
-            self.supervisor_ADS_full_text(action='start', pipeline='Python')
+            self.supervisor_ADS_full_text(action='start', pipeline='Group')
         except:
-            print "WARNING: COULD NOT START PYTHON PIPELINE"
+            print "WARNING: COULD NOT START TESTING PIPELINE"
             pass
-        try:
-            self.supervisor_ADS_full_text(action='start', pipeline='Java')
-        except:
-            print "WARNING: COULD NOT START JAVA PIPELINE"
-            pass
+        # try:
+        #     self.supervisor_ADS_full_text(action='start', pipeline='Java')
+        # except:
+        #     print "WARNING: COULD NOT START JAVA PIPELINE"
+        #     pass
         time.sleep(3)
 
     def tearDown(self):
@@ -32,20 +32,21 @@ class TestExtractWorker(TestGeneric):
 
         # Stop the pipeline
         try:
-            self.supervisor_ADS_full_text(action='stop', pipeline='Java')
+            self.supervisor_ADS_full_text(action='stop', pipeline='Group')
         except:
-            print "WARNING: COULD NOT STOP JAVA PIPELINE"
+            print "WARNING: COULD NOT STOP TESTING PIPELINE"
             pass
-        try:
-            self.supervisor_ADS_full_text(action='stop', pipeline='Python')
-        except:
-            print "WARNING: COULD NOT STOP PYTHON PIPELINE"
-            pass
+        # try:
+        #     self.supervisor_ADS_full_text(action='stop', pipeline='Python')
+        # except:
+        #     print "WARNING: COULD NOT STOP PYTHON PIPELINE"
+        #     pass
 
     def supervisor_ADS_full_text(self, action, pipeline):
 
         pipeline_d = {'Python': 'ADSfulltext',
-                      'Java': 'ADSfulltextPDFLIVE'}
+                      'Java': 'ADSfulltextPDFLIVE',
+                      'Group': 'GroupADSfulltextTEST:*'}
 
         accepted_actions = ['stop', 'start']
         if action not in accepted_actions:
