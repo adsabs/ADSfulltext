@@ -199,11 +199,14 @@ class ErrorHandlerWorker(RabbitMQWorker):
         producer = message.keys()[0]
 
         self.logger.info('Producer: %s' % producer)
+        self.logger.info('header information: %s' % header_frame.headers)
+
         if header_frame.headers and 'redelivered' in header_frame.headers and header_frame.headers['redelivered']:
             self.channel.basic_ack(delivery_tag=method_frame.delivery_tag)
             self.logger.info("ErrorHandler: Fail: %s" % message)
             return
 
+        self.logger.info('Setting headers')
         P = pika.spec.BasicProperties(headers={'redelivered': True})
 
         for individual_payload in message[producer]:
@@ -215,7 +218,7 @@ class ErrorHandlerWorker(RabbitMQWorker):
                     continue
 
                 self.logger.info('ErrorHandler: Republishing payload to: %s' % self.params['PDF_EXTRACTOR']['routing_key'])
-                self.channel.basic_publish(self.params['PDF_EXTRACTOR']['exchange'], self.params['PDF_EXTRACTOR']['routing_key'], json.dumps(individual_payload), properties=P)
+                self.channel.basic_publish(self.params['PDF_EXTRACTOR']['exchange'], self.params['PDF_EXTRACTOR']['routing_key'], json.dumps([individual_payload]), properties=P)
                 continue
 
             try:
@@ -228,7 +231,6 @@ class ErrorHandlerWorker(RabbitMQWorker):
                 continue
 
             #Re-publish the single record
-            self.logger.info('Problem producer: %s' % producer)
             if producer == 'CheckIfExtractWorker':
 
                 for key in self.params['WORKERS'][producer]['publish'].keys():

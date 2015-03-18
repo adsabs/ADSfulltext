@@ -30,7 +30,10 @@ import org.adslabs.adsfulltext.ConfigLoader;
 
 import java.util.HashMap;
 import java.util.Map;
+
 import org.json.JSONObject;
+import org.json.JSONArray;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -188,9 +191,10 @@ public class Worker {
                 } catch (Exception error) {
 
                     // Publish to the error handler
-                    logger.error("Failed to process, publishing to: {}", errorHandler);
+                    logger.error("Failed to process, publishing {} to: {}", message, errorHandler);
                     JSONObject ErrorMessage = new JSONObject();
-                    ErrorMessage.put(PDFClassName, message);
+                    JSONArray payload = new JSONArray(message);
+                    ErrorMessage.put(PDFClassName, payload);
 
 //                    AMQP.BasicProperties.Builder builder = new AMQP.BasicProperties().builder();
 //                    Map<String,Object> headerMap = new HashMap<String, Object>();

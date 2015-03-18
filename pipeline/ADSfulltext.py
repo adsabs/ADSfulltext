@@ -85,6 +85,7 @@ class TaskMaster(Singleton):
             params['active'] = params.get('active', [])
             params['RABBITMQ_URL'] = psettings.RABBITMQ_URL
             params['ERROR_HANDLER'] = psettings.ERROR_HANDLER
+            params['PDF_EXTRACTOR'] = psettings.PDF_EXTRACTOR
 
             for par in extra_params:
                 logger.info('Adding extra content: [%s]: %s' % (par, extra_params[par]))
