@@ -58,18 +58,42 @@ public class ConfigLoader {
     //
     public void loadConfig () {
 
+        // Variable declaration
+        // -------------------------------
+        InputStream resource = null;
+        InputStreamReader newInputStream = null;
+        // -------------------------------
+
         logger.info("Loading YAML config");
         try {
-            InputStream resource = getClass().getResourceAsStream(this.getConfigFileName());
+            resource = getClass().getResourceAsStream(this.getConfigFileName());
             logger.info("Config file being used: {}", resource);
 
-            InputStreamReader newInputStream = new InputStreamReader(resource);
+            newInputStream = new InputStreamReader(resource);
 
             YamlReader reader = new YamlReader(newInputStream);
             this.data = reader.read(YamlConfig.class);
 
         } catch (com.esotericsoftware.yamlbeans.YamlException error) {
             logger.error("YamlExceptionError: {}", error.getStackTrace());
+
+        } finally {
+
+            if (resource != null) {
+                try {
+                    resource.close();
+                } catch (java.io.IOException error) {
+                    logger.error("Error while closing stream: {}", error.getMessage());
+                }
+            }
+
+            if (newInputStream != null) {
+                try {
+                    newInputStream.close();
+                } catch (java.io.IOException error) {
+                    logger.error("Error while closing stream reader: {}", error.getMessage());
+                }
+            }
 
         }
     }
