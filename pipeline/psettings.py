@@ -3,7 +3,7 @@ Settings for the rabbitMQ/ADSfulltext
 """
 
 # Travis-CI uses guest:guest
-RABBITMQ_URL = 'amqp://guest:guest@localhost:5672/%2F?socket_timeout=10&backpressure_detection=t' #Max message size = 500kb
+RABBITMQ_URL = 'amqp://guest:guest@localhost:5672/adsfulltext?socket_timeout=10&backpressure_detection=t' #Max message size = 500kb
 
 POLL_INTERVAL = 15 #per-worker poll interval (to check health) in seconds.
 ERROR_HANDLER = {

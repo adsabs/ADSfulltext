@@ -1,4 +1,4 @@
-RABBITMQ_URI: amqp://guest:guest@localhost:5672/%2F?socket_timeout=10&backpressure_detection=t
+RABBITMQ_URI: amqp://guest:guest@localhost:5672/adsfulltext?socket_timeout=10&backpressure_detection=t
 ERROR_HANDLER:
   exchange: FulltextExtractionExchange
   routing_key: ErrorHandlerRoute
