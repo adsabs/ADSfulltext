@@ -1,5 +1,5 @@
-import os
 import sys
+import os
 import logging
 from settings import config, PROJ_HOME
 from logging import handlers

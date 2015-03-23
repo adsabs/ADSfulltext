@@ -5,7 +5,10 @@ These are the functions for the WriteMetaFile class. This worker should write th
 pair tree directory path.
 """
 
-import os
+import sys, os
+PROJECT_HOME = os.path.abspath(os.path.join(os.path.dirname(__file__),'../'))
+sys.path.append(PROJECT_HOME)
+
 import json
 import tempfile
 import shutil

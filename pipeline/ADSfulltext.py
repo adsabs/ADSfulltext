@@ -7,6 +7,10 @@ Pipeline to extract full text documents. It carries out the following:
   - Initialises the queues to be used in RabbitMQ
 '''
 
+import sys, os
+PROJECT_HOME = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
+sys.path.append(PROJECT_HOME)
+
 import psettings
 import workers
 import multiprocessing

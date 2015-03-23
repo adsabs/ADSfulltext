@@ -1,6 +1,9 @@
 """
 Unit Test of the check records functions for the base class, CheckIfExtract
 """
+import sys, os
+PROJECT_HOME = os.path.abspath(os.path.join(os.path.dirname(__file__),'../../'))
+sys.path.append(PROJECT_HOME)
 
 import unittest
 import utils

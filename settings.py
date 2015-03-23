@@ -8,6 +8,7 @@ FULLTEXT_EXTRACT_PATH = "/vagrant/live"
 FULLTEXT_EXTRACT_PATH_UNITTEST = "tests/test_unit/stub_data"
 
 PROJ_HOME = os.path.dirname(os.path.realpath(__file__))
+print PROJ_HOME
 
 config = {
     "FULLTEXT_EXTRACT_PATH": FULLTEXT_EXTRACT_PATH,

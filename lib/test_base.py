@@ -1,7 +1,10 @@
+import sys, os
+PROJECT_HOME = os.path.abspath(os.path.join(os.path.dirname(__file__),'../'))
+sys.path.append(PROJECT_HOME)
+
 import unittest
 import time
 import json
-import os
 import lib.CheckIfExtract as check_if_extract
 from pipeline import psettings
 from pipeline.workers import RabbitMQWorker, CheckIfExtractWorker, \
