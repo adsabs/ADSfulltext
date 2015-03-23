@@ -3,8 +3,10 @@ CheckIfExtract Worker Functions
 
 These are the functions for the CheckIfExtract class. This worker should determine if the record selected by the given BibCode should be modified or not based on a given timing criteria (or changleable if required).
 """
+import sys, os
+PROJECT_HOME = os.path.abspath(os.path.join(os.path.dirname(__file__),'../'))
+sys.path.append(PROJECT_HOME)
 
-import os
 import utils
 import json
 from datetime import datetime

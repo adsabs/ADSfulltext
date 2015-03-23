@@ -1,3 +1,7 @@
+import sys, os
+PROJECT_HOME = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))
+sys.path.append(PROJECT_HOME)
+
 from lib.test_base import *
 from datetime import datetime
 
@@ -38,8 +42,13 @@ class TestExtractWorker(TestGeneric):
         with open(self.test_expected.replace('meta.json', 'fulltext.txt'), 'w') as test_full_text_file:
             test_full_text_file.write('Full text content')
         time.sleep(1)
+
+        # Make fake change such that the content becomes stale
+        with open(self.ft_source, 'r') as temp_open:
+            buff = temp_open.read()
+
         with open(self.ft_source, 'w') as temp_write:
-            temp_write.write('')
+            temp_write.write(buff)
 
         # Submit payload
         records.make_payload()

@@ -6,6 +6,10 @@ Each Workers functions are defined inside the lib/ folder.
 Same schema is used as defined within ADSImportpipeline
 """
 
+import sys, os
+PROJECT_HOME = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
+sys.path.append(PROJECT_HOME)
+
 import pika
 import json
 import utils

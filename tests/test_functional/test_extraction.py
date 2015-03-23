@@ -1,3 +1,7 @@
+import sys, os
+PROJECT_HOME = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))
+sys.path.append(PROJECT_HOME)
+
 import run
 import os
 import time

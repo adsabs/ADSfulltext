@@ -12,3 +12,5 @@ do_not_commit*
 live/
 fulltext*.links
 do_not_commit/
+.idea/
+target/*

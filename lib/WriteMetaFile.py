@@ -5,7 +5,10 @@ These are the functions for the WriteMetaFile class. This worker should write th
 pair tree directory path.
 """
 
-import os
+import sys, os
+PROJECT_HOME = os.path.abspath(os.path.join(os.path.dirname(__file__),'../'))
+sys.path.append(PROJECT_HOME)
+
 import json
 import tempfile
 import shutil
@@ -69,7 +72,7 @@ def write_content(payload_dictionary):
         try:
             meta_dict[CONSTANTS[const]] = payload_dictionary[CONSTANTS[const]]
             logger.info("Adding meta content: %s" % const)
-        except KeyError :
+        except KeyError:
             print("Missing meta content: %s" % const)
             continue
 

@@ -6,11 +6,13 @@ These are the functions for the StandardFileExtractor class. This worker should 
 document types, excluding PDF. A lot of the source code has been ported from adsabs/adsdata
 """
 
+import sys, os
+PROJECT_HOME = os.path.abspath(os.path.join(os.path.dirname(__file__),'../'))
+sys.path.append(PROJECT_HOME)
+
 import re
 import traceback
-import os
 import unicodedata
-import sys
 from utils import setup_logging, overrides
 from lxml.html import soupparser, document_fromstring, fromstring
 from lib import entitydefs as edef
