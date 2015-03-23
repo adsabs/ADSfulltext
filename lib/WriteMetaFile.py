@@ -72,7 +72,7 @@ def write_content(payload_dictionary):
         try:
             meta_dict[CONSTANTS[const]] = payload_dictionary[CONSTANTS[const]]
             logger.info("Adding meta content: %s" % const)
-        except KeyError :
+        except KeyError:
             print("Missing meta content: %s" % const)
             continue
 
