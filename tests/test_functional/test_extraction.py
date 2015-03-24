@@ -46,6 +46,23 @@ class TestExtractWorker(TestGeneric):
         #     print "WARNING: COULD NOT STOP PYTHON PIPELINE"
         #     pass
 
+    def helper_make_link(self, outfile):
+        import string
+
+        letter_list = string.ascii_lowercase
+        with open("{home}/{filename}".format(home=PROJ_HOME, filename=outfile), 'w') as f_out:
+            for letter in string.ascii_lowercase:
+                if letter == 'u':
+                    break
+
+                f_out.write('ft{letter}\t{home}/tests/test_integration/stub_data/full_test.txt\tMNRAS\n'
+                            .format(letter=letter, home=PROJ_HOME))
+                letter_list = letter_list[1:]
+
+            for letter in letter_list:
+                f_out.write('ft{letter}\t{home}/src/test/resources/test_doc.pdf\tMNRAS\n'
+                            .format(letter=letter, home=PROJ_HOME))
+
     def supervisor_ADS_full_text(self, action, pipeline):
 
         pipeline_d = {'Python': 'ADSfulltext',
@@ -71,6 +88,7 @@ class TestExtractWorker(TestGeneric):
         # Obtain the parameters to publish to the queue
         # Expect that the records are split into the correct number of
         # packet sizes
+        self.helper_make_link(outfile=full_text_links)
         run.run(full_text_links=os.path.join(PROJ_HOME, full_text_links),
                  packet_size=10)
 
