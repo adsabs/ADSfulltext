@@ -61,8 +61,6 @@ class TaskMaster(Singleton):
     def poll_loop(self, poll_interval=psettings.POLL_INTERVAL, ttl=7200, extra_params=False):
         while self.running:
 
-
-
             time.sleep(poll_interval)
             for worker, params in self.workers.iteritems():
                 for active in params['active']:
@@ -76,11 +74,12 @@ class TaskMaster(Singleton):
                         continue
                     if ttl:
                         if time.time()-active['start']>ttl:
+                            logger.info('time to live reached')
                             active['proc'].terminate()
                             active['proc'].join()
                             active['proc'].is_alive()
                             params['active'].remove(active)
-        self.start_workers(verbose=False, extra_params=extra_params)
+            self.start_workers(verbose=False, extra_params=extra_params)
 
     def start_workers(self, verbose=True, extra_params=False):
 
