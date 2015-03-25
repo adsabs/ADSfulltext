@@ -2,24 +2,52 @@
 
 ## DevOps
 
- 1. **Development**
-   
-   Development can be carried out on a *Vagrant* virtual machine. There exists a *Puppet* manifest file on the repository and can be installed by:
-   
-   `user@computer> vagrant up`
-   
-   RabbitMQ is installed by *Docker*, and should require no intervention, other than possibly restarting it in scenarios it crashes.
-   
- 2. **Tests**
- 
-   The repository contains two sets of testing suites. The first is the *functional_tests*. These test that the pipeline works as expected, usually, from start to finish. There exist a set of stub data that are used to be extracted and can be seen in *tests/test_unit/stub_data/*. TravisCI is to be implemented once the first live pipeline is finished.
-   
-   The second set of tests are unit tests that check each of the individual functions of the wrkers obehave as they are expected to. The stub data for these tests are kept in the same place as noted above. They will also be included in TravisCI.
-   
- 3. **Deployment**
-  
-  TBD
+### Development
 
+   Development can be carried out on a *Vagrant* virtual machine. There exists a *Puppet* manifest file on the repository and can be installed by:
+
+`user@computer> vagrant up`
+
+The following services and tools are setup:
+  1. RabbitMQ (controlled by docker and auto-started by upstart on boot)
+  2. Supervisor (auto-started by upstart on boot)  
+  3. Python2.7/pip
+  4. Java 1.7 (1.8 also works)
+  5. Maven
+
+### Tests
+
+The pipeline contains three types of testing suites:
+
+  1. **Unit tests**, one each for the Python and Java code. They test the bare bones of each part of the relevant modules (e.g., extracting an XML document).
+    * Python: tests/test_unit/
+    *        **run by**: nosetests -w tests/test_unit/ test.py
+    * Java: src/test/java/org/adslabs/adsfulltext
+    *        **run by**: mvn test (N.B. there is currently no way to distinguish between the unit and integration tests within the Java module)
+
+  2. **Integration tests**. The python code is self contained, and is used to test the interaction between the pipeline and a RabbitMQ instance. The Java integration code is not independent from the unit tests.
+    * Python: tests/test_integration/
+    * **run by** ./tests/integration_test.sh
+
+   3. **Functional tests** runs the entire pipeline and checks that it works as expected, i.e., Python, Java, RabbitMQ, supervisor, all in tandem.
+     * **run by** nosetests -w tests/test_functional/ test_extraction.py
+
+All of these tests (bar functional tests) are carried out on TravisCI. Therefore, if you make a pull request, please ensure that they pass, otherwise they will not be merged.
+
+ ### Deployment
+
+To deploy on a system without using puppet manifest files, the following should be carried out:
+
+  1. Download from github
+  2. Modify the pipeline/psettings.py and src/main/resources/settings.yml files so that they point to the correct RabbitMQ URI
+  3. Add the supervisord config details to /etc/supervisord.conf
+  4. Compile and build the PDF Extractor, mvn package -DskipTests
+  5. Run the unit tests, nosetests -w tests/test_unit/ test.py
+  6. Run the integration tests, ./tests/integration_test.sh
+  7. Run the functional tests, nosetests -w tests/test_functional/ test_extraction.py
+
+At this stage everything should work. Now you need to setup the cronjob that is to be run:
+  1. Change the 'FULLTEXT_EXTRACT_PATH' in settings
 ## Pipeline Design
 
 The purpose of the pipeline is to extract the full text content of articles and write them to disk, so that they can be accessed by other parts of the ADS infrastructure, e.g., the Solr search engine or ADSData. The following describes how a single article would undergo extraction:
@@ -53,14 +81,14 @@ The content should be comparable to that outlined in RabbitMQ/pika for easy modi
       'durable': True,
     },
     ...]
-   
+
 ```
 
 And finally, the workers properties, here:
 ```
 WORKERS = {
 
-  'CheckIfExtractWorker': { 
+  'CheckIfExtractWorker': {
     'concurrency': 1,
     'publish': {
       'PDF': [{'exchange': 'FulltextExtractionExchange', 'routing_key': 'PDFFileExtractorRoute',}],
@@ -80,39 +108,39 @@ WORKERS = {
 There are currently one worker per each queue (see next section). Their roles are independent of each other, and are built to be asynchronous. The workers are split into the following types:
 
  1. CheckIfExtract**Worker**
- 
+
  This worker communicates with the CheckIfExtract**Queue**. It determines if the given article is to be updated or not. This decision is made using the following criteria:
    * Does this article already have a *pair-tree-path*/meta.json file, i.e., has an extraction ever been carried out for this article?
    * Has the given extraction source changed since the last extraction. The last source file is obtained from the *pair-tree-path*/meta.json file.
    * Is the content stale? Currently, this is determined using the last modified time of the <pair-tree>/meta.json and checking if it is older than the article's source file. If it is older, it is stale, and needs to be updated.
-   
+
  If the full text is to be extracted based on the previous criteria, it is published to the extraction queue. Depending on the file type, it is either sent to the StandardFileExtractor**Queue** or the PDFFileExtractor**Queue**.
-   
+
  2. StandardFileExtractor**Worker**
- 
+
  This worker communicates with the StandardFileExtract**Queue**. It determines the type of file that it has been given and extracts the full text content from it. Currently, the formats that it can extract from are:
    * **XML** using the python package lxml, and SoupParser
    * **HTML** using the python package lxml
    * **Text** and **OCR** using python's built-in tools
    * *HTTP* TBD
-   
+
  It publishes the extracted content to the WriteMetaFile**Queue**.
-   
+
  3. *PDFFileExtractor**Worker*** TBD
- 
+
  This worker communicates with the PDFFileExtract**Queue**. It is separate to the standard file queue, as the worker is written in Java and not Python. This is only feasible due to RabbitMQ. The planned output will be published to the WriteMetaFile**Queue**
- 
+
  4. WriteMetaFile**Worker**
- 
+
  This worker communicates with the WriteMetaFile**Queue**. It's sole purpose is to write the full text content and meta data to file. The output location is determined by two things:
    * i) The absolute location is given in the settings.py file, in the **config** dictionary, with the key **FULLTEXT_EXTRACT_PATH**. For testing, the alternative path **FULLTEXT_EXRACT_PATH_UNITTEST** is used.
-   
+
    * ii) The relative path of the article is determind from the bibliographic code, BibCode. The BibCode is converted into a **pair-tree path**, e.g., MNRAS2014 becomes MN/RA/S2/01/4/. This is to both not run into the unix file limit per directory, and make indexable searching faster.
- 
+
  5. *ErrorHandler**Worker*** TBD
- 
+
  This worker communicates with the ErrorHandler**Queue**. Any worker that runs into an exception error and exits, will be placed into the ErrorHandler**Queue**. The worker should then attempt to find the problem article, and attempt to fix the problem, otherwise discard it into the log files for manual intervention.
- 
+
 # Extraction Settings
 
 XML files are the only extracted content that can access more relevant content in a systematic way. With the current extractor class, it is possible to extract more content without modifying the code extensively. Within the settings file **settings.py**, the following can be found:
