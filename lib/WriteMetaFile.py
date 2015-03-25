@@ -125,12 +125,14 @@ def write_content(payload_dictionary):
 def extract_content(input_list, **kwargs):
 
     logger.info('WriteMetaFile: Beginning list with type: %s' % type(input_list))
+    bibcode_list = []
     for dict_item in input_list:
         try:
             write_content(dict_item)
+            bibcode_list.append(dict_item[CONSTANTS['BIBCODE']])
         except Exception:
             import traceback
             logger.info("Failed on dict item: %s" % dict_item)
             raise Exception(traceback.format_exc())
 
-    return 1
+    return json.dumps(bibcode_list)

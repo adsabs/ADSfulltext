@@ -258,3 +258,32 @@ class ErrorHandlerWorker(RabbitMQWorker):
     def run(self):
         self.connect(self.params['RABBITMQ_URL'])
         self.subscribe(self.on_message)
+
+
+class ProxyPublishWorker(RabbitMQWorker):
+    """Re-runs all individual bibcodes of a payload that failed, to find the single payload that was a problem."""
+
+    def __init__(self, params):
+        self.params = params
+        self.logger = self.setup_logging()
+        self.logger.debug("Initialized")
+
+        from pipeline import psettings
+
+        self.params['WORKERS'] = psettings.WORKERS
+
+    def on_message(self, channel, method_frame, header_frame, body):
+
+        worker = RabbitMQWorker()
+        worker.connect(self.params['PROXY_PUBLISH']['RABBITMQ_URL'])
+        worker.channel.basic_publish(self.params['PROXY_PUBLISH']['exchange'],
+                                     self.params['PROXY_PUBLISH']['routing_key'],
+                                     body)
+        worker.connection.close()
+
+        self.channel.basic_ack(delivery_tag=method_frame.delivery_tag)
+        self.logger.info('Acknowledge delivered')
+
+    def run(self):
+        self.connect(self.params['RABBITMQ_URL'])
+        self.subscribe(self.on_message)
