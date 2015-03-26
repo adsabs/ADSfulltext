@@ -29,12 +29,12 @@ The pipeline contains three types of testing suites:
     * Python: tests/test_integration/
     * **run by** ./tests/integration_test.sh
 
-   3. **Functional tests** runs the entire pipeline and checks that it works as expected, i.e., Python, Java, RabbitMQ, supervisor, all in tandem.
+  3. **Functional tests** runs the entire pipeline and checks that it works as expected, i.e., Python, Java, RabbitMQ, supervisor, all in tandem.
      * **run by** nosetests -w tests/test_functional/ test_extraction.py
 
 All of these tests (bar functional tests) are carried out on TravisCI. Therefore, if you make a pull request, please ensure that they pass, otherwise they will not be merged.
 
- ### Deployment
+### Deployment
 
 To deploy on a system without using puppet manifest files, the following should be carried out:
 
@@ -48,6 +48,13 @@ To deploy on a system without using puppet manifest files, the following should 
 
 At this stage everything should work. Now you need to setup the cronjob that is to be run:
   1. Change the 'FULLTEXT_EXTRACT_PATH' in settings
+
+To start the pipeline:
+
+```
+supervisorctrl start FulltextExtraction:
+```
+
 ## Pipeline Design
 
 The purpose of the pipeline is to extract the full text content of articles and write them to disk, so that they can be accessed by other parts of the ADS infrastructure, e.g., the Solr search engine or ADSData. The following describes how a single article would undergo extraction:
@@ -103,6 +110,16 @@ WORKERS = {
 
 **concurrency** refers to the total number of *asynchronous* workers. This can be changed to any integer, and this will alter the number of these workers at run time.
 
+To modify the number of PDFFileExtractor**Workers** you need to modify the supervisord config file located at /etc/supervisord.conf. The relevant location is :
+```
+[program:ADSfulltextPDFLIVE]
+command=/usr/bin/java -jar target/ADSfulltext-1.0-SNAPSHOT-jar-with-dependencies.jar --consume-queue
+process_name=%(program_name)s_%(process_num)02d
+numprocs=5
+```
+
+For this example there are 5 processes, update this number and restart supervisor via `supervisorctl update` to apply the changes. Also, restart the pipeline via `supervisorctrl restart FulltextExtraction:`.
+
 ## Workers
 
 There are currently one worker per each queue (see next section). Their roles are independent of each other, and are built to be asynchronous. The workers are split into the following types:
@@ -122,13 +139,19 @@ There are currently one worker per each queue (see next section). Their roles ar
    * **XML** using the python package lxml, and SoupParser
    * **HTML** using the python package lxml
    * **Text** and **OCR** using python's built-in tools
-   * *HTTP* TBD
+   * **HTTP** using the requests package
 
  It publishes the extracted content to the WriteMetaFile**Queue**.
 
- 3. *PDFFileExtractor**Worker*** TBD
+ 3. PDFFileExtractor**Worker**
 
- This worker communicates with the PDFFileExtract**Queue**. It is separate to the standard file queue, as the worker is written in Java and not Python. This is only feasible due to RabbitMQ. The planned output will be published to the WriteMetaFile**Queue**
+ This worker communicates with the PDFFileExtract**Queue**. It is separate to the standard file queue, as the worker is written in Java and not Python. This is only feasible due to RabbitMQ. The worker uses PDFBox to extract the content of the PDF files. This has its own settings file, which is located in the YAML file: settings.yml. For testing and the live instance, they can be found:
+   * src/main/resources/settings.yml
+   * src/test/resources/settings.yml
+
+   The logging for this worker is controlled by Simple Logging Facade for Java (SLF4J), with a Log4j backend. The settings are located in:
+   * src/main/resources/log4j.properties
+   * src/test/resources/log4j.properties
 
  4. WriteMetaFile**Worker**
 
@@ -137,9 +160,9 @@ There are currently one worker per each queue (see next section). Their roles ar
 
    * ii) The relative path of the article is determind from the bibliographic code, BibCode. The BibCode is converted into a **pair-tree path**, e.g., MNRAS2014 becomes MN/RA/S2/01/4/. This is to both not run into the unix file limit per directory, and make indexable searching faster.
 
- 5. *ErrorHandler**Worker*** TBD
+ 5. ErrorHandler**Worker**
 
- This worker communicates with the ErrorHandler**Queue**. Any worker that runs into an exception error and exits, will be placed into the ErrorHandler**Queue**. The worker should then attempt to find the problem article, and attempt to fix the problem, otherwise discard it into the log files for manual intervention.
+ This worker communicates with the ErrorHandler**Queue**. Any worker that runs into an exception error and exits, will be placed into the ErrorHandler**Queue**. The worker determines who the sender was, and re-runs all of the problem files. If they fail a second time, they are discarded from the queue system. For the PDFFileExtractor**Worker**, it will resubmit all of the individual jobs back to the PDFFileExtractor**Queue**, and carry out the same logic as above.
 
 # Extraction Settings
 
@@ -148,7 +171,9 @@ XML files are the only extracted content that can access more relevant content i
 META_CONTENT = {
     "XML": {
         "fulltext": ['//body','//section[@type="body"]', '//journalarticle-body'],
-        "acknowledgements": ['//ack', '//section[@type="acknowledgments"]', '//subsection[@type="acknowledgement" or @type="acknowledgment"]'],
+        "acknowledgements": ['//ack', '//section[@type="acknowledgments"]',
+                             '//subsection[@type="acknowledgement" or @type="acknowledgment"]'
+                             ],
         "dataset": ['//named-content[@content-type="dataset"]'],
     },
 ```

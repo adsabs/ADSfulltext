@@ -11,7 +11,7 @@ services:
  - rabbitmq
 before_script:
  - sudo rabbitmqctl add_vhost adsfulltext
- - sudo rabbitmqctl add vhost external_vhost
+ - sudo rabbitmqctl add_vhost external_vhost
  - sudo rabbitmqctl set_permissions -p adsfulltext guest ".*" ".*" ".*"
  - sudo rabbitmqctl set_permissions -p external_vhost guest ".*" ".*" ".*"
 script:
