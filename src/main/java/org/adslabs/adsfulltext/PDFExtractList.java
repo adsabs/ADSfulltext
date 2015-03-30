@@ -39,11 +39,11 @@ public class PDFExtractList {
         // Parse the content of the input
         ParsedRabbitMQPayload = new JSONArray(UnparsedRabbitMQPayload);
 
-        logger.info("Extracting from the payload");
+        logger.debug("Extracting from the payload");
         // For each of the articles in the payload
         for(int i=0; i<ParsedRabbitMQPayload.length(); i++){
 
-            logger.info("File {} out of {}", i, ParsedRabbitMQPayload.length());
+            logger.debug("File {} out of {}", i, ParsedRabbitMQPayload.length());
 
             PDFExtract pdfFile = new PDFExtract();
 
@@ -55,7 +55,7 @@ public class PDFExtractList {
             // Put the fulltext into the RabbitMQ payload
             tempPayload.put("fulltext", message);
         }
-        logger.info("Extraction complete.");
+        logger.debug("Extraction complete.");
 
         return ParsedRabbitMQPayload.toString();
     }

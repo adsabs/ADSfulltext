@@ -65,7 +65,7 @@ public class PDFExtract {
         // Create the path to the PDF
         //
         try{
-            logger.info("Creating pdf file");
+            logger.debug("Creating pdf file");
             this.pdfFile = new FileInputStream(fileSource);
         } catch (java.io.FileNotFoundException error) {
             String message = "File not found: " + error.getMessage();
@@ -75,7 +75,7 @@ public class PDFExtract {
 
         // Create the PDF parser of the document of interest
         try {
-            logger.info("Creating PDF parser for the PDF file");
+            logger.debug("Creating PDF parser for the PDF file");
             this.pdfParser = new PDFParser(pdfFile);
         } catch (java.io.IOException error) {
             String message = "There is an error loading the COSDocument: " + error.getMessage();
@@ -86,7 +86,7 @@ public class PDFExtract {
         // Parse the document and obtain the PDDocument, followed by extracting the content
         // Make sure we close the PDDocument at the end
         try {
-            logger.info("Parsing and extracting the PDF file");
+            logger.debug("Parsing and extracting the PDF file");
             this.pdfParser.parse();
             this.pdDocument = this.pdfParser.getPDDocument();
             this.message = this.stripper.getText(pdDocument);
@@ -97,7 +97,7 @@ public class PDFExtract {
             throw new Exception(message, error);
         } finally {
             try {
-                logger.info("Closing all relevant PDF content.");
+                logger.debug("Closing all relevant PDF content.");
                 this.pdDocument.close();
             } catch (java.io.IOException error) {
                 String message = "There is an error loading the PDFBox Stripper properties: " + error.getMessage();
