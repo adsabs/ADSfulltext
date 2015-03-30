@@ -31,7 +31,7 @@ def create_meta_path(dict_input, extract_key="FULLTEXT_EXTRACT_PATH"):
     import ptree
     ptr = ptree.id2ptree(dict_input[CONSTANTS['BIBCODE']])
     extract_path = config[extract_key] + ptr + "meta.json"
-    logger.info('extract_path: %s' % extract_path)
+    logger.debug('extract_path: %s' % extract_path)
 
     return extract_path
 
@@ -56,12 +56,14 @@ def load_meta_file(file_input, extract_key="FULLTEXT_EXTRACT_PATH"):
         with open(meta_full_path, 'r') as f:
             content = json.loads(f.read())
 
-        logger.info('Meta file already exists')
+        logger.debug('Meta file already exists')
     except IOError:
-        raise IOError("IOError: Json content could not be loaded: \n%s, \n%s" % (meta_full_path, file_input))
+        logger.warning("IOError: Json content could not be loaded: \n%s, \n%s" % (meta_full_path, file_input))
+        raise IOError
     except Exception:
         logger.warning("Unexpected error")
         raise Exception
+
     return content
 
 
@@ -80,7 +82,7 @@ def meta_needs_update(dict_input, meta_content, extract_key="FULLTEXT_EXTRACT_PA
         logger.warning("Unexpected error %s" % sys.exc_info())
         raise Exception
 
-    logger.info('Opened existing meta to determine if an update is required.')
+    logger.debug('Opened existing meta to determine if an update is required.')
 
     # No extraction exists
     if CONSTANTS['FILE_SOURCE'] not in meta_content:
@@ -101,8 +103,8 @@ def meta_needs_update(dict_input, meta_content, extract_key="FULLTEXT_EXTRACT_PA
     meta_json_last_modified = file_last_modified_time(meta_path)
 
     # If the source content is more new than the last time it was extracted
-    logger.info("FILE_SOUCE last modified: %s" % ft_source_last_modified)
-    logger.info("META_PATH last modified: %s" % meta_json_last_modified)
+    logger.debug("FILE_SOUCE last modified: %s" % ft_source_last_modified)
+    logger.debug("META_PATH last modified: %s" % meta_json_last_modified)
     if ft_source_last_modified > meta_json_last_modified:
         return 'STALE_CONTENT'
 
@@ -121,42 +123,43 @@ def check_if_extract(message_list, extract_key="FULLTEXT_EXTRACT_PATH"):
             meta_content = load_meta_file(message, extract_key=extract_key)
             update = meta_needs_update(message, meta_content, extract_key=extract_key)
         else:
-            logger.info('No existing meta file')
+            logger.debug('No existing meta file')
             update = "NOT_EXTRACTED_BEFORE"
 
-        logger.info('Update required?: %s' % update)
-        logger.info('Creating meta path')
+        logger.debug('Update required?: %s' % update)
+        logger.debug('Creating meta path')
         message[CONSTANTS['META_PATH']] = create_meta_path(message, extract_key=extract_key)
-        logger.info('created: %s' % message[CONSTANTS['META_PATH']])
+        logger.debug('created: %s' % message[CONSTANTS['META_PATH']])
 
         format_ = os.path.splitext(message[CONSTANTS['FILE_SOURCE']])[-1].replace('.','').lower()
         if not format_ and 'http://' in message[CONSTANTS['FILE_SOURCE']]:
             format_ = 'http'
         message[CONSTANTS['FORMAT']] = format_
 
-        logger.info('Format found: %s' % format_)
+        logger.debug('Format found: %s' % format_)
         if update in NEEDS_UPDATE and format_ == 'pdf':
             message[CONSTANTS['UPDATE']] = update
+            logger.info("CheckIfExtract: needs update because %s: %s" % (update, message[CONSTANTS['BIBCODE']]))
             publish_list_of_pdf_dictionaries.append(message)
 
         elif update in NEEDS_UPDATE:
             message[CONSTANTS['UPDATE']] = update
+            logger.info("CheckIfExtract: needs update because %s: %s" % (update, message[CONSTANTS['BIBCODE']]))
             publish_list_of_standard_dictionaries.append(message)
-
 
         # Wite a time stamp of this process
         message[CONSTANTS['TIME_STAMP']] = datetime.utcnow().isoformat() + 'Z'
 
-        logger.info("Adding timestamp: %s" % message[CONSTANTS['TIME_STAMP']])
-        logger.info('Returning dictionaries')
+        logger.debug("Adding timestamp: %s" % message[CONSTANTS['TIME_STAMP']])
+        logger.debug('Returning dictionaries')
 
     if len(publish_list_of_pdf_dictionaries) == 0:
         publish_list_of_pdf_dictionaries = None
-        logger.info('PDF list is empty, setting to none')
+        logger.debug('PDF list is empty, setting to none')
 
     if len(publish_list_of_standard_dictionaries) == 0:
         publish_list_of_standard_dictionaries = None
-        logger.info('Standard list is empty, setting to none')
+        logger.debug('Standard list is empty, setting to none')
 
     return {"Standard": json.dumps(publish_list_of_standard_dictionaries),
             "PDF": json.dumps(publish_list_of_pdf_dictionaries)}

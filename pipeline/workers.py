@@ -7,6 +7,8 @@ Same schema is used as defined within ADSImportpipeline
 """
 
 import sys, os
+from settings import CONSTANTS
+
 PROJECT_HOME = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
 sys.path.append(PROJECT_HOME)
 
@@ -45,7 +47,7 @@ class RabbitMQWorker(object):
             exchange = self.params['ERROR_HANDLER']['exchange']
         if not routing_key:
             routing_key = self.params['ERROR_HANDLER']['routing_key']
-        self.logger.info('exchange, routing key: %s, %s' % (routing_key, exchange))
+        self.logger.debug('exchange, routing key: %s, %s' % (routing_key, exchange))
         self.channel.basic_publish(exchange, routing_key, message, properties=kwargs['header_frame'])
 
     def publish(self, message, topic=False, **kwargs):
@@ -72,7 +74,7 @@ class RabbitMQWorker(object):
             self.logger.debug("Subscribing to: %s" % e['queue'])
             self.channel.basic_consume(callback, queue=e['queue'], **kwargs)
             if not self.params.get('TEST_RUN', False):
-                self.logger.info('Worker consuming from queue: %s' % e['queue'])
+                self.logger.debug('Worker consuming from queue: %s' % e['queue'])
                 self.channel.start_consuming()
 
     def declare_all(self, exchanges, queues, bindings):
@@ -156,7 +158,7 @@ class WriteMetaFileWorker(RabbitMQWorker):
     def on_message(self, channel, method_frame, header_frame, body):
         message = json.loads(body)
         try:
-            self.logger.info('WriteMetalFile: type of message: %s, type: %s' % (message, type(message)))
+            self.logger.debug('WriteMetaFile: type of message: %s, type: %s' % (message, type(message)))
             self.results = self.f(message)
             self.logger.debug("Publishing")
             self.publish(self.results)
@@ -197,63 +199,65 @@ class ErrorHandlerWorker(RabbitMQWorker):
         }
 
     def on_message(self, channel, method_frame, header_frame, body):
-        self.logger.info('Error Handler: Got message')
+        self.logger.debug('Error Handler: Got message')
 
         message = json.loads(body)
         producer = message.keys()[0]
 
-        self.logger.info('Producer: %s' % producer)
-        self.logger.info('header information: %s' % header_frame.headers)
+        self.logger.debug('Producer: %s' % producer)
+        self.logger.debug('header information: %s' % header_frame.headers)
 
         if header_frame.headers and 'redelivered' in header_frame.headers and header_frame.headers['redelivered']:
             self.channel.basic_ack(delivery_tag=method_frame.delivery_tag)
-            self.logger.info("ErrorHandler: Fail: %s" % message)
+            self.logger.info('ErrorHandlerWorker: failed bibcode: %s' % message[CONSTANTS['BIBCODE']])
             return
 
-        self.logger.info('Setting headers')
+        self.logger.debug('Setting headers')
         P = pika.spec.BasicProperties(headers={'redelivered': True})
 
         for individual_payload in message[producer]:
 
             if producer == self.params['PDF_EXTRACTOR']['class_name']:
-                self.logger.info('Payload: %s' % individual_payload)
+                self.logger.debug('Payload: %s' % individual_payload)
                 if not message:
                     self.logger.debug('%s list is empty, not publishing' % producer)
                     continue
 
-                self.logger.info('ErrorHandler: Republishing payload to: %s' % self.params['PDF_EXTRACTOR']['routing_key'])
+                self.logger.debug('ErrorHandler: Republishing payload to: %s' % self.params['PDF_EXTRACTOR']['routing_key'])
                 self.channel.basic_publish(self.params['PDF_EXTRACTOR']['exchange'], self.params['PDF_EXTRACTOR']['routing_key'], json.dumps([individual_payload]), properties=P)
                 continue
 
+            bibcode = individual_payload[CONSTANTS['BIBCODE']]
             try:
-                self.logger.info('ErrorHandler: Trying to fix payload: %s, type: %s' % (individual_payload, type(individual_payload)))
+                self.logger.debug('ErrorHandler: Trying to fix payload: %s, type: %s' % (individual_payload, type(individual_payload)))
                 result = self.strategies[producer]([individual_payload], extract_key=self.params['extract_key'])
-                self.logger.info('ErrorHandler: Fixed payload: %s, type: %s' % (result, type(result)))
+
+                self.logger.info('ErrorHandler: completed bibcode: %s' % bibcode)
             except Exception, e:
                 import traceback
-                self.logger.error('ErrorHandler could not fix this payload: %s: %s' % (individual_payload, traceback.format_exc()))
+                self.logger.error('ErrorHandler: could not fix this payload: %s: %s' % (bibcode, traceback.format_exc()))
                 continue
 
-            #Re-publish the single record
+            # Re-publish the single record
             if producer == 'CheckIfExtractWorker':
 
                 for key in self.params['WORKERS'][producer]['publish'].keys():
                     for e in self.params['WORKERS'][producer]['publish'][key]:
 
-                        self.logger.info('Payload: %s' % json.loads(result[key]))
+                        self.logger.debug('Payload: %s' % json.loads(result[key]))
                         if not json.loads(result[key]):
                             self.logger.debug('%s list is empty, not publishing' % e)
                             continue
 
-                        self.logger.info('ErrorHandler: Republishing payload to: %s' % e['routing_key'])
+                        self.logger.debug('ErrorHandler: Republishing payload to: %s' % e['routing_key'])
                         self.channel.basic_publish(e['exchange'], e['routing_key'], result[key], properties=P)
             else:
                 for e in self.params['WORKERS'][producer]['publish']:
-                    self.logger.info('ErrorHandler: Republishing payload to: %s' % e['routing_key'])
+                    self.logger.debug('ErrorHandler: Republishing payload to: %s' % e['routing_key'])
                     self.channel.basic_publish(e['exchange'], e['routing_key'], result, properties=P)
 
         self.channel.basic_ack(delivery_tag=method_frame.delivery_tag)
-        self.logger.info('Acknowledge delivered')
+        self.logger.debug('Acknowledge delivered')
 
     def run(self):
         self.connect(self.params['RABBITMQ_URL'])
@@ -282,7 +286,7 @@ class ProxyPublishWorker(RabbitMQWorker):
         worker.connection.close()
 
         self.channel.basic_ack(delivery_tag=method_frame.delivery_tag)
-        self.logger.info('Acknowledge delivered')
+        self.logger.debug('Acknowledge delivered')
 
     def run(self):
         self.connect(self.params['RABBITMQ_URL'])

@@ -164,7 +164,7 @@ class StandardExtractorHTML(object):
         else:
             parsed_html = document_fromstring(in_html)
 
-        logger.info("Parsed HTML. %s" % parsed_html)
+        logger.debug("Parsed HTML. %s" % parsed_html)
 
         return parsed_html
 
@@ -189,7 +189,7 @@ class StandardExtractorHTML(object):
 
         self.dictionary_of_tables = dictionary_of_tables
 
-        logger.info("Collated %d tables" % len(self.dictionary_of_tables))
+        logger.debug("Collated %d tables" % len(self.dictionary_of_tables))
 
         return self.dictionary_of_tables
 
@@ -251,7 +251,7 @@ class StandardExtractorHTML(object):
             logger.debug("Attempting to find table links: %s" % table_name)
             for xpath in META_CONTENT[self.meta_name]['table_links']:
                 try:
-                    logger.info(self.parsed_html)
+                    logger.debug(self.parsed_html)
                     table_nodes_in_file_source = self.parsed_html.xpath(xpath.replace('TABLE_NAME', table_name))
                     break
                 except AttributeError:
@@ -298,29 +298,29 @@ class StandardExtractorXML(object):
         self.meta_name = "xml"
 
     def open_xml(self):
-        import getpass
-        import os
-        import pwd
-
-        def get_username():
-            return pwd.getpwuid( os.getuid() )[ 0 ]
+        # import getpass
+        # import os
+        # import pwd
+        #
+        # def get_username():
+        #     return pwd.getpwuid( os.getuid() )[ 0 ]
 
         raw_xml = None
 
-        logger.info(getpass.getuser())
-        logger.info(get_username())
+        # logger.debug(getpass.getuser())
+        # logger.debug(get_username())
         try:
-            logger.info('Opening the file: %s' % self.file_input)
+            logger.debug('Opening the file: %s' % self.file_input)
 
             with open(self.file_input, 'r') as f:
                 raw_xml = f.read()
 
             logger.debug('reading')
-            logger.info('Opened file, trying to massage the input.')
+            logger.debug('Opened file, trying to massage the input.')
             raw_xml = re.sub('(<!-- body|endbody -->)', '', raw_xml)
             raw_xml = edef.convertentities(raw_xml.decode('utf-8', 'ignore'))
             raw_xml = re.sub('<\?CDATA.+?\?>', '', raw_xml)
-            logger.info('XML file opened successfully')
+            logger.debug('XML file opened successfully')
             self.raw_xml = raw_xml
         except Exception, err:
             logger.error("Error: %s" % err)
@@ -344,25 +344,25 @@ class StandardExtractorXML(object):
         meta_out = {}
         self.open_xml()
         self.parse_xml()
-        # logger.info('Parsed content: %s' % self.parsed_xml.text_content())
-        logger.info('%s: Extracting: %s' % (self.meta_name, self.file_input))
+        # logger.debug('Parsed content: %s' % self.parsed_xml.text_content())
+        logger.debug('%s: Extracting: %s' % (self.meta_name, self.file_input))
         for content_name in META_CONTENT[self.meta_name]:
-            logger.info("Trying meta content: %s" % content_name)
+            logger.debug("Trying meta content: %s" % content_name)
             for static_xpath in META_CONTENT[self.meta_name][content_name]:
-                logger.info("Trying xpath: %s" % static_xpath)
+                logger.debug("Trying xpath: %s" % static_xpath)
                 try:
-                    # logger.info(self.parsed_xml.text_content())
+                    # logger.debug(self.parsed_xml.text_content())
                     meta_out[content_name] = self.parsed_xml.xpath(static_xpath)[0].text_content()
-                    logger.info("Successful")
+                    logger.debug("Successful")
                     break
                 except IndexError:
-                    logger.warning('Index error for: %s' % self.dict_item[CONSTANTS['BIBCODE']])
+                    logger.debug('Index error for: %s' % self.dict_item[CONSTANTS['BIBCODE']])
                     pass
                 except KeyError:
-                    logger.warning('Dictionary key error for :%s' % self.dict_item[CONSTANTS['BIBCODE']])
+                    logger.error('Dictionary key error for :%s' % self.dict_item[CONSTANTS['BIBCODE']])
                     raise KeyError("You gave a malformed xpath call to HTMLElementTree: %s" % static_xpath)
                 except Exception:
-                    logger.warning('Unknown error for :%s' % self.dict_item[CONSTANTS['BIBCODE']])
+                    logger.error('Unknown error for :%s' % self.dict_item[CONSTANTS['BIBCODE']])
                     raise Exception(traceback.format_exc())
 
         return meta_out
@@ -376,13 +376,13 @@ class StandardElsevierExtractorXML(StandardExtractorXML):
 
     def parse_xml(self):
         try:
-            logger.info('Parsing EXML with soupparser')
+            logger.debug('Parsing EXML with soupparser')
             self.parsed_xml = super(StandardElsevierExtractorXML, self).parse_xml()
-            logger.info('Checking soupparser handled itself correctly')
+            logger.debug('Checking soupparser handled itself correctly')
             check = self.parsed_xml.xpath('//body')[0].text_content()
             # this may be better? //named-content[@content-type="dataset"]
         except:
-            logger.info('Parsing EXML in non-standard way')
+            logger.debug('Parsing EXML in non-standard way')
             self.parsed_xml = document_fromstring(self.raw_xml.encode('utf-8'))
         return self.parsed_xml
 

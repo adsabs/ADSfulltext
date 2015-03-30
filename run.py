@@ -13,7 +13,7 @@ from pipeline import psettings, workers, ADSfulltext
 
 from utils import setup_logging
 
-logger = setup_logging(__file__, __name__, level='DEBUG')
+logger = setup_logging(__file__, __name__)
 
 
 def purge_queues(queues=psettings.RABBITMQ_ROUTES['QUEUES']):

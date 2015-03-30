@@ -6,7 +6,7 @@ from logging import handlers
 from cloghandler import ConcurrentRotatingFileHandler
 
 
-def setup_logging(file_, name_, level='DEBUG'):
+def setup_logging(file_, name_, level=config['LOGGING_LEVEL']):
 
     level = getattr(logging, level)
 
