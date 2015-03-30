@@ -1,5 +1,4 @@
 # Overview of the ADSfulltext Pipeline
-
 <!-- TOC depth:4 withLinks:1 updateOnSave:1 -->
 - [Overview of the ADSfulltext Pipeline](#overview-of-the-adsfulltext-pipeline)
 	- [DevOps](#devops)
@@ -11,7 +10,6 @@
 	- [Workers](#workers)
 - [Extraction Settings](#extraction-settings)
 <!-- /TOC -->
-
 ## DevOps
 
 ### Development
