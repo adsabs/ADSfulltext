@@ -1,5 +1,17 @@
 # Overview of the ADSfulltext Pipeline
 
+<!-- TOC depth:4 withLinks:1 updateOnSave:1 -->
+- [Overview of the ADSfulltext Pipeline](#overview-of-the-adsfulltext-pipeline)
+	- [DevOps](#devops)
+		- [Development](#development)
+		- [Tests](#tests)
+		- [Deployment](#deployment)
+	- [Pipeline Design](#pipeline-design)
+- [Pipeline Settings](#pipeline-settings)
+	- [Workers](#workers)
+- [Extraction Settings](#extraction-settings)
+<!-- /TOC -->
+
 ## DevOps
 
 ### Development
@@ -163,6 +175,10 @@ There are currently one worker per each queue (see next section). Their roles ar
  5. ErrorHandler**Worker**
 
  This worker communicates with the ErrorHandler**Queue**. Any worker that runs into an exception error and exits, will be placed into the ErrorHandler**Queue**. The worker determines who the sender was, and re-runs all of the problem files. If they fail a second time, they are discarded from the queue system. For the PDFFileExtractor**Worker**, it will resubmit all of the individual jobs back to the PDFFileExtractor**Queue**, and carry out the same logic as above.
+
+ 6. ProxyPublish**Worker**
+
+ This worker is purely to forward information to the ADSimportpipeline to trigger the ingest of the newly extracted full text content. A bibcode is only sent to this external queue if the full text is written to disk and succesfully works as expected. Therefore, it is given content from the WriteMetaFile**Worker**. The user only need change the queue name or the *vhost* settings which are all located within the *psettings.py* configuration file.
 
 # Extraction Settings
 
