@@ -25,7 +25,7 @@ def build_links(test_name):
 
         {'fulltext_xml_doc_with_acknowledgement.links': {'bibcode': ['test1'],
                                              'file': ['tests/test_integration/stub_data/full_test_elsevier.xml'],
-                                             'provider': ['MNRAS']}},
+                                             'provider': ['Elsevier']}},
 
         {'fulltext_range_of_formats.links': {'bibcode': ['full1', 'full2', 'full3', 'full4', 'full5', 'full6'],
                                              'file': ['tests/test_integration/stub_data/full_test.txt',
