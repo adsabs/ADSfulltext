@@ -328,6 +328,8 @@ class TestOCRandTXTExtractor(unittest.TestCase):
 
         self.extractor = std_extract.EXTRACTOR_FACTORY['txt'](self.dict_item)
 
+        self.TC = utils.TextCleaner(text='')
+
     def test_open_txt_file(self):
         raw_text = self.extractor.open_text()
         self.assertIn("Introduction", raw_text)
@@ -365,14 +367,14 @@ class TestOCRandTXTExtractor(unittest.TestCase):
     def test_ASCII_translation_map_works(self):
         instring = "Tab\t CarriageReturn\r New line\n Random Escape characters:" + chr(1) + chr(4) + chr(8)
         expected_out_string = "Tab\t CarriageReturn\r New line\n Random Escape characters:   "
-        new_instring = instring.translate(self.extractor.ASCII_translation_map)
+        new_instring = instring.translate(self.TC.ASCII_translation_map)
 
         self.assertEqual(new_instring, expected_out_string)
 
     def test_Unicode_translation_map_works(self):
         instring = u"Tab\t CarriageReturn\r New line\n Random Escape characters:" + u'\u0000'
-        expected_out_string = u"Tab\t CarriageReturn\r New line\n Random Escape characters:"
-        new_instring = instring.translate(self.extractor.Unicode_translation_map)
+        expected_out_string = u"Tab\t CarriageReturn New line\n Random Escape characters:"
+        new_instring = instring.translate(self.TC.Unicode_translation_map)
 
         self.assertEqual(new_instring, expected_out_string)
 

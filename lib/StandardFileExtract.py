@@ -13,7 +13,7 @@ sys.path.append(PROJECT_HOME)
 import re
 import traceback
 import unicodedata
-from utils import setup_logging, overrides
+from utils import setup_logging, overrides, TextCleaner
 from lxml.html import soupparser, document_fromstring, fromstring
 from lib import entitydefs as edef
 from settings import CONSTANTS, META_CONTENT
@@ -26,71 +26,10 @@ class StandardExtractorBasicText(object):
 
     def __init__(self, dict_item):
 
-        # For those interested: http://www.joelonsoftware.com/articles/Unicode.html
-        # Translation map (ASCII):
-        #     This is used to replace the escape characters. There are 32 escape characters listed for example
-        #     here: http://www.robelle.com/smugbook/ascii.html
-        #
-        #     input_control_characters:
-        #     This is a string that contains all the escape characters
-        #
-        #     translated_control_characters:
-        #     This is a string that is equal in length to input_control_characters, where all the escape characters
-        #     are replaced by an empty string ' '. The only escape characters kept are \n, \t, \r, (9, 10, 13)
-        #
-        #     This map can then be given to the string.translate as the map for a string (ASCII encoded)
-        #     e.g.,
-        #
-        #     'jonny\x40myemail.com\n'.translate(dict.fromkeys(filter(lambda x: x not in [9,10,13], range(32))))
-        #     'jonny@myemail.com\n'
-        #
-        # Translation map (Unicode):
-        #     This has the same purpose as the previous map, except it works on text that is encoded in utf-8, or some
-        #     other unicode encoding. The unicode_control_number array contains a list of tuples, that contain the range
-        #     of numbers that want to be removed. i.e., 0x00, 0x08 in unicode form is U+00 00 to U+00 08, which is
-        #     just removing the e.g., Null characters, see http://www.fileformat.info/info/charset/UTF-8/list.htm
-        #     for a list of unicode numberings.
-        #     e.g.,
-        #
-        #     This map can then be given to the string.translate as the map for a unicode type (e.g., UTF-8 encoded)
-        #
-        #     u'jonny\x40myemail.com\n'.translate(dict.fromkeys(filter(lambda x: x not in [9,10,13], range(32))))
-        #     u'jonny@myemail.com\n'
-        #
-        #
-        #     unicodedata.normalize(unicode_string, 'NFKC'):
-        #
-        #         https://docs.python.org/2/library/unicodedata.html#unicodedata.normalize
-        #         http://stackoverflow.com/questions/14682397/can-somone-explain-how-unicodedata-normalizeform-unistr-work-with-examples
-        #         NFKC = Normal Form K Composition
-        #
-        #         'K' converts characters such as ① to 1
-        #         'C' composes characters such as C, to Ç
-
-        import string
-
         self.dict_item = dict_item
         self.raw_text = None
         self.parsed_text = None
         self.meta_name = 'txt'
-
-        translated_control_characters = "".join([chr(i) if i in [9, 10, 13] else ' ' for i in range(0,32)])
-        input_control_characters = "".join([chr(i) for i in range(0,32)])
-        self.ASCII_translation_map = string.maketrans(input_control_characters, translated_control_characters)
-
-        unicode_control_numbers = [(0x00, 0x08), (0x0B, 0x0C), (0x0E, 0x1F), (0x7F, 0x84), (0x86, 0x9F),
-                                    (0xD800, 0xDFFF), (0xFDD0, 0xFDDF), (0xFFFE, 0xFFFF),
-                                    (0x1FFFE, 0x1FFFF), (0x2FFFE, 0x2FFFF), (0x3FFFE, 0x3FFFF),
-                                    (0x4FFFE, 0x4FFFF), (0x5FFFE, 0x5FFFF), (0x6FFFE, 0x6FFFF),
-                                    (0x7FFFE, 0x7FFFF), (0x8FFFE, 0x8FFFF), (0x9FFFE, 0x9FFFF),
-                                    (0xAFFFE, 0xAFFFF), (0xBFFFE, 0xBFFFF), (0xCFFFE, 0xCFFFF),
-                                    (0xDFFFE, 0xDFFFF), (0xEFFFE, 0xEFFFF), (0xFFFFE, 0xFFFFF),
-                                    (0x10FFFE, 0x10FFFF)]
-        self.Unicode_translation_map = dict.fromkeys(unicode_number
-                                                     for starting_unicode_number, ending_unicode_number
-                                                     in unicode_control_numbers
-                                                     for unicode_number
-                                                     in range(starting_unicode_number, ending_unicode_number+1))
 
     def open_text(self):
 
@@ -100,27 +39,32 @@ class StandardExtractorBasicText(object):
         self.raw_text = raw_text
         return self.raw_text
 
-    def parse_text(self, translate=False, decode=False):
+    def parse_text(self, translate=False, decode=False, normalise=True):
 
         raw_text = self.raw_text
-        if translate:
-            if type(raw_text) == str:
-                raw_text = raw_text.translate(self.ASCII_translation_map)
-            else:
-                raw_text = raw_text.translate(self.Unicode_translation_map)
+        raw_text = TextCleaner(text=raw_text).run(translate=translate,
+                                                  decode=decode,
+                                                  normalise=True)
 
-        if decode and type(raw_text) == str:
-            raw_text = raw_text.decode('utf-8', 'ignore')
-
-        raw_text = unicodedata.normalize('NFKC', unicode(raw_text))
-        raw_text = re.sub('\s+', ' ', raw_text) # remove duplicated spaces?
+        # if translate:
+        #     if type(raw_text) == str:
+        #         raw_text = raw_text.translate(self.ASCII_translation_map)
+        #     else:
+        #         raw_text = raw_text.translate(self.Unicode_translation_map)
+        #
+        # if decode and type(raw_text) == str:
+        #     raw_text = raw_text.decode('utf-8', 'ignore')
+        #
+        # raw_text = unicodedata.normalize('NFKC', unicode(raw_text))
+        # raw_text = re.sub('\s+', ' ', raw_text) # remove duplicated spaces?
 
         self.parsed_text = raw_text
         return self.parsed_text
 
     def extract_multi_content(self, translate=True, decode=True):
         self.open_text()
-        self.parse_text(translate=translate, decode=decode)
+        self.parse_text(translate=translate,
+                        decode=decode)
 
         meta_out = {}
         meta_out[CONSTANTS['FULL_TEXT']] = self.parsed_text
@@ -193,7 +137,7 @@ class StandardExtractorHTML(object):
 
         return self.dictionary_of_tables
 
-    def extract_multi_content(self):
+    def extract_multi_content(self, translate=False, decode=False):
 
         self.open_html()
         self.parse_html()
@@ -282,6 +226,10 @@ class StandardExtractorHTML(object):
                                        if individual_element_tree_node
                                        and not individual_element_tree_node.isspace()])
 
+        string_of_all_html = TextCleaner(text=string_of_all_html).run(translate=translate,
+                                                                      decode=decode,
+                                                                      normalise=True)
+
         meta_out = {CONSTANTS['FULL_TEXT']: string_of_all_html}
 
         return meta_out
@@ -312,13 +260,14 @@ class StandardExtractorXML(object):
         try:
             logger.debug('Opening the file: %s' % self.file_input)
 
-            with open(self.file_input, 'r') as f:
+            import codecs
+            with codecs.open(self.file_input, 'r', encoding='utf-8') as f:
                 raw_xml = f.read()
 
             logger.debug('reading')
             logger.debug('Opened file, trying to massage the input.')
             raw_xml = re.sub('(<!-- body|endbody -->)', '', raw_xml)
-            raw_xml = edef.convertentities(raw_xml.decode('utf-8', 'ignore'))
+            raw_xml = edef.convertentities(raw_xml)
             raw_xml = re.sub('<\?CDATA.+?\?>', '', raw_xml)
             logger.debug('XML file opened successfully')
             self.raw_xml = raw_xml
@@ -330,7 +279,7 @@ class StandardExtractorXML(object):
 
     def parse_xml(self):
 
-        parsed_content = soupparser.fromstring(self.raw_xml.encode('utf-8'))
+        parsed_content = soupparser.fromstring(self.raw_xml)
 
         # strip out the latex stuff (for now)
         for e in parsed_content.xpath('//inline-formula'):
@@ -339,7 +288,7 @@ class StandardExtractorXML(object):
         self.parsed_xml = parsed_content
         return parsed_content
 
-    def extract_multi_content(self):
+    def extract_multi_content(self, translate=False, decode=False):
 
         meta_out = {}
         self.open_xml()
@@ -352,7 +301,12 @@ class StandardExtractorXML(object):
                 logger.debug("Trying xpath: %s" % static_xpath)
                 try:
                     # logger.debug(self.parsed_xml.text_content())
-                    meta_out[content_name] = self.parsed_xml.xpath(static_xpath)[0].text_content()
+                    # This returns a unicode-like type
+                    text_content = self.parsed_xml.xpath(static_xpath)[0].text_content()
+
+                    meta_out[content_name] = TextCleaner(text=text_content).run(decode=decode,
+                                                                                translate=translate,
+                                                                                normalise=True)
                     logger.debug("Successful")
                     break
                 except IndexError:
@@ -383,12 +337,13 @@ class StandardElsevierExtractorXML(StandardExtractorXML):
             # this may be better? //named-content[@content-type="dataset"]
         except:
             logger.debug('Parsing EXML in non-standard way')
-            self.parsed_xml = document_fromstring(self.raw_xml.encode('utf-8'))
+            self.parsed_xml = document_fromstring(self.raw_xml)
         return self.parsed_xml
 
     @overrides(StandardExtractorXML)
-    def extract_multi_content(self):
-        content = super(StandardElsevierExtractorXML, self).extract_multi_content()
+    def extract_multi_content(self, translate=False, decode=False):
+        content = super(StandardElsevierExtractorXML, self).extract_multi_content(translate=translate,
+                                                                                  decode=decode)
         return content
 
 
@@ -435,7 +390,9 @@ class StandardExtractorHTTP(StandardExtractorBasicText):
     def extract_multi_content(self, translate=True, decode=True):
         self.open_http()
         self.parse_http(translate=translate, decode=decode)
-
+        self.parsed_http = TextCleaner(text=self.parsed_http).run(translate=translate,
+                                                                  decode=decode,
+                                                                  normalise=True)
         meta_out = {}
         meta_out[CONSTANTS['FULL_TEXT']] = self.parsed_http
         return meta_out
@@ -449,8 +406,6 @@ EXTRACTOR_FACTORY = {
     "elsevier": StandardElsevierExtractorXML,
     "http": StandardExtractorHTTP,
 }
-# HTTP
-#-----
 
 
 def extract_content(input_list, **kwargs):
@@ -486,6 +441,5 @@ def extract_content(input_list, **kwargs):
             raise Exception(traceback.format_exc())
 
         del Extractor, parsed_content
-
 
     return json.dumps(output_list)

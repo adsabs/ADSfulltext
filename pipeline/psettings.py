@@ -19,9 +19,9 @@ PDF_EXTRACTOR = {
 
 PROXY_PUBLISH = {
     'exchange': 'MergerPipelineExchange',
-    'routing_key': 'MongoWriteRoute',
-    'queue': 'MongoWriteQueue',
-    'RABBITMQ_URL': 'amqp://guest:guest@localhost:5672/adsimportpipeline?socket_timeout=10&backpressure_detection=t',
+    'routing_key': 'ReingestRecordsRoute',
+    'queue': 'ReingestRecordsQueue',
+    'RABBITMQ_URL': 'amqp://guest:guest@localhost:5672/ADSimportpipeline?socket_timeout=10&backpressure_detection=t',
 }
 
 RABBITMQ_ROUTES = {

@@ -16,6 +16,7 @@ import org.junit.Before;
 import org.junit.After;
 import static org.junit.Assert.*; // for assertThat()
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.core.IsNot.not;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import java.util.List;
@@ -34,5 +35,16 @@ public class PDFExtractTest {
         String test_pdf = getClass().getResource("/test_doc.pdf").getFile();
         String message = extractor.extract(test_pdf);
         assertThat(message, containsString("This is a PDF document"));
+
+
+        // Unicode, UTF-8, yadda yadda
+        // e with accompanying accent: \u0065\u0301
+        // e with accent: \u00e9 - currently using this one as we normalize with NKFC
+        String accent_acomp = "\u0065\u0301";
+        String accent_solo = "\u00e9";
+        assertThat(message, containsString(accent_solo));
+
+        // Removal of the new line
+        assertThat(message, not(containsString("\n")));
     }
 }

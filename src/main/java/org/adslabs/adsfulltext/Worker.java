@@ -186,7 +186,7 @@ public class Worker {
                     // Process and publish to the next queue
                     String newMessage = this.process(message);
                     logger.debug("Processing successful, publishing to: {}", routingKey);
-                    this.channel.basicPublish(exchangeName, routingKey, properties, newMessage.getBytes());
+                    this.channel.basicPublish(exchangeName, routingKey, properties, newMessage.getBytes("UTF-8"));
 
                 } catch (Exception error) {
 
@@ -201,7 +201,7 @@ public class Worker {
 //                    headerMap.put("PACKET_FROM", "JAVA_PDF_QUEUE");
 //                    builder.headers(headerMap);
 
-                    this.channel.basicPublish(exchangeName, errorHandler, properties, ErrorMessage.toString().getBytes());
+                    this.channel.basicPublish(exchangeName, errorHandler, properties, ErrorMessage.toString().getBytes("UTF-8"));
 
                 } finally {
                     logger.debug("Acknowledging message");

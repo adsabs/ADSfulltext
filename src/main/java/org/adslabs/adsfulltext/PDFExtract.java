@@ -22,9 +22,11 @@ package org.adslabs.adsfulltext;
 import java.io.FileInputStream;
 
 import org.apache.pdfbox.util.PDFTextStripper;
+import org.apache.pdfbox.util.TextNormalize;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.cos.COSDocument;
 import org.apache.pdfbox.pdfparser.PDFParser;
+
 
 import org.json.JSONObject;
 import org.json.JSONArray;
@@ -34,6 +36,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.text.Normalizer;
 
 public class PDFExtract {
 
@@ -55,6 +58,23 @@ public class PDFExtract {
         } catch (java.io.IOException error) {
             System.err.println("There is an error loading the PDFBox Stripper properties: " + error.getMessage());
         }
+    }
+
+    public String textCleaner (String messageToClean) {
+        // Normalis(z)e the text so that we have the correct characters.
+        // For example, an o-umlaut goes from o" to the correct formatting, this is normalising
+        // For consistent comparison, I use the same naming convention as used by Jay
+        TextNormalize normalizer = new TextNormalize("UTF-8");
+        messageToClean = normalizer.normalizeDiac(messageToClean);
+        messageToClean = normalizer.normalizePres(messageToClean);
+
+        // This unifies characters such as e+accent to accented-e
+        messageToClean = Normalizer.normalize(messageToClean, Normalizer.Form.NFKC);
+
+        // Remove new lines
+        messageToClean = messageToClean.replace("\n", "");
+
+        return messageToClean;
     }
 
     // Main function that takes care of all the extraction regardless of the underlying process
@@ -106,6 +126,9 @@ public class PDFExtract {
             }
 
         }
+
+        // Clean text
+        this.message = this.textCleaner(this.message);
 
         return this.message;
     }
