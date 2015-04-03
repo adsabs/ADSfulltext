@@ -1,28 +1,157 @@
-<?xml version="1.0"?>
-<people>Foobar</people>
-<incomplete>
-<body>
-<data>
-<named-content content-type="dataset" xlink:href="ADS/Sa.CXO#Obs/11456">11456</named-content>
-<named-content content-type="dataset" xlink:href="ADS/Sa.CXO#Obs/11457">11457</named-content>
-</data>
-Jonathan Elliott
-Badgasteinerstrak 8 Miinchen, 81373 Bayern Deustchland
-Current Employment
-Phone: Email: Homepage: Software:
- jonnynelliott ©go oglemail. com www. jonnyelliott .org http: / /git hub . com/ j onnyb azookat one
-Post-doctoral Research Fellow Max-Planck-Institut fiir extraterrestrische Physik, 2013 - present.
-Education
-Ph. D. (Dr. rer. nat.), Magna Cum Laude Max-Planck-Institut fiir extraterrestrische Physik, 2010 - 2013.
-Master of Physics, First Class Degree Warwick University, 2006 - 2010. A Levels, Grade A, A, A, A Physics, Mathematics, Further Mathematics, Computing Scarborough Sixth Form College, 2004 - 2006. GCSEs, Grade A* A*, A, A, B, B, B Double Science, Mathematics, French, Information Technology, Business Studies, History Filey Secondary School, 1999 - 2004.
-Experience
-• Hardware Operation and Management Max-Planck-Institut far extraterrestrische Physik, 2010 - Present I carried out operation and maintenance of a near-infrared/optical detector (GROND) located at the Max-Planck-Gesselschaft 2.2 meter telescope, in Chile. I have been a part of over 35 new discoveries. I travelled frequently to the instrument in Chile to make observations, which has amounted to 3528 hours of experience. I am an integral member of four projects, within international groups, that have acquired time at a world leading telescope facility, involving a range of instruments (e.g. spectrometer VIMOS, radio array ATCA, and CCD camera HAWK-I, to name but a few). I schedule the astronomical targets to be observed and delegate the duties to other members of the operating team, consisting of post-doctoral research fellows, PhD students and Masters students. I was the principle investigator (lead scientist) of three projects utilising the near-infrared detector HAWK-I located at the Very Large Telescope.
-• Software Development Max-Planck-Institut far extraterrestrische Physik, 2010 - Present — I have developed new software to allow displays located at the telescope site to be viewed remotely in real-time. This is important as real-time usage is not viable remotely. The software consists of a mixture of bash scripts and Python, whereby the images are eventually presented on an internal group web page. This is utilised by our group when carrying out observations.
-</body>
-<data>
-<named-content content-type="dataset" xlink:href="ADS/Sa.CXO#Obs/11458">11458</named-content>
-</data>
-<ack>
-<named-content content-type="dataset" xlink:href="ADS/Sa.CXO#Obs/11459">11459</named-content>
-<named-content content-type="source" xlink:href="ADS/Sa.CXO#Obs/11459">FAKENAME</named-content>
-</ack>
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE article
+  PUBLIC "-//NLM//DTD JATS (Z39.96) Journal Archiving and Interchange DTD v1.0 20120330//EN" "JATS-archivearticle1.dtd">
+<article xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" article-type="article" dtd-version="1.0" specific-use="syndication">
+<front>
+      <journal-meta>
+         <journal-id journal-id-type="coden">JOURNAL</journal-id>
+         <journal-title-group>
+            <journal-title>JOURNAL TITLE</journal-title>
+            <abbrev-journal-title>ABRV JOURN TIT</abbrev-journal-title>
+         </journal-title-group>
+         <issn pub-type="ppub">9999-9999</issn>
+         <issn pub-type="epub">9999-9999</issn>
+         <publisher>
+            <publisher-name>PUBLISHER</publisher-name>
+            <publisher-name specific-use="short-name">PUB</publisher-name>
+         </publisher>
+      </journal-meta>
+      <article-meta>
+         <article-id pub-id-type="publisher-id:aipid">999999999</article-id>
+         <article-id pub-id-type="publisher-id:aipkey">9.9999999</article-id>
+         <article-id pub-id-type="doi">99.9999/9.9999999</article-id>
+         <article-id pub-id-type="manuscript">99999999</article-id>
+         <article-categories>
+            <subj-group subj-group-type="toc-heading">
+               <subject>ARTICLES</subject>
+               <subj-group>
+                  <subject>SUBJECT</subject>
+               </subj-group>
+            </subj-group>
+         </article-categories>
+         <title-group>
+            <article-title>ARTICLE TITLE</article-title>
+         </title-group>
+         <contrib-group>
+            <contrib contrib-type="author">
+                <contrib-id contrib-id-type="orcid">http://orcid.org/9999-9999-9999-9999</contrib-id>
+               <name>
+                  <surname>SURNAME</surname>
+                  <given-names>GIVEN NAME</given-names>
+               </name>
+               <xref ref-type="author-note" rid="n1">a)</xref>
+            </contrib>
+            <aff>
+               <institution>INSTITUTION</institution>, ADRESS, <country>COUNTRY</country></aff>
+         </contrib-group>
+         <author-notes><fn id="n1"><label>a)</label><p>Electronic mail: <ext-link ext-link-type="email" xlink:href="mailto:EMAIL@EMAIL.COM">EMAIL@EMAIL.com</ext-link></p></fn></author-notes>
+         <pub-date pub-type="ppub">
+            <month>MONTH</month>
+            <year>YEAR</year>
+         </pub-date>
+         <volume>VOLUME</volume>
+         <issue>ISSUE</issue>
+         <elocation-id seq="1">999999</elocation-id>
+         <history>
+            <date date-type="received">
+               <day>DAY</day>
+               <month>MONTH</month>
+               <year>YEAR</year>
+            </date>
+            <date date-type="accepted">
+               <day>DAY</day>
+               <month>MONTH</month>
+               <year>YEAR</year>
+            </date>
+            <date date-type="published">
+               <day>DAY</day>
+               <month>MONTH</month>
+               <year>YEAR</year>
+            </date>
+         </history>
+         <permissions>
+            <copyright-year>YEAR</copyright-year>
+            <copyright-holder>COPYRIGHT</copyright-holder>
+         </permissions>
+         <abstract>
+            <p>ABSTRACT IS GIVEN HERE</p>
+         </abstract>
+
+
+
+         <funding-group specific-use="FundRef">
+            <award-group>
+                <funding-source>
+                    <named-content content-type="funder_name">FUNDING BODY</named-content>
+                    <named-content content-type="funder_identifier">http://dx.doi.org/99.99999/999999999</named-content>
+                </funding-source>
+                <award-id award-type="contract">AWARD</award-id>
+            </award-group>
+         </funding-group>
+
+          <counts>
+            <page-count count="11"/>
+          </counts>
+
+      <custom-meta-group><custom-meta><meta-name>METANAME</meta-name><meta-value/></custom-meta></custom-meta-group></article-meta>
+   </front>
+    <body>
+      <sec id="s1"><label>I.</label><title>INTRODUCTION</title>
+         <p>INTRODUCTION GOES HERE</p>
+      </sec>
+
+        <data>
+            <named-content content-type="dataset" xlink:href="ADS/Sa.CXO#Obs/11458">Manual Entry</named-content>
+        </data>
+
+   </body>
+
+    <back>
+      <ack>
+         <title>Acknowledgments</title>
+         <p>WE ACKNOWLEDGE.</p></ack>
+      <app-group>
+         <app id="app1">
+            <title>APPENDIX: APPENDIX TITLE GOES HERE</title>
+            <p>APPENDIX CONTENT</p>
+         </app>
+      </app-group>
+      <ref-list>
+         <title>REFERENCES</title>
+         <ref id="c1"><label>1.</label><mixed-citation publication-type="journal"><string-name><given-names>GIVEN NAME</given-names> <surname>SURNAME</surname></string-name> <source>SOURCE</source>
+               <volume>VOLUME</volume>, <fpage>PAGE</fpage> (<year>YEAR</year>).<pub-id pub-id-type="doi" specific-use="metadata">99.9999/99999-999-9999-9</pub-id>
+            </mixed-citation>
+         </ref>
+      </ref-list>
+   </back>
+
+    <floats-group>
+      <fig fig-type="figure" id="f1" orientation="portrait" position="float"><label>FIG. 1.</label><caption>
+            <p>TEXT</p>
+         </caption>
+         <graphic orientation="portrait" position="float" xlink:href="f1"/>
+      </fig>
+
+      <table-wrap id="t1" orientation="portrait" position="float"><label>TABLE I.</label><caption>
+            <p>TEXT<xref ref-type="table-fn" rid="t1n1"><sup>a</sup></xref></p>
+         </caption>
+         <table border="1">
+            <colgroup span="1">
+               <col align="left" span="1"/>
+            </colgroup>
+            <thead>
+               <tr>
+                  <th colspan="1" rowspan="1"><italic>CONTENT</italic></th>
+                  <th align="center" colspan="1" rowspan="1">CONTENT</th>
+               </tr>
+            </thead>
+            <tbody>
+               <tr>
+                  <td colspan="1" rowspan="1">1</td>
+                  <td align="center" colspan="1" rowspan="1">CONTENT</td>
+               </tr>
+            </tbody>
+         </table>
+         <table-wrap-foot><fn id="t1n1"><label><sup>a</sup></label><p>TEXT</p></fn></table-wrap-foot>
+      </table-wrap>
+   </floats-group></article>
