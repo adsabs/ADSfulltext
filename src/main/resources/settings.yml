@@ -24,3 +24,6 @@ QUEUES:
   -
     queue: ErrorHandlerQueue
     durable: true
+  -
+    queue: ProxyPublishQueue
+    durable: true

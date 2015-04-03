@@ -61,14 +61,12 @@ class TaskMaster(Singleton):
     def poll_loop(self, poll_interval=psettings.POLL_INTERVAL, ttl=7200, extra_params=False):
         while self.running:
 
-
-
             time.sleep(poll_interval)
             for worker, params in self.workers.iteritems():
                 for active in params['active']:
                     if not active['proc'].is_alive():
                         # <Process(Process-484, stopped[SIGBUS] daemon)> is not alive, restarting: ReadRecordsWorker
-                        logger.info('%s is not alive, restarting: %s' % (active['proc'], worker))
+                        logger.debug('%s is not alive, restarting: %s' % (active['proc'], worker))
                         active['proc'].terminate()
                         active['proc'].join()
                         active['proc'].is_alive()
@@ -76,23 +74,24 @@ class TaskMaster(Singleton):
                         continue
                     if ttl:
                         if time.time()-active['start']>ttl:
+                            logger.debug('time to live reached')
                             active['proc'].terminate()
                             active['proc'].join()
                             active['proc'].is_alive()
                             params['active'].remove(active)
-        self.start_workers(verbose=False, extra_params=extra_params)
+            self.start_workers(verbose=False, extra_params=extra_params)
 
     def start_workers(self, verbose=True, extra_params=False):
 
         for worker, params in self.workers.iteritems():
-            logger.info('Starting worker: %s' % worker)
+            logger.debug('Starting worker: %s' % worker)
             params['active'] = params.get('active', [])
             params['RABBITMQ_URL'] = psettings.RABBITMQ_URL
             params['ERROR_HANDLER'] = psettings.ERROR_HANDLER
             params['PDF_EXTRACTOR'] = psettings.PDF_EXTRACTOR
 
             for par in extra_params:
-                logger.info('Adding extra content: [%s]: %s' % (par, extra_params[par]))
+                logger.debug('Adding extra content: [%s]: %s' % (par, extra_params[par]))
                 params[par] = extra_params[par]
 
             while len(params['active']) < params['concurrency']:
@@ -103,12 +102,12 @@ class TaskMaster(Singleton):
                 process.start()
 
                 if verbose:
-                    logger.info("Started %s-%s" % (worker, process.name))
+                    logger.debug("Started %s-%s" % (worker, process.name))
                 params['active'].append({
                     'proc': process,
                     'start': time.time(),
                 })
-            logger.info('Successfully started: %d' % len(params['active']))
+            logger.debug('Successfully started: %d' % len(params['active']))
         self.running = True
 
     def stop_workers(self):

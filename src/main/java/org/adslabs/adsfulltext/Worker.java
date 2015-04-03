@@ -139,7 +139,7 @@ public class Worker {
     // do anything meaningful, and should be replaced by Grobid or PDFBox functions.
     //
     public String process(String message) throws Exception {
-        logger.info("Processing the PDF full text.");
+        logger.debug("Processing the PDF full text.");
         PDFExtractList PDFExtractorWorker = new PDFExtractList();
         String newMessage = PDFExtractorWorker.f(message);
         return newMessage;
@@ -164,7 +164,7 @@ public class Worker {
         String errorHandler = "ErrorHandlerRoute";
         String PDFClassName = "org.adslabs.adsfulltext.PDFExtractList";
 
-        logger.info("Subscribing to the queue: {}", queueName);
+        logger.debug("Subscribing to the queue: {}", queueName);
         QueueingConsumer consumer = new QueueingConsumer(this.channel);
 
         try {
@@ -185,8 +185,8 @@ public class Worker {
 
                     // Process and publish to the next queue
                     String newMessage = this.process(message);
-                    logger.info("Processing successful, publishing to: {}", routingKey);
-                    this.channel.basicPublish(exchangeName, routingKey, properties, newMessage.getBytes());
+                    logger.debug("Processing successful, publishing to: {}", routingKey);
+                    this.channel.basicPublish(exchangeName, routingKey, properties, newMessage.getBytes("UTF-8"));
 
                 } catch (Exception error) {
 
@@ -201,11 +201,11 @@ public class Worker {
 //                    headerMap.put("PACKET_FROM", "JAVA_PDF_QUEUE");
 //                    builder.headers(headerMap);
 
-                    this.channel.basicPublish(exchangeName, errorHandler, properties, ErrorMessage.toString().getBytes());
+                    this.channel.basicPublish(exchangeName, errorHandler, properties, ErrorMessage.toString().getBytes("UTF-8"));
 
                 } finally {
-                    logger.info("Acknowledging message");
-                    logger.info("TestRun: {}", this.testRun);
+                    logger.debug("Acknowledging message");
+                    logger.debug("TestRun: {}", this.testRun);
                     // Acknowledge the receipt of the message for either situation
                     this.channel.basicAck(deliveryTag, false);
                 }
@@ -213,7 +213,7 @@ public class Worker {
                 // If it's a test, we don't want to sit here forever
                 //
                 if (this.testRun){
-                    logger.info("Test has been defined, breaking out of consume.");
+                    logger.debug("Test has been defined, breaking out of consume.");
                     break;
                 }
 

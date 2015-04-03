@@ -36,7 +36,7 @@ public class TaskMaster {
     // Initialise all of the queues from the settings.yaml file
     //
     public boolean initialize_rabbitmq() {
-        logger.info("Initalising settings for RabbitMQ Instance");
+        logger.debug("Initalising settings for RabbitMQ Instance");
         w = new Worker();
         w.connect();
         w.declare_all();
@@ -49,7 +49,7 @@ public class TaskMaster {
     //
     public boolean publish(String exchangeName, String routingKey, String messageBody, AMQP.BasicProperties properties) {
 
-        logger.info("Publishing content to: {}", routingKey);
+        logger.debug("Publishing content to: {}", routingKey);
         try {
             w = new Worker();
             w.connect();
@@ -70,7 +70,7 @@ public class TaskMaster {
     //
     public boolean purge_queues() {
 
-        logger.info("Puring the content of all queues");
+        logger.debug("Puring the content of all queues");
         w = new Worker();
         w.connect();
         boolean result = w.purge_all();

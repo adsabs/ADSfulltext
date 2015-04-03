@@ -22,9 +22,11 @@ package org.adslabs.adsfulltext;
 import java.io.FileInputStream;
 
 import org.apache.pdfbox.util.PDFTextStripper;
+import org.apache.pdfbox.util.TextNormalize;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.cos.COSDocument;
 import org.apache.pdfbox.pdfparser.PDFParser;
+
 
 import org.json.JSONObject;
 import org.json.JSONArray;
@@ -34,6 +36,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.text.Normalizer;
 
 public class PDFExtract {
 
@@ -57,6 +60,23 @@ public class PDFExtract {
         }
     }
 
+    public String textCleaner (String messageToClean) {
+        // Normalis(z)e the text so that we have the correct characters.
+        // For example, an o-umlaut goes from o" to the correct formatting, this is normalising
+        // For consistent comparison, I use the same naming convention as used by Jay
+        TextNormalize normalizer = new TextNormalize("UTF-8");
+        messageToClean = normalizer.normalizeDiac(messageToClean);
+        messageToClean = normalizer.normalizePres(messageToClean);
+
+        // This unifies characters such as e+accent to accented-e
+        messageToClean = Normalizer.normalize(messageToClean, Normalizer.Form.NFKC);
+
+        // Remove new lines
+        messageToClean = messageToClean.replace("\n", "");
+
+        return messageToClean;
+    }
+
     // Main function that takes care of all the extraction regardless of the underlying process
     //
     public String extract (String fileSource) throws Exception {
@@ -65,7 +85,7 @@ public class PDFExtract {
         // Create the path to the PDF
         //
         try{
-            logger.info("Creating pdf file");
+            logger.debug("Creating pdf file");
             this.pdfFile = new FileInputStream(fileSource);
         } catch (java.io.FileNotFoundException error) {
             String message = "File not found: " + error.getMessage();
@@ -75,7 +95,7 @@ public class PDFExtract {
 
         // Create the PDF parser of the document of interest
         try {
-            logger.info("Creating PDF parser for the PDF file");
+            logger.debug("Creating PDF parser for the PDF file");
             this.pdfParser = new PDFParser(pdfFile);
         } catch (java.io.IOException error) {
             String message = "There is an error loading the COSDocument: " + error.getMessage();
@@ -86,7 +106,7 @@ public class PDFExtract {
         // Parse the document and obtain the PDDocument, followed by extracting the content
         // Make sure we close the PDDocument at the end
         try {
-            logger.info("Parsing and extracting the PDF file");
+            logger.debug("Parsing and extracting the PDF file");
             this.pdfParser.parse();
             this.pdDocument = this.pdfParser.getPDDocument();
             this.message = this.stripper.getText(pdDocument);
@@ -97,7 +117,7 @@ public class PDFExtract {
             throw new Exception(message, error);
         } finally {
             try {
-                logger.info("Closing all relevant PDF content.");
+                logger.debug("Closing all relevant PDF content.");
                 this.pdDocument.close();
             } catch (java.io.IOException error) {
                 String message = "There is an error loading the PDFBox Stripper properties: " + error.getMessage();
@@ -106,6 +126,9 @@ public class PDFExtract {
             }
 
         }
+
+        // Clean text
+        this.message = this.textCleaner(this.message);
 
         return this.message;
     }

@@ -71,66 +71,72 @@ def write_content(payload_dictionary):
         if const in ["FULL_TEXT", "ACKNOWLEDGEMENTS", "DATASET"]: continue
         try:
             meta_dict[CONSTANTS[const]] = payload_dictionary[CONSTANTS[const]]
-            logger.info("Adding meta content: %s" % const)
+            logger.debug("Adding meta content: %s" % const)
         except KeyError:
             print("Missing meta content: %s" % const)
             continue
 
     # Write the custom extractions of content to the meta.json
-    logger.info("Copying extra meta content")
+    logger.debug("Copying extra meta content")
     for meta_key_word in META_CONTENT[payload_dictionary[CONSTANTS['FORMAT']]]:
         if meta_key_word == CONSTANTS['FULL_TEXT']:
             continue
 
-        logger.info(meta_key_word)
+        logger.debug(meta_key_word)
         try:
             meta_key_word_value = payload_dictionary[meta_key_word]
             meta_dict[meta_key_word] = meta_key_word_value
 
             try:
                 meta_constant_file_path = os.path.join(bibcode_pair_tree_path, meta_key_word) + '.txt'
-                logger.info("Writing %s to file at: %s" % (meta_key_word, meta_constant_file_path))
+                logger.debug("Writing %s to file at: %s" % (meta_key_word, meta_constant_file_path))
                 write_file(meta_constant_file_path, meta_key_word_value, json_format=False)
-                logger.info("Writing complete.")
+                logger.info("WriteMetaFile: completed bibcode: %s" % payload_dictionary[CONSTANTS['BIBCODE']])
             except IOError:
+                logger.error("IO Error when writing to file.")
                 raise IOError
 
         except KeyError:
-            logger.info("Does not contain the following meta data: %s" % meta_key_word)
+            logger.debug("Does not contain the following meta data: %s" % meta_key_word)
             continue
 
     # Write the full text content to its own file fulltext.txt
-    logger.info("Copying full text content")
+    logger.debug("Copying full text content")
     full_text_dict = {CONSTANTS['FULL_TEXT']: payload_dictionary[CONSTANTS['FULL_TEXT']]}
 
     try:
-        logger.info("Writing to file: %s" % meta_output_file_path)
-        logger.info("Content has keys: %s" % (meta_dict.keys()))
+        logger.debug("Writing to file: %s" % meta_output_file_path)
+        logger.debug("Content has keys: %s" % (meta_dict.keys()))
         write_file(meta_output_file_path, meta_dict, json_format=True)
-        logger.info("Writing complete.")
+        logger.debug("Writing complete.")
     except IOError:
+        logger.error("IO Error when writing to file.")
         raise IOError
 
     try:
-        logger.info("Writing to file: %s" % full_text_output_file_path)
-        logger.info("Content has length: %d" % (len(full_text_dict[CONSTANTS['FULL_TEXT']])))
+        logger.debug("Writing to file: %s" % full_text_output_file_path)
+        logger.debug("Content has length: %d" % (len(full_text_dict[CONSTANTS['FULL_TEXT']])))
         write_file(full_text_output_file_path, full_text_dict[CONSTANTS['FULL_TEXT']], json_format=False)
-        logger.info("Writing complete.")
+        logger.debug("Writing complete.")
     except KeyError:
-        KeyError(full_text_dict)
+        logger.error("KeyError for dictionary %s" % payload_dictionary[CONSTANTS['BIBCODE']])
+        raise KeyError
     except IOError:
+        logger.error("IO Error when writing to file %s" % payload_dictionary[CONSTANTS['BIBCODE']])
         raise IOError
 
 
 def extract_content(input_list, **kwargs):
 
-    logger.info('WriteMetaFile: Beginning list with type: %s' % type(input_list))
+    logger.debug('WriteMetaFile: Beginning list with type: %s' % type(input_list))
+    bibcode_list = []
     for dict_item in input_list:
         try:
             write_content(dict_item)
+            bibcode_list.append(dict_item[CONSTANTS['BIBCODE']])
         except Exception:
             import traceback
-            logger.info("Failed on dict item: %s" % dict_item)
-            raise Exception(traceback.format_exc())
+            logger.error("Failed on dict item: %s (%s)" % (dict_item, traceback.format_exc()))
+            raise Exception
 
-    return 1
+    return json.dumps(bibcode_list)

@@ -8,7 +8,8 @@ import json
 import lib.CheckIfExtract as check_if_extract
 from pipeline import psettings
 from pipeline.workers import RabbitMQWorker, CheckIfExtractWorker, \
-    StandardFileExtractWorker, WriteMetaFileWorker, ErrorHandlerWorker
+    StandardFileExtractWorker, WriteMetaFileWorker, ErrorHandlerWorker, \
+    ProxyPublishWorker
 from pipeline.ADSfulltext import TaskMaster
 from run import publish, read_links_from_file
 from settings import META_CONTENT, PROJ_HOME, CONSTANTS
@@ -115,13 +116,15 @@ class TestGeneric(unittest.TestCase):
         standard_params = psettings.WORKERS['StandardFileExtractWorker']
         writer_params = psettings.WORKERS['WriteMetaFileWorker']
         error_params = psettings.WORKERS['ErrorHandlerWorker']
+        proxy_params = psettings.WORKERS['ProxyPublishWorker']
 
-        for params in [check_params, standard_params, writer_params, error_params]:
+        for params in [check_params, standard_params, writer_params, error_params, proxy_params]:
             params['RABBITMQ_URL'] = psettings.RABBITMQ_URL
             params['ERROR_HANDLER'] = psettings.ERROR_HANDLER
             params['extract_key'] = "FULLTEXT_EXTRACT_PATH_UNITTEST"
             params['TEST_RUN'] = True
             params['PDF_EXTRACTOR'] = psettings.PDF_EXTRACTOR
+            params['PROXY_PUBLISH'] = psettings.PROXY_PUBLISH
 
         self.params = params
         self.check_worker = CheckIfExtractWorker(params=check_params)
@@ -129,6 +132,7 @@ class TestGeneric(unittest.TestCase):
         self.standard_worker.logger.debug("params: %s" % standard_params)
         self.meta_writer = WriteMetaFileWorker(params=writer_params)
         self.error_worker = ErrorHandlerWorker(params=error_params)
+        self.proxy_worker = ProxyPublishWorker(params=proxy_params)
         self.meta_path = ''
         self.channel_list = None
 

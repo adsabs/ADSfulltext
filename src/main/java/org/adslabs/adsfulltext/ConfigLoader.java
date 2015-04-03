@@ -64,10 +64,10 @@ public class ConfigLoader {
         InputStreamReader newInputStream = null;
         // -------------------------------
 
-        logger.info("Loading YAML config");
+        logger.debug("Loading YAML config");
         try {
             resource = getClass().getResourceAsStream(this.getConfigFileName());
-            logger.info("Config file being used: {}", resource);
+            logger.debug("Config file being used: {}", resource);
 
             newInputStream = new InputStreamReader(resource);
 

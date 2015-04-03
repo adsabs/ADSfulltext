@@ -67,5 +67,14 @@ class TestExtractWorker(TestGeneric):
         for path in self.expected_paths:
             self.assertTrue(os.path.exists(path))
 
+        error_queue = self.meta_writer.channel.queue_declare(
+            queue="ProxyPublishQueue",
+            passive=True
+            )
+
+        self.assertTrue(error_queue.method.message_count,
+                        "Proxy publish queue should have at least 1 message, but it has: %d" %
+                        (error_queue.method.message_count))
+
 if __name__ == "__main__":
     unittest.main()

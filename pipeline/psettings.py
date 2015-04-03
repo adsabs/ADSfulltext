@@ -17,6 +17,13 @@ PDF_EXTRACTOR = {
     'class_name': 'org.adslabs.adsfulltext.PDFExtractList',
 }
 
+PROXY_PUBLISH = {
+    'exchange': 'MergerPipelineExchange',
+    'routing_key': 'ReingestRecordsRoute',
+    'queue': 'ReingestRecordsQueue',
+    'RABBITMQ_URL': 'amqp://guest:guest@localhost:5672/ADSimportpipeline?socket_timeout=10&backpressure_detection=t',
+}
+
 RABBITMQ_ROUTES = {
   'EXCHANGES':[
     {
@@ -46,7 +53,11 @@ RABBITMQ_ROUTES = {
     {
       'queue': 'ErrorHandlerQueue',
       'durable': True,
-    },     
+    },
+    {
+      'queue': 'ProxyPublishQueue',
+      'durable': True,
+    },
   ],
   'BINDINGS':[
     {
@@ -73,6 +84,11 @@ RABBITMQ_ROUTES = {
       'queue':        'ErrorHandlerQueue',
       'exchange':     'FulltextExtractionExchange',
       'routing_key':  'ErrorHandlerRoute',
+    },
+    {
+      'queue':        'ProxyPublishQueue',
+      'exchange':     'FulltextExtractionExchange',
+      'routing_key':  'ProxyPublishRoute',
     },
   ],
 }
@@ -101,6 +117,7 @@ WORKERS = {
     'WriteMetaFileWorker': {
     'concurrency': 1,
     'publish': [
+        {'exchange': 'FulltextExtractionExchange', 'routing_key': 'ProxyPublishRoute',},
     ],
     'subscribe': [
       {'queue': 'WriteMetaFileQueue',},
@@ -112,6 +129,14 @@ WORKERS = {
     ],
     'subscribe': [
       {'queue': 'ErrorHandlerQueue',},
+    ],
+  },
+  'ProxyPublishWorker': {
+    'concurrency': 1,
+    'publish': [
+    ],
+    'subscribe': [
+      {'queue': 'ProxyPublishQueue',},
     ],
   },
 }
