@@ -18,3 +18,5 @@ script:
  - coverage run --source=. tests/test_unit/test.py
  - tests/integration_test.sh
  - mvn test
+after_success:
+ - coveralls
