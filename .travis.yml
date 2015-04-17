@@ -17,7 +17,7 @@ before_script:
 script:
  - coverage run -p --source=. tests/test_unit/test.py
  - tests/integration_test.sh
- - mvn test
+ - mvn test -DdryRun=true -DcoverallsFile=java_coverage.json jacoco:report coveralls:report
 after_success:
  - coverage combine
- - coveralls
+ - coveralls --merge=java_coverage.json
