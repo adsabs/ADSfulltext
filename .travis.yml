@@ -15,6 +15,6 @@ before_script:
  - sudo rabbitmqctl set_permissions -p adsfulltext guest ".*" ".*" ".*"
  - sudo rabbitmqctl set_permissions -p external_vhost guest ".*" ".*" ".*"
 script:
- - nosetests -w tests/test_unit/ test.py
+ - coverage run --source=. tests/test_unit/test.py
  - tests/integration_test.sh
  - mvn test
