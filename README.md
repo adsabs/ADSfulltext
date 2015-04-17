@@ -1,4 +1,5 @@
-[![Build Status](https://travis-ci.org/adsabs/ADSfulltext.svg)](https://travis-ci.org/adsabs/ADSfulltext)
+[![Build Status](https://travis-ci.org/jonnybazookatone/ADSfulltext.svg)](https://travis-ci.org/adsabs/ADSfulltext)
+[![Coverage Status](https://coveralls.io/repos/jonnybazookatone/ADSfulltext/badge.svg)](https://coveralls.io/r/jonnybazookatone/ADSfulltext)
 # ADSfulltext
 
 Article full text exctraction pipeline based on advanced messaging queing protocol.
