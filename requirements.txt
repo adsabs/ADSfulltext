@@ -8,3 +8,4 @@ dateutils
 httpretty
 requests
 supervisor
+coverage
