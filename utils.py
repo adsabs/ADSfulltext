@@ -22,7 +22,7 @@ import unicodedata
 import re
 import json
 
-from settings import config, PROJ_HOME
+from settings import config, PROJ_HOME, CONSTANTS
 from logging import handlers
 from cloghandler import ConcurrentRotatingFileHandler
 
@@ -110,9 +110,11 @@ class FileInputStream(object):
         print "Provider: %s" % self.provider
         print "Raw content: %s" % self.raw
 
-    def extract(self):
+    def extract(self, force_extract=False):
         """
         Opens the file and parses the content depending on the type of input
+        :param force_extract: boolean decides if the normal checks should
+        be ignored and extracted regardless
         :return: the bibcode, full text path, provider, and raw content
         """
 
@@ -131,9 +133,17 @@ class FileInputStream(object):
                     bibcode.append(l[0])
                     full_text_path.append(l[1])
                     provider.append(l[2])
-                    raw.append({"bibcode": bibcode[-1],
-                                "ft_source": full_text_path[-1],
-                                "provider": provider[-1]})
+                    payload_dictionary = {
+                        CONSTANTS['BIBCODE']: bibcode[-1],
+                        CONSTANTS['FILE_SOURCE']: full_text_path[-1],
+                        CONSTANTS['PROVIDER']: provider[-1]
+                    }
+
+                    if force_extract:
+                        payload_dictionary[CONSTANTS['UPDATE']] = \
+                            'FORCE_TO_EXTRACT'
+
+                    raw.append(payload_dictionary)
 
             self.bibcode = bibcode
             self.full_text_path = full_text_path

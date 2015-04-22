@@ -15,8 +15,11 @@ __credit__ = ['V. Sudilovsky']
 __license__ = "GPLv3"
 
 
-import sys, os
-PROJECT_HOME = os.path.abspath(os.path.join(os.path.dirname(__file__),'../../'))
+import sys
+import os
+
+PROJECT_HOME = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), '../../'))
 sys.path.append(PROJECT_HOME)
 
 import unittest
@@ -34,23 +37,52 @@ from lib import test_base
 from requests.exceptions import HTTPError
 
 
-test_file = os.path.join(PROJ_HOME, 'tests/test_integration/stub_data/fulltext.links')
-test_file_stub = os.path.join(PROJ_HOME, 'tests/test_integration/stub_data/fulltext_stub.links')
-test_file_wrong = os.path.join(PROJ_HOME, 'tests/test_integration/stub_data/fulltext_wrong.links')
-test_file_exists = os.path.join(PROJ_HOME, 'tests/test_integration/stub_data/fulltext_exists.links')
-test_single_document = os.path.join(PROJ_HOME, 'tests/test_integration/stub_data/fulltext_single_document.links')
+test_file = \
+    os.path.join(PROJ_HOME,
+                 'tests/test_integration/stub_data/fulltext.links')
+test_file_stub = \
+    os.path.join(PROJ_HOME,
+                 'tests/test_integration/stub_data/fulltext_stub.links')
+test_file_wrong = \
+    os.path.join(PROJ_HOME,
+                 'tests/test_integration/stub_data/fulltext_wrong.links')
+test_file_exists = \
+    os.path.join(PROJ_HOME,
+                 'tests/test_integration/stub_data/fulltext_exists.links')
+test_single_document =\
+    os.path.join(PROJ_HOME,
+                 'tests/test_integration/stub_data/fulltext_single_document'
+                 '.links')
 
-test_stub_xml = os.path.join(PROJ_HOME, 'tests/test_unit/stub_data/test.xml')
-test_stub_exml = os.path.join(PROJ_HOME, 'tests/test_unit/stub_data/test_elsevier.xml')
-test_stub_html = os.path.join(PROJ_HOME, 'tests/test_unit/stub_data/test.html')
-test_stub_html_table = os.path.join(PROJ_HOME, 'tests/test_unit/stub_data/test_table.html')
-test_stub_text = os.path.join(PROJ_HOME, 'tests/test_unit/stub_data/test.txt')
-test_stub_ocr = os.path.join(PROJ_HOME, 'tests/test_unit/stub_data/test.ocr')
+test_stub_xml = \
+    os.path.join(PROJ_HOME,
+                 'tests/test_unit/stub_data/test.xml')
+test_stub_exml = \
+    os.path.join(PROJ_HOME,
+                 'tests/test_unit/stub_data/test_elsevier.xml')
+test_stub_html = \
+    os.path.join(PROJ_HOME,
+                 'tests/test_unit/stub_data/test.html')
+test_stub_html_table = \
+    os.path.join(PROJ_HOME,
+                 'tests/test_unit/stub_data/test_table.html')
+test_stub_text = \
+    os.path.join(PROJ_HOME,
+                 'tests/test_unit/stub_data/test.txt')
+test_stub_ocr = \
+    os.path.join(PROJ_HOME,
+                 'tests/test_unit/stub_data/test.ocr')
 
-test_functional_stub = os.path.join(PROJ_HOME, 'tests/test_functional/stub_data/fulltext_functional_tests.links')
+test_functional_stub =\
+    os.path.join(PROJ_HOME,
+                 'tests/test_functional/stub_data/fulltext_functional_tests'
+                 '.links')
 
 
 class TestCheckIfExtracted(test_base.TestUnit):
+    """
+    Tests the CheckIfExtract worker's methods, i.e., the unit functions.
+    """
 
     def test_file_not_extracted_before(self):
 
@@ -59,7 +91,10 @@ class TestCheckIfExtracted(test_base.TestUnit):
 
         payload = FileInputStream.raw[0]
 
-        exists = check.meta_output_exists(payload, extract_key="FULLTEXT_EXTRACT_PATH_UNITTEST")
+        exists = check.meta_output_exists(
+            payload,
+            extract_key="FULLTEXT_EXTRACT_PATH_UNITTEST"
+        )
 
         self.assertEqual(exists, False)
 
@@ -70,9 +105,16 @@ class TestCheckIfExtracted(test_base.TestUnit):
 
         payload = FileInputStream.raw[0]
 
-        exists = check.meta_output_exists(payload, extract_key="FULLTEXT_EXTRACT_PATH_UNITTEST")
+        exists = check.meta_output_exists(
+            payload,
+            extract_key='FULLTEXT_EXTRACT_PATH_UNITTEST'
+        )
 
-        self.assertEqual(exists, True, "Could not establish that this file has been extracted before")
+        self.assertEqual(
+            exists,
+            True,
+            'Could not establish that this file has been extracted before'
+        )
 
     def test_file_extract_meta(self):
 
@@ -81,25 +123,42 @@ class TestCheckIfExtracted(test_base.TestUnit):
 
         payload = FileInputStream.raw[0]
 
-        content = check.load_meta_file(payload, extract_key="FULLTEXT_EXTRACT_PATH_UNITTEST")
+        content = check.load_meta_file(
+            payload,
+            extract_key='FULLTEXT_EXTRACT_PATH_UNITTEST'
+        )
 
-
-        self.assertTrue(len(content)>0, "Did not extract the meta data correctly")
+        self.assertTrue(
+            len(content) > 0,
+            'Did not extract the meta data correctly'
+        )
 
     def test_file_should_be_updated_if_missing_fulltext(self):
 
         FileInputStream = utils.FileInputStream(test_file_exists)
         FileInputStream.extract()
 
-        meta_content = check.load_meta_file(FileInputStream.raw[0], extract_key="FULLTEXT_EXTRACT_PATH_UNITTEST")
+        meta_content = check.load_meta_file(
+            FileInputStream.raw[0],
+            extract_key='FULLTEXT_EXTRACT_PATH_UNITTEST'
+        )
+
         new_meta_content = {}
 
         for key in meta_content.keys():
-            if key != 'ft_source':	new_meta_content[key] = meta_content[key]
+            if key != 'ft_source':
+                new_meta_content[key] = meta_content[key]
 
-        updated = check.meta_needs_update(FileInputStream, new_meta_content, extract_key="FULLTEXT_EXTRACT_PATH_UNITTEST")
+        updated = check.meta_needs_update(
+            FileInputStream,
+            new_meta_content,
+            extract_key='FULLTEXT_EXTRACT_PATH_UNITTEST'
+        )
 
-        self.assertEqual(updated, 'MISSING_FULL_TEXT', "The ft_source should need updating, not %s" % updated)
+        self.assertEqual(updated,
+                         'MISSING_FULL_TEXT',
+                         'The ft_source should need updating, not {0}'
+                         .format(updated))
 
     def test_file_should_be_updated_if_content_differs_to_input(self):
 
@@ -107,12 +166,24 @@ class TestCheckIfExtracted(test_base.TestUnit):
         FileInputStream.extract()
         payload = FileInputStream.raw[0]
 
-        meta_content = check.load_meta_file(payload, extract_key="FULLTEXT_EXTRACT_PATH_UNITTEST")
+        meta_content = check.load_meta_file(
+            payload,
+            extract_key='FULLTEXT_EXTRACT_PATH_UNITTEST'
+        )
 
         meta_content['ft_source'] = ''
-        updated = check.meta_needs_update(payload, meta_content, extract_key="FULLTEXT_EXTRACT_PATH_UNITTEST")
 
-        self.assertEqual(updated, 'DIFFERING_FULL_TEXT', "The ft_source should need updating, not %s" % updated)
+        updated = check.meta_needs_update(
+            payload,
+            meta_content,
+            extract_key='FULLTEXT_EXTRACT_PATH_UNITTEST'
+        )
+
+        self.assertEqual(updated,
+                         'DIFFERING_FULL_TEXT',
+                         'The ft_source should need updating, not {0}'
+                         .format(updated)
+        )
 
     def test_file_should_be_updated_if_content_is_stale(self):
 
@@ -123,15 +194,28 @@ class TestCheckIfExtracted(test_base.TestUnit):
         # Ensure the PDF more new than the meta.json
         payload = FileInputStream.raw[0]
         with open(payload[CONSTANTS['FILE_SOURCE']], 'w') as not_stale:
-            not_stale.write("PDF")
+            not_stale.write('PDF')
 
         # Not a nicer way to do this without cleaning up some tests
-        meta_content = check.load_meta_file(payload, extract_key="FULLTEXT_EXTRACT_PATH_UNITTEST")
-        meta_content[CONSTANTS['FILE_SOURCE']] = os.path.join(PROJ_HOME, meta_content[CONSTANTS['FILE_SOURCE']])
+        meta_content = check.load_meta_file(
+            payload,
+            extract_key='FULLTEXT_EXTRACT_PATH_UNITTEST'
+        )
 
-        updated = check.meta_needs_update(payload, meta_content, extract_key="FULLTEXT_EXTRACT_PATH_UNITTEST")
+        meta_content[CONSTANTS['FILE_SOURCE']] \
+            = os.path.join(PROJ_HOME, meta_content[CONSTANTS['FILE_SOURCE']])
 
-        self.assertEqual(updated, 'STALE_CONTENT', "The file content should be stale, not %s (%s\n%s)" % (updated, payload, meta_content))
+        updated = check.meta_needs_update(
+            payload,
+            meta_content,
+            extract_key="FULLTEXT_EXTRACT_PATH_UNITTEST"
+        )
+
+        self.assertEqual(updated,
+                         'STALE_CONTENT',
+                         'The file content should be stale, not {0} ({1}\n{2})'
+                         .format(updated, payload, meta_content)
+        )
 
     def test_file_should_be_extracted(self):
 
@@ -142,21 +226,41 @@ class TestCheckIfExtracted(test_base.TestUnit):
             text = in_f.read()
         pdf_re = re.compile('pdf')
         pdf_number = len(pdf_re.findall(text))
-        standard_number = len([i for i in text.split('\n') if i!= '']) - pdf_number
+        standard_number = \
+            len([i for i in text.split('\n') if i != '']) - pdf_number
 
-        payload = check.check_if_extract(FileInputStream.raw, extract_key="FULLTEXT_EXTRACT_PATH_UNITTEST")
-        pdf_payload = json.loads(payload["PDF"])
-        standard_payload = json.loads(payload["Standard"])
+        payload = check.check_if_extract(
+            FileInputStream.raw, extract_key='FULLTEXT_EXTRACT_PATH_UNITTEST'
+
+        )
+        pdf_payload = json.loads(payload['PDF'])
+        standard_payload = json.loads(payload['Standard'])
 
         if pdf_payload:
-            pdf_compare = [content for content in json.loads(payload["PDF"]) if content["UPDATE"] in
-            [u"STALE_CONTENT", u"DIFFERING_FULL_TEXT", u"MISSING_FULL_TEXT", u"NOT_EXTRACTED_BEFORE"]]
+
+            pdf_compare = [
+                content for content in json.loads(payload['PDF'])
+                if content['UPDATE']
+                in [u'STALE_CONTENT',
+                    u'DIFFERING_FULL_TEXT',
+                    u'MISSING_FULL_TEXT"'
+                    u'NOT_EXTRACTED_BEFORE']
+            ]
+
         else:
             pdf_compare = []
 
         if standard_payload:
-            standard_compare = [content for content in json.loads(payload["Standard"]) if content["UPDATE"] in
-            [u"STALE_CONTENT", u"DIFFERING_FULL_TEXT", u"MISSING_FULL_TEXT", u"NOT_EXTRACTED_BEFORE"]]
+
+            standard_compare = [
+                content for content in json.loads(payload['Standard'])
+                if content['UPDATE']
+                in [u'STALE_CONTENT',
+                    u'DIFFERING_FULL_TEXT',
+                    u'MISSING_FULL_TEXT',
+                    u'NOT_EXTRACTED_BEFORE']
+            ]
+
         else:
             standard_compare = []
 
@@ -168,12 +272,14 @@ class TestCheckIfExtracted(test_base.TestUnit):
         FileInputStream = utils.FileInputStream(test_single_document)
         FileInputStream.extract()
 
-        payload = check.check_if_extract(FileInputStream.raw, extract_key="FULLTEXT_EXTRACT_PATH_UNITTEST")
+        payload = check.check_if_extract(
+            FileInputStream.raw, extract_key='FULLTEXT_EXTRACT_PATH_UNITTEST'
+        )
 
         expected_content = [CONSTANTS['FILE_SOURCE'], CONSTANTS['BIBCODE'],
-                              CONSTANTS['PROVIDER'], CONSTANTS['FORMAT'],
-                              CONSTANTS['UPDATE'], CONSTANTS['META_PATH'],
-                              CONSTANTS['TIME_STAMP']]
+                            CONSTANTS['PROVIDER'], CONSTANTS['FORMAT'],
+                            CONSTANTS['UPDATE'], CONSTANTS['META_PATH'],
+                            CONSTANTS['TIME_STAMP']]
         expected_content = [unicode(i) for i in expected_content]
         expected_content.sort()
 
@@ -188,10 +294,48 @@ class TestCheckIfExtracted(test_base.TestUnit):
         FileInputStream = utils.FileInputStream(test_single_document)
         FileInputStream.extract()
 
-        payload = check.check_if_extract(FileInputStream.raw, extract_key="FULLTEXT_EXTRACT_PATH_UNITTEST")
+        payload = check.check_if_extract(
+            FileInputStream.raw, extract_key='FULLTEXT_EXTRACT_PATH_UNITTEST'
+        )
 
         self.assertFalse(json.loads(payload['PDF']))
         self.assertTrue(len(json.loads(payload['Standard'])) != 0)
+
+    def test_that_file_should_be_updated_if_forced(self):
+        """
+        If the dictionary contains a force value in the update keyword, then
+        the worker should pass on the content regardless of whether it passes
+        any other checks
+        :return: no return
+        """
+
+        FileInputStream_true = utils.FileInputStream(test_file_exists)
+        FileInputStream_true.extract(force_extract=True)
+
+        FileInputStream_false = utils.FileInputStream(test_file_exists)
+        FileInputStream_false.extract(force_extract=False)
+
+        payload_true = check.check_if_extract(
+            FileInputStream_true.raw,
+            extract_key='FULLTEXT_EXTRACT_PATH_UNITTEST'
+        )
+        first_doc_true = json.loads(payload_true['PDF'])[0]
+
+        payload_false = check.check_if_extract(
+            FileInputStream_false.raw,
+            extract_key='FULLTEXT_EXTRACT_PATH_UNITTEST'
+        )
+        first_doc_false = json.loads(payload_true['PDF'])[0]
+
+
+        self.assertTrue(first_doc_true['UPDATE'],
+                        'FORCE_TO_EXTRACT')
+        self.assertTrue(len(json.loads(payload_false['PDF'])) != 0)
+
+        self.assertTrue(first_doc_false['UPDATE'],
+                        'DIFFERING_FULL_TEXT')
+        self.assertTrue(len(json.loads(payload_false['PDF'])) != 0)
+
 
 
 class TestFileStreamInput(test_base.TestUnit):

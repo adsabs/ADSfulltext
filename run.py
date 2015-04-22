@@ -88,25 +88,41 @@ def publish(w, records, sleep=5, max_queue_size=10000,
     return True
 
 
-def read_links_from_file(file_input):
+def read_links_from_file(file_input, force_extract):
     """
     Opens the link file given and parses the content into a set of lists.
 
     :param file_input: path to the link file
+    :param force_extract: did the user bypass the internal checks
     :return: file stream type (see utils.py)
     """
 
     FileInputStream = utils.FileInputStream(file_input)
-    FileInputStream.extract()
+    FileInputStream.extract(force_extract=force_extract)
 
     return FileInputStream
 
 
 def run(full_text_links, **kwargs):
+    """
+    Locates the file specified by the user, loads the list of bibcodes and
+    parses the relevant content. It then publishes this to the CheckIfExtract
+    queue on the RabbitMQ instance specified in psettings.py. This essentially
+    the main() of this script and is meant to be the sole injector of packets
+    to the ADSfulltext system. Extra keywords can be taken care of here, to be
+    passed on to the relevant sub functions or classes.
+
+    :param full_text_links: path to the file containing the full text articles
+    :param kwargs: extra keyword arguments
+    :return: no return
+    """
 
     logger.info('Loading records from: {0}'.format(full_text_links))
 
-    records = read_links_from_file(full_text_links)
+    records = read_links_from_file(
+        full_text_links,
+        force_extract=kwargs['force_extract']
+    )
 
     logger.info('Constructing temporary worker for publising records.')
     publish_worker = workers.RabbitMQWorker()
@@ -167,12 +183,20 @@ if __name__ == "__main__":
                         '--max_queue_size',
                         dest='max_queue_size',
                         action='store',
-                        type=int)
+                        type=int,
+                        help='The maximum number of packets in a queue')
+
+    parser.add_argument('-e',
+                        '--extract_force',
+                        dest='force_extract',
+                        action='store_true',
+                        help='Force the extract of all input bibcodes')
 
     parser.set_defaults(fulltext_links=False)
     parser.set_defaults(packet_size=100)
     parser.set_defaults(purge_queues=False)
     parser.set_defaults(max_queue_size=10000)
+    parser.set_defaults(force_extract=False)
 
     args = parser.parse_args()
 
@@ -188,4 +212,5 @@ if __name__ == "__main__":
     # Send the files to be put on the queue
     run(args.full_text_links,
         packet_size=args.packet_size,
-        max_queue_size=args.max_queue_size)
+        max_queue_size=args.max_queue_size,
+        force_extract=args.force_extract)

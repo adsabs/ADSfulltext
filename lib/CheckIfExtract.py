@@ -195,8 +195,8 @@ def check_if_extract(message_list, extract_key='FULLTEXT_EXTRACT_PATH'):
     extraction of the full text is required.
     """
 
-    NEEDS_UPDATE = ["MISSING_FULL_TEXT", "DIFFERING_FULL_TEXT", "STALE_CONTENT",
-                    "NOT_EXTRACTED_BEFORE"]
+    NEEDS_UPDATE = ['MISSING_FULL_TEXT', 'DIFFERING_FULL_TEXT', 'STALE_CONTENT',
+                    'NOT_EXTRACTED_BEFORE', 'FORCE_TO_EXTRACT']
 
     publish_list_of_standard_dictionaries = []
     publish_list_of_pdf_dictionaries = []
@@ -204,7 +204,12 @@ def check_if_extract(message_list, extract_key='FULLTEXT_EXTRACT_PATH'):
     for message in message_list:
 
         # message should be a dictionary
-        if meta_output_exists(message, extract_key=extract_key):
+        print(message.keys())
+        if CONSTANTS['UPDATE'] in message.keys() \
+                and message[CONSTANTS['UPDATE']] == 'FORCE_TO_EXTRACT':
+            update = 'FORCE_TO_EXTRACT'
+
+        elif meta_output_exists(message, extract_key=extract_key):
             meta_content = load_meta_file(message, extract_key=extract_key)
             update = meta_needs_update(message, meta_content,
                                        extract_key=extract_key)
@@ -221,7 +226,7 @@ def check_if_extract(message_list, extract_key='FULLTEXT_EXTRACT_PATH'):
         logger.debug('created: %s' % message[CONSTANTS['META_PATH']])
 
         format_ = os.path.splitext(
-            message[CONSTANTS['FILE_SOURCE']])[-1].replace('.','').lower()
+            message[CONSTANTS['FILE_SOURCE']])[-1].replace('.', '').lower()
 
         if not format_ and 'http://' in message[CONSTANTS['FILE_SOURCE']]:
             format_ = 'http'
