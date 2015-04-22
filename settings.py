@@ -2,6 +2,15 @@
 Settings that are expected to be changed by the user. They influence the system as a whole
 """
 
+__author__ = 'J. Elliott'
+__maintainer__ = 'J. Elliott'
+__copyright__ = 'Copyright 2015'
+__version__ = '1.0'
+__email__ = 'ads@cfa.harvard.edu'
+__status__ = 'Production'
+__credit__ = ['V. Sudilovsky']
+__license__ = "GPLv3"
+
 import os
 
 FULLTEXT_EXTRACT_PATH = "/vagrant/live"
@@ -11,7 +20,8 @@ PROJ_HOME = os.path.dirname(os.path.realpath(__file__))
 
 config = {
     "FULLTEXT_EXTRACT_PATH": FULLTEXT_EXTRACT_PATH,
-    "FULLTEXT_EXTRACT_PATH_UNITTEST": os.path.join(PROJ_HOME, FULLTEXT_EXTRACT_PATH_UNITTEST),
+    "FULLTEXT_EXTRACT_PATH_UNITTEST":
+        os.path.join(PROJ_HOME, FULLTEXT_EXTRACT_PATH_UNITTEST),
     "LOGGING_LEVEL": "INFO",
 }
 
@@ -30,26 +40,53 @@ CONSTANTS = {
 
 META_CONTENT = {
     "xml": {
-        "fulltext": ['//body','//section[@type="body"]', '//journalarticle-body'],
-        "acknowledgements": ['//ack', '//section[@type="acknowledgments"]', '//subsection[@type="acknowledgement" or @type="acknowledgment"]'],
-        "dataset": ['//named-content[@content-type="dataset"]'],
+        "fulltext": [
+            '//body','//section[@type="body"]',
+            '//journalarticle-body'
+        ],
+        "acknowledgements": [
+            '//ack',
+            '//section[@type="acknowledgments"]',
+            '//subsection[@type="acknowledgement" or @type="acknowledgment"]'
+        ],
+        "dataset": [
+            '//named-content[@content-type="dataset"]'
+        ],
     },
     "xmlelsevier": {
-        "fulltext": ['//body','//raw-text'],
-        "acknowledgements": ['//acknowledgment', '//ack', '//section[@type="acknowledgments"]',
-                             '//subsection[@type="acknowledgement" or @type="acknowledgment"]',
-                             '//*[local-name()="acknowledgment"]'],
-        "dataset": ['//named-content[@content-type="dataset"]'],
+        "fulltext": [
+            '//body',
+            '//raw-text'
+        ],
+        "acknowledgements": [
+            '//acknowledgment',
+            '//ack',
+            '//section[@type="acknowledgments"]',
+            '//subsection[@type="acknowledgement" or @type="acknowledgment"]',
+            '//*[local-name()="acknowledgment"]'
+        ],
+        "dataset": [
+            '//named-content[@content-type="dataset"]'
+        ],
     },
     "html": {
-        "introduction": ['//h2[contains(.,"ntroduction")]',
-                         '//h2[contains(.,"ntroduction")]',
-                         '//p[contains(.,"Abstract")]',
-                         ],
-        "references": ['//h2[contains(.,"References")]'],
-        "table": ['//table'],
-        "table_links": ['//a[contains(@href, "TABLE_NAME")]'],
-        "head": ['//head']
+        "introduction": [
+            '//h2[contains(.,"ntroduction")]',
+            '//h2[contains(.,"ntroduction")]',
+            '//p[contains(.,"Abstract")]',
+            ],
+        "references": [
+            '//h2[contains(.,"References")]'
+        ],
+        "table": [
+            '//table'
+        ],
+        "table_links": [
+            '//a[contains(@href, "TABLE_NAME")]'
+        ],
+        "head": [
+            '//head'
+        ]
     },
     "txt": {"fulltext": [""]},
     "ocr": {"fulltext": [""]},
@@ -61,5 +98,6 @@ META_CONTENT = {
 # For production/testing environment
 try:
     from local_settings import *
+
 except ImportError as e:
     pass
