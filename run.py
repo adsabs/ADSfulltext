@@ -88,7 +88,7 @@ def publish(w, records, sleep=5, max_queue_size=10000,
     return True
 
 
-def read_links_from_file(file_input, force_extract):
+def read_links_from_file(file_input, force_extract=False):
     """
     Opens the link file given and parses the content into a set of lists.
 
