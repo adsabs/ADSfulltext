@@ -1,6 +1,20 @@
 """
+Unit tests of the project
+Each function related to the workers individual tools are tested in this
+suite. There is no communication
 Unit Test of the check records functions for the base class, CheckIfExtract
 """
+
+__author__ = 'J. Elliott'
+__maintainer__ = 'J. Elliott'
+__copyright__ = 'Copyright 2015'
+__version__ = '1.0'
+__email__ = 'ads@cfa.harvard.edu'
+__status__ = 'Production'
+__credit__ = ['V. Sudilovsky']
+__license__ = "GPLv3"
+
+
 import sys, os
 PROJECT_HOME = os.path.abspath(os.path.join(os.path.dirname(__file__),'../../'))
 sys.path.append(PROJECT_HOME)
