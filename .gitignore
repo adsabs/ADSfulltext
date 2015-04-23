@@ -14,3 +14,4 @@ fulltext*.links
 do_not_commit/
 .idea/
 target/*
+.coverage*
