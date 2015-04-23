@@ -108,6 +108,14 @@
             </ce:section>
         </ce:sections>
 
+
+        <ce:data>
+            <named-content content-type="dataset" xlink:href="Elsevier/ADS/Sa.CXO#Obs/11458">Manual Entry 1</named-content>
+        </ce:data>
+        <ce:data>
+            <named-content content-type="dataset" xlink:href="Elsevier/ADS/Sa.CXO#Obs/11459">Manual Entry 2</named-content>
+        </ce:data>
+
         <ce:acknowledgment id="ac0005" view="all">
             <ce:section-title id="st0040">Acknowledgments</ce:section-title>
             <ce:para id="p0125" view="all">THANK YOU</ce:para>

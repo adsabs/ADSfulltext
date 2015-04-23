@@ -372,23 +372,32 @@ class TestFileStreamInput(test_base.TestUnit):
 
 
 class TestXMLExtractor(unittest.TestCase):
+    """
+    Checks the basic functionality of the XML extractor. The content that is to
+    be extracted is defined within a dictionary inside settings.py. If this is
+    modified, these tests should first be changed to reflect the needed updates.
+    """
 
     def setUp(self):
-        self.dict_item = {CONSTANTS["FILE_SOURCE"]: test_stub_xml,
-                          CONSTANTS['FORMAT']: 'xml', CONSTANTS['PROVIDER']: 'MNRAS'}
+        self.dict_item = {CONSTANTS['FILE_SOURCE']: test_stub_xml,
+                          CONSTANTS['FORMAT']: 'xml',
+                          CONSTANTS['PROVIDER']: 'MNRAS'}
         self.extractor = std_extract.EXTRACTOR_FACTORY['xml'](self.dict_item)
 
     def test_that_we_can_open_an_xml_file(self):
         full_text_content = self.extractor.open_xml()
 
-        self.assertIn("<journal-title>JOURNAL TITLE</journal-title>", full_text_content)
+        self.assertIn(
+            '<journal-title>JOURNAL TITLE</journal-title>',
+            full_text_content
+        )
 
     def test_that_we_can_parse_the_xml_content(self):
         full_text_content = self.extractor.open_xml()
         content = self.extractor.parse_xml()
         journal_title = content.xpath('//journal-title')[0].text_content()
 
-        self.assertEqual(journal_title, "JOURNAL TITLE")
+        self.assertEqual(journal_title, 'JOURNAL TITLE')
 
     def test_that_we_can_extract_using_settings_template(self):
 
@@ -396,24 +405,94 @@ class TestXMLExtractor(unittest.TestCase):
         parsed_xml = self.extractor.parse_xml()
         content = self.extractor.extract_multi_content()
 
-        self.assertEqual(META_CONTENT["xml"].keys(), content.keys())
+        self.assertEqual(META_CONTENT['xml'].keys(), content.keys())
 
     def test_that_we_can_extract_all_content_from_payload_input(self):
 
-        file_path = "%s/%s" % (config["FULLTEXT_EXTRACT_PATH"], test_stub_xml)
+        file_path = '%s/%s' % (config['FULLTEXT_EXTRACT_PATH'], test_stub_xml)
         pay_load = [self.dict_item]
 
         content = json.loads(std_extract.extract_content(pay_load))
 
-        self.assertTrue(set(META_CONTENT['xml'].keys()).issubset(content[0].keys()))
+        self.assertTrue(
+            set(META_CONTENT['xml'].keys()).issubset(content[0].keys())
+        )
+
+    def test_that_the_correct_extraction_is_used_for_the_datatype(self):
+        """
+        Ensure that the defined data type in the settings.py dictionary loads
+        the correct method for extraction
+
+        :return: no return
+        """
+
+        extract_string = self.extractor.data_factory['string']
+        extract_list = self.extractor.data_factory['list']
+
+        self.assertTrue(
+            extract_string.func_name == 'extract_string',
+        )
+
+        self.assertTrue(
+            extract_list.func_name == 'extract_list',
+        )
+
+    def test_that_we_can_extract_a_list_of_datasets(self):
+        """
+        Within an XML document there may exist more than one dataset. To
+        ensure that they are all extracted, we should check that this works
+        otherwise there will be missing content
+
+        :return: no return
+        """
+
+        self.dict_item[CONSTANTS['BIBCODE']] = 'test'
+        full_text_content = self.extractor.open_xml()
+        parsed_xml = self.extractor.parse_xml()
+        content = self.extractor.extract_multi_content()
+
+        full_text = content[CONSTANTS['FULL_TEXT']]
+        acknowledgements = content[CONSTANTS['ACKNOWLEDGEMENTS']]
+        data_set = content[CONSTANTS['DATASET']]
+        data_set_length = len(data_set)
+
+        self.assertIs(unicode, type(acknowledgements))
+
+        self.assertIs(unicode, type(full_text))
+        expected_full_text = 'INTRODUCTION'
+        self.assertTrue(
+            expected_full_text in full_text,
+            'Full text is wrong: {0} [expected: {1}, data: {2}]'
+            .format(full_text,
+                    expected_full_text,
+                    full_text)
+        )
+
+        self.assertIs(list, type(data_set))
+        expected_dataset = 2
+        self.assertTrue(
+            data_set_length == expected_dataset,
+            'Number of datasets is wrong: {0} [expected: {1}, data: {2}]'
+            .format(data_set_length,
+                    expected_dataset,
+                    data_set)
+        )
 
 
 class TestXMLElsevierExtractor(unittest.TestCase):
+    """
+    Checks the basic functionality of the Elsevier XML extractor.
+    The content that is to be extracted is defined within a dictionary inside
+    settings.py. This does inherit from the normal XML extractor, but has
+    different requirements for extraction XPATHs due to the name spaces
+    used within the XML.
+    """
 
     def setUp(self):
         self.dict_item = {CONSTANTS["FILE_SOURCE"]: test_stub_exml,
                           CONSTANTS['BIBCODE']:  'TEST'}
-        self.extractor = std_extract.EXTRACTOR_FACTORY['elsevier'](self.dict_item)
+        self.extractor = \
+            std_extract.EXTRACTOR_FACTORY['elsevier'](self.dict_item)
 
     def test_that_we_can_open_an_xml_file(self):
         full_text_content = self.extractor.open_xml()
@@ -422,7 +501,8 @@ class TestXMLElsevierExtractor(unittest.TestCase):
     def test_that_we_can_parse_the_xml_content(self):
         full_text_content = self.extractor.open_xml()
         content = self.extractor.parse_xml()
-        journal_title = content.xpath("//*[local-name()='title']")[0].text_content()
+        journal_title = \
+            content.xpath("//*[local-name()='title']")[0].text_content()
         self.assertIn("JOURNAL TITLE", journal_title)
 
     def test_that_we_can_extract_using_settings_template(self):
@@ -431,9 +511,71 @@ class TestXMLElsevierExtractor(unittest.TestCase):
         parsed_xml = self.extractor.parse_xml()
         content = self.extractor.extract_multi_content()
 
-        self.assertItemsEqual(['fulltext', 'acknowledgements'], content.keys(), content.keys())
+        self.assertItemsEqual(['fulltext', 'acknowledgements', 'dataset'],
+                              content.keys(),
+                              content.keys())
+
         self.assertIn("JOURNAL CONTENT", content["fulltext"])
 
+    def test_that_the_correct_extraction_is_used_for_the_datatype(self):
+        """
+        Ensure that the defined data type in the settings.py dictionary loads
+        the correct method for extraction
+
+        :return: no return
+        """
+
+        extract_string = self.extractor.data_factory['string']
+        extract_list = self.extractor.data_factory['list']
+
+        self.assertTrue(
+            extract_string.func_name == 'extract_string',
+        )
+
+        self.assertTrue(
+            extract_list.func_name == 'extract_list',
+        )
+
+    def test_that_we_can_extract_a_list_of_datasets(self):
+        """
+        Within an XML document there may exist more than one dataset. To
+        ensure that they are all extracted, we should check that this works
+        otherwise there will be missing content
+
+        :return: no return
+        """
+
+        self.dict_item[CONSTANTS['BIBCODE']] = 'test'
+        full_text_content = self.extractor.open_xml()
+        parsed_xml = self.extractor.parse_xml()
+        content = self.extractor.extract_multi_content()
+
+        full_text = content[CONSTANTS['FULL_TEXT']]
+        acknowledgements = content[CONSTANTS['ACKNOWLEDGEMENTS']]
+        data_set = content[CONSTANTS['DATASET']]
+        data_set_length = len(data_set)
+
+        self.assertIs(unicode, type(acknowledgements))
+
+        self.assertIs(unicode, type(full_text))
+        expected_full_text = 'CONTENT'
+        self.assertTrue(
+            expected_full_text in full_text,
+            'Full text is wrong: {0} [expected: {1}, data: {2}]'
+            .format(full_text,
+                    expected_full_text,
+                    full_text)
+        )
+
+        self.assertIs(list, type(data_set))
+        expected_dataset = 2
+        self.assertTrue(
+            data_set_length == expected_dataset,
+            'Number of datasets is wrong: {0} [expected: {1}, data: {2}]'
+            .format(data_set_length,
+                    expected_dataset,
+                    data_set)
+        )
 
 class TestHTMLExtractor(unittest.TestCase):
 

@@ -74,6 +74,9 @@ def move_temp_file_to_file(temp_file_name, new_file_name):
         logger.error(
             'Unexpected error from os removing a file: {0}'.format(err))
 
+    logger.debug(
+        'Succeeded to copy: {0} to {1}'.format(temp_file_name, new_file_name)
+    )
 
 def write_file(file_name, payload, json_format=True):
     """
@@ -129,7 +132,7 @@ def write_content(payload_dictionary):
     meta_dict = {}
 
     for const in CONSTANTS:
-        if const in ['FULL_TEXT', 'ACKNOWLEDGEMENTS', 'DATASET']:
+        if const in ['FULL_TEXT', 'ACKNOWLEDGEMENTS']:
             continue
         try:
             meta_dict[CONSTANTS[const]] = payload_dictionary[CONSTANTS[const]]
@@ -141,7 +144,7 @@ def write_content(payload_dictionary):
     # Write the custom extractions of content to the meta.json
     logger.debug('Copying extra meta content')
     for meta_key_word in META_CONTENT[payload_dictionary[CONSTANTS['FORMAT']]]:
-        if meta_key_word == CONSTANTS['FULL_TEXT']:
+        if meta_key_word in [CONSTANTS['FULL_TEXT'], CONSTANTS['DATASET']]:
             continue
 
         logger.debug(meta_key_word)

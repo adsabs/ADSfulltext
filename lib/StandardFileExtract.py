@@ -361,6 +361,10 @@ class StandardExtractorXML(object):
         self.raw_xml = None
         self.parsed_xml = None
         self.meta_name = "xml"
+        self.data_factory = {
+            'string': self.extract_string,
+            'list': self.extract_list,
+        }
 
     def open_xml(self):
         """
@@ -409,6 +413,83 @@ class StandardExtractorXML(object):
         self.parsed_xml = parsed_content
         return parsed_content
 
+    def extract_string(self, static_xpath, **kwargs):
+        """
+        Extracts the first matching string requested from the given xpath
+        :param static_xpath: XPATH to be searched
+        :param kwargs: decode and translate
+        :return:
+        """
+
+        if 'decode' in kwargs:
+            decode = kwargs['decode']
+        else:
+            decode = False
+
+        if 'translate' in kwargs:
+            translate = kwargs['translate']
+        else:
+            translate = False
+
+        text_content = self.parsed_xml.xpath(static_xpath)[0].text_content()
+        text_content = TextCleaner(text=text_content).run(
+            decode=decode,
+            translate=translate,
+            normalise=True)
+
+        return text_content
+
+    def extract_list(self, static_xpath, **kwargs):
+        """
+        Extracts the first matching string requested from the given xpath, but
+        then returns the list of content. This function also extracts the href
+        within the span rather than the list of strings. When a list of strings
+        is required, then that function can be added to the data factory.
+
+        :param static_xpath: XPATH to be searched
+        :param kwargs: "info" name of the content wanted from the span,
+        "decode", and "translate.
+        :return:
+        """
+
+        if 'decode' in kwargs:
+            decode = kwargs['decode']
+        else:
+            decode = False
+
+        if 'translate' in kwargs:
+            translate = kwargs['translate']
+        else:
+            translate = False
+
+        data_inner = []
+        try:
+            span_content = kwargs['info']
+        except KeyError:
+            logger.error('You did not supply the info kwarg,'
+                         ' returning an empty list')
+            return data_inner
+
+        text_content = self.parsed_xml.xpath(static_xpath)
+
+        for span in text_content:
+            try:
+                text_content = span.attrib.get(span_content)
+                text_content = TextCleaner(text=text_content).run(
+                    decode=decode,
+                    translate=translate,
+                    normalise=True)
+
+                data_inner.append(text_content)
+            except KeyError:
+                logger.debug('Content of type {0} not found in this span'
+                             .format(span_content))
+                pass
+            except Exception:
+                logger.error('Unexpected error, skipping')
+
+        return data_inner
+
     def extract_multi_content(self, translate=False, decode=False):
         """
         Extracts full text content from the XML article specified. It also
@@ -430,18 +511,39 @@ class StandardExtractorXML(object):
 
         for content_name in META_CONTENT[self.meta_name]:
             logger.debug("Trying meta content: %s" % content_name)
-            for static_xpath in META_CONTENT[self.meta_name][content_name]:
+
+            for static_xpath \
+                    in META_CONTENT[self.meta_name][content_name]['xpath']:
+
+                logger.debug(META_CONTENT[self.meta_name][content_name])
                 logger.debug("Trying xpath: %s" % static_xpath)
                 try:
                     # logger.debug(self.parsed_xml.text_content())
                     # This returns a unicode-like type
-                    text_content = self.parsed_xml.xpath(static_xpath)[
-                        0].text_content()
 
-                    meta_out[content_name] = TextCleaner(text=text_content).run(
+                    extractor_required = \
+                        META_CONTENT[self.meta_name][content_name]['type']
+
+                    extractor_info = \
+                        META_CONTENT[self.meta_name][content_name]['info']
+
+                    logger.debug('Loaded type: {0}, and info:'
+                                 .format(extractor_required, extractor_info))
+
+                    extractor_type = self.data_factory[extractor_required]
+
+                    text_content = extractor_type(
+                        static_xpath,
+                        info=extractor_info,
                         decode=decode,
                         translate=translate,
-                        normalise=True)
+                    )
+
+                    if text_content:
+                        meta_out[content_name] = text_content
+                    else:
+                        continue
+
                     logger.debug('Successful.')
                     break
 
@@ -451,15 +553,20 @@ class StandardExtractorXML(object):
                     pass
 
                 except KeyError:
-                    logger.error('Dictionary key error for: {0}'.format(
-                        self.dict_item[CONSTANTS['BIBCODE']]))
+                    logger.error('Dictionary key error for: {0} [{1}]'.format(
+                        self.dict_item[CONSTANTS['BIBCODE']],
+                        META_CONTENT[self.meta_name][content_name]
+                    ))
                     raise KeyError(
                         'You gave a malformed xpath to HTMLElementTree: {0}'
                         .format(static_xpath))
 
                 except Exception:
-                    logger.error('Unknown error for: {0}'.format(self.dict_item[
-                        CONSTANTS['BIBCODE']]))
+                    logger.error('Unknown error for: {0} [{1}]'
+                                 .format(self.dict_item[CONSTANTS['BIBCODE']],
+                                         traceback.format_exc()
+                                         )
+                                 )
                     raise Exception(traceback.format_exc())
 
         return meta_out

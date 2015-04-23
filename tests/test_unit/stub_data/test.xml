@@ -101,7 +101,11 @@
       </sec>
 
         <data>
-            <named-content content-type="dataset" xlink:href="ADS/Sa.CXO#Obs/11458">Manual Entry</named-content>
+            <named-content content-type="dataset" xlink:href="ADS/Sa.CXO#Obs/11458">Manual Entry 1</named-content>
+        </data>
+
+        <data>
+            <named-content content-type="dataset" xlink:href="ADS/Sa.CXO#Obs/11459">Manual Entry 2</named-content>
         </data>
 
    </body>
