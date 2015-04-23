@@ -120,5 +120,6 @@ class TestExtractWorker(TestGeneric):
             self.assertTrue(os.path.exists(os.path.join(path, 'fulltext.txt')), "Full text file not created: %s" % path)
 
 
+
 if __name__ == "__main__":
     unittest.main()

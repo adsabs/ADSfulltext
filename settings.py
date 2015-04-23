@@ -39,35 +39,54 @@ CONSTANTS = {
 }
 
 META_CONTENT = {
-    "xml": {
-        "fulltext": [
-            '//body','//section[@type="body"]',
-            '//journalarticle-body'
-        ],
-        "acknowledgements": [
-            '//ack',
-            '//section[@type="acknowledgments"]',
-            '//subsection[@type="acknowledgement" or @type="acknowledgment"]'
-        ],
-        "dataset": [
-            '//named-content[@content-type="dataset"]'
-        ],
+    'xml': {
+        'fulltext': {
+            'xpath': ['//body',
+                      '//section[@type="body"]',
+                      '//journalarticle-body'
+                      ],
+            'type': 'string',
+            'info': '',
+            },
+        'acknowledgements': {
+            'xpath': ['//ack',
+                      '//section[@type="acknowledgments"]',
+                      '//subsection[@type="acknowledgement" '
+                      'or @type="acknowledgment"]'
+                      ],
+            'type': 'string',
+            'info': '',
+            },
+        'dataset': {
+            'xpath': ['//named-content[@content-type="dataset"]'],
+            'type': 'list',
+            'info': 'xlink:href',
+        }
     },
     "xmlelsevier": {
-        "fulltext": [
-            '//body',
-            '//raw-text'
-        ],
-        "acknowledgements": [
-            '//acknowledgment',
-            '//ack',
-            '//section[@type="acknowledgments"]',
-            '//subsection[@type="acknowledgement" or @type="acknowledgment"]',
-            '//*[local-name()="acknowledgment"]'
-        ],
-        "dataset": [
-            '//named-content[@content-type="dataset"]'
-        ],
+        'fulltext': {
+            'xpath': ['//body',
+                      '//raw-text',
+                      ],
+            'type': 'string',
+            'info': '',
+            },
+        'acknowledgements': {
+            'xpath': ['//acknowledgment',
+                      '//ack',
+                      '//section[@type="acknowledgments"]',
+                      '//subsection[@type="acknowledgement" '
+                      'or @type="acknowledgment"]',
+                      '//*[local-name()="acknowledgment"]'
+                      ],
+            'type': 'string',
+            'info': '',
+            },
+        'dataset': {
+            'xpath': ['//named-content[@content-type="dataset"]'],
+            'type': 'list',
+            'info': 'xlink:href',
+        }
     },
     "html": {
         "introduction": [
