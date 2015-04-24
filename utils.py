@@ -1,4 +1,3 @@
-# -*- coding: UTF-8 -*-
 """
 Contains useful functions and utilities that are not neccessarily only useful
 for this module. But are also used in differing modules insidide the same
@@ -12,7 +11,7 @@ __version__ = '1.0'
 __email__ = 'ads@cfa.harvard.edu'
 __status__ = 'Production'
 __credit__ = ['V. Sudilovsky']
-__license__ = "GPLv3"
+__license__ = 'GPLv3'
 
 import sys
 import os
@@ -23,7 +22,6 @@ import re
 import json
 
 from settings import config, PROJ_HOME, CONSTANTS
-from logging import handlers
 from cloghandler import ConcurrentRotatingFileHandler
 
 
@@ -46,7 +44,7 @@ def setup_logging(file_, name_, level=config['LOGGING_LEVEL']):
     fn_path = os.path.join(os.path.dirname(file_), PROJ_HOME, 'logs')
     if not os.path.exists(fn_path):
         os.makedirs(fn_path)
-    fn = os.path.join(fn_path, '%s.log' % name_)
+    fn = os.path.join(fn_path, '{0}.log'.format(name_))
     rfh = ConcurrentRotatingFileHandler(filename=fn,
                                         maxBytes=2097152,
                                         backupCount=5,
@@ -93,10 +91,10 @@ class FileInputStream(object):
         """
 
         self.input_stream = input_stream
-        self.raw = ""
-        self.bibcode = ""
-        self.full_text_path = ""
-        self.provider = ""
+        self.raw = ''
+        self.bibcode = ''
+        self.full_text_path = ''
+        self.provider = ''
         self.payload = None
 
     def print_info(self):
@@ -105,10 +103,10 @@ class FileInputStream(object):
         :return: no return
         """
 
-        print "Bibcode: %s" % self.bibcode
-        print "Full text path: %s" % self.full_text_path
-        print "Provider: %s" % self.provider
-        print "Raw content: %s" % self.raw
+        print 'Bibcode: {0}'.format(self.bibcode)
+        print 'Full text path: {0}'.format(self.full_text_path)
+        print 'Provider: {0}'.format(self.provider)
+        print 'Raw content: {0}'.format(self.raw)
 
     def extract(self, force_extract=False):
         """
@@ -127,7 +125,7 @@ class FileInputStream(object):
                 bibcode, full_text_path, provider = [], [], []
                 for line in input_lines:
 
-                    l = [i for i in line.strip().split('\t') if i != ""]
+                    l = [i for i in line.strip().split('\t') if i != '']
                     if len(l) == 0:
                         continue
                     bibcode.append(l[0])
@@ -245,7 +243,7 @@ class TextCleaner(object):
 
         self.text = text
 
-        translated_control_characters = "".join(
+        translated_control_characters = ''.join(
             [chr(i) if i in [9, 10, 13] else ' ' for i in range(0, 32)])
 
         input_control_characters = "".join([chr(i) for i in range(0, 32)])

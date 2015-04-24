@@ -16,7 +16,7 @@ __version__ = '1.0'
 __email__ = 'ads@cfa.harvard.edu'
 __status__ = 'Production'
 __credit__ = ['V. Sudilovsky', 'A. Accomazzi', 'J. Luke']
-__license__ = "GPLv3"
+__license__ = 'GPLv3'
 
 import sys
 import os
@@ -392,7 +392,7 @@ class StandardExtractorXML(object):
             self.raw_xml = raw_xml
 
         except Exception as err:
-            logger.error('Error: %s' % err)
+            logger.error('Error: {0}'.format(err))
             raise Exception(err)
 
         return raw_xml
@@ -510,13 +510,13 @@ class StandardExtractorXML(object):
                                                    self.file_input))
 
         for content_name in META_CONTENT[self.meta_name]:
-            logger.debug("Trying meta content: %s" % content_name)
+            logger.debug('Trying meta content: {0}'.format(content_name))
 
             for static_xpath \
                     in META_CONTENT[self.meta_name][content_name]['xpath']:
 
                 logger.debug(META_CONTENT[self.meta_name][content_name])
-                logger.debug("Trying xpath: %s" % static_xpath)
+                logger.debug('Trying xpath: {0}'.format(static_xpath))
                 try:
                     # logger.debug(self.parsed_xml.text_content())
                     # This returns a unicode-like type
@@ -590,7 +590,7 @@ class StandardElsevierExtractorXML(StandardExtractorXML):
         :return: no return
         """
         StandardExtractorXML.__init__(self, dict_item)
-        self.meta_name = "xmlelsevier"
+        self.meta_name = 'xmlelsevier'
 
     def parse_xml(self):
         """
@@ -680,7 +680,9 @@ class StandardExtractorHTTP(StandardExtractorBasicText):
                                 headers=self.request_headers)
 
         if response.status_code != 200:
-            raise HTTPError('Status code not 200: %d' % response.status_code)
+            raise HTTPError(
+                'Status code not 200: {0}'.format(response.status_code)
+            )
 
         self.raw_text = response.text
 
