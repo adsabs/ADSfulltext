@@ -21,6 +21,10 @@ from lib.test_base import *
 
 
 class TestExtractWorker(TestGeneric):
+    """
+    Class that tests the scenario in which the bibcode has no files ever
+    extracted to the disk before.
+    """
 
     def setUp(self):
         """
