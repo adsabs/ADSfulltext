@@ -3,7 +3,6 @@
 """
 Pipeline to extract full text documents. It carries out the following:
 
-
   - Initialises the queues to be used in RabbitMQ
   - Starts the workers and connects them to the queue
 """
@@ -15,7 +14,7 @@ __version__ = '1.0'
 __email__ = 'ads@cfa.harvard.edu'
 __status__ = 'Production'
 __credit__ = ['V. Sudilovsky']
-__license__ = "GPLv3"
+__license__ = 'GPLv3'
 
 import sys
 import os
@@ -24,13 +23,14 @@ PROJECT_HOME = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
 sys.path.append(PROJECT_HOME)
 
 import psettings
-import workers
 import multiprocessing
 import time
 import signal
 import sys
+import workers
 from workers import RabbitMQWorker
 from utils import setup_logging
+
 
 logger = setup_logging(__file__, __name__)
 
@@ -135,7 +135,7 @@ class TaskMaster(Singleton):
                         params['active'].remove(active)
                         continue
                     if ttl:
-                        if time.time()-active['start']>ttl:
+                        if time.time()-active['start'] > ttl:
                             logger.debug('time to live reached')
                             active['proc'].terminate()
                             active['proc'].join()
@@ -207,18 +207,18 @@ def start_pipeline(params_dictionary=False):
     :return: no return
     """
 
-    TM = TaskMaster(psettings.RABBITMQ_URL,
+    task_master = TaskMaster(psettings.RABBITMQ_URL,
                     psettings.RABBITMQ_ROUTES,
                     psettings.WORKERS)
 
-    TM.initialize_rabbitmq()
-    TM.start_workers(extra_params=params_dictionary)
+    task_master.initialize_rabbitmq()
+    task_master.start_workers(extra_params=params_dictionary)
 
     # Define the SIGTERM handler
-    signal.signal(signal.SIGTERM, TM.quit)
+    signal.signal(signal.SIGTERM, task_master.quit)
 
     # Start the main process in a loop
-    TM.poll_loop(extra_params=params_dictionary)
+    task_master.poll_loop(extra_params=params_dictionary)
 
 
 def main():
@@ -262,5 +262,5 @@ def main():
     start_pipeline(params_dictionary)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

@@ -1,5 +1,6 @@
 """
-Settings that are expected to be changed by the user. They influence the system as a whole
+Settings that are expected to be changed by the user. They influence the system
+as a whole
 """
 
 __author__ = 'J. Elliott'
@@ -9,33 +10,33 @@ __version__ = '1.0'
 __email__ = 'ads@cfa.harvard.edu'
 __status__ = 'Production'
 __credit__ = ['V. Sudilovsky']
-__license__ = "GPLv3"
+__license__ = 'GPLv3'
 
 import os
 
-FULLTEXT_EXTRACT_PATH = "/vagrant/live"
-FULLTEXT_EXTRACT_PATH_UNITTEST = "tests/test_unit/stub_data"
+FULLTEXT_EXTRACT_PATH = '/vagrant/live'
+FULLTEXT_EXTRACT_PATH_UNITTEST = 'tests/test_unit/stub_data'
 
 PROJ_HOME = os.path.dirname(os.path.realpath(__file__))
 
 config = {
-    "FULLTEXT_EXTRACT_PATH": FULLTEXT_EXTRACT_PATH,
-    "FULLTEXT_EXTRACT_PATH_UNITTEST":
+    'FULLTEXT_EXTRACT_PATH': FULLTEXT_EXTRACT_PATH,
+    'FULLTEXT_EXTRACT_PATH_UNITTEST':
         os.path.join(PROJ_HOME, FULLTEXT_EXTRACT_PATH_UNITTEST),
-    "LOGGING_LEVEL": "INFO",
+    'LOGGING_LEVEL': 'INFO',
 }
 
 CONSTANTS = {
-    "META_PATH": "meta_path",
-    "FILE_SOURCE": "ft_source",
-    "BIBCODE": "bibcode",
-    "PROVIDER": "provider",
-    "UPDATE": "UPDATE",
-    "FULL_TEXT": 'fulltext',
-    "FORMAT": "file_format",
-    "TIME_STAMP": 'index_date',
-    "ACKNOWLEDGEMENTS": 'acknowledgements',
-    "DATASET": 'dataset',
+    'META_PATH': 'meta_path',
+    'FILE_SOURCE': 'ft_source',
+    'BIBCODE': 'bibcode',
+    'PROVIDER': 'provider',
+    'UPDATE': 'UPDATE',
+    'FULL_TEXT': 'fulltext',
+    'FORMAT': 'file_format',
+    'TIME_STAMP': 'index_date',
+    'ACKNOWLEDGEMENTS': 'acknowledgements',
+    'DATASET': 'dataset',
 }
 
 META_CONTENT = {
@@ -63,7 +64,7 @@ META_CONTENT = {
             'info': 'xlink:href',
         }
     },
-    "xmlelsevier": {
+    'xmlelsevier': {
         'fulltext': {
             'xpath': ['//body',
                       '//raw-text',
@@ -88,29 +89,29 @@ META_CONTENT = {
             'info': 'xlink:href',
         }
     },
-    "html": {
-        "introduction": [
+    'html': {
+        'introduction': [
             '//h2[contains(.,"ntroduction")]',
             '//h2[contains(.,"ntroduction")]',
             '//p[contains(.,"Abstract")]',
             ],
-        "references": [
+        'references': [
             '//h2[contains(.,"References")]'
         ],
-        "table": [
+        'table': [
             '//table'
         ],
-        "table_links": [
+        'table_links': [
             '//a[contains(@href, "TABLE_NAME")]'
         ],
-        "head": [
+        'head': [
             '//head'
         ]
     },
-    "txt": {"fulltext": [""]},
-    "ocr": {"fulltext": [""]},
-    "http": {"fulltext": [""]},
-    "pdf": {"fulltext": [""]},
+    'txt': {'fulltext': ['']},
+    'ocr': {'fulltext': ['']},
+    'http': {'fulltext': ['']},
+    'pdf': {'fulltext': ['']},
 }
 
 

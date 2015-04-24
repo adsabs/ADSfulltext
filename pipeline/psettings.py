@@ -9,7 +9,7 @@ __version__ = '1.0'
 __email__ = 'ads@cfa.harvard.edu'
 __status__ = 'Production'
 __credit__ = ['V. Sudilovsky']
-__license__ = "GPLv3"
+__license__ = 'GPLv3'
 
 # Travis-CI uses guest:guest
 # Max message size = 500kb

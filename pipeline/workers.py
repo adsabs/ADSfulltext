@@ -14,10 +14,10 @@ __version__ = '1.0'
 __email__ = 'ads@cfa.harvard.edu'
 __status__ = 'Production'
 __credit__ = ['V. Sudilovsky']
-__license__ = "GPLv3"
+__license__ = 'GPLv3'
 
-import sys, os
-from settings import CONSTANTS
+import sys
+import os
 
 PROJECT_HOME = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
 sys.path.append(PROJECT_HOME)
@@ -27,6 +27,9 @@ import json
 import utils
 import sys
 import traceback
+from settings import CONSTANTS
+from pipeline import psettings
+from lib import CheckIfExtract, StandardFileExtract, WriteMetaFile
 
 
 class RabbitMQWorker(object):
@@ -45,7 +48,6 @@ class RabbitMQWorker(object):
         self.params = params
         self.logger = self.setup_logging()
         self.connection = None
-        # self.channel = None
         self.results = None
 
     def setup_logging(self, level='DEBUG'):
@@ -197,10 +199,9 @@ class CheckIfExtractWorker(RabbitMQWorker):
         """
 
         self.params = params
-        from lib import CheckIfExtract
         self.f = CheckIfExtract.check_if_extract
         self.logger = self.setup_logging()
-        self.logger.debug("Initialized")
+        self.logger.debug('Initialized')
 
     def on_message(self, channel, method_frame, header_frame, body):
         """
@@ -262,7 +263,6 @@ class StandardFileExtractWorker(RabbitMQWorker):
         :return: no return
         """
         self.params = params
-        from lib import StandardFileExtract
         self.f = StandardFileExtract.extract_content
         self.logger = self.setup_logging()
         self.logger.debug('Initialised')
@@ -326,10 +326,9 @@ class WriteMetaFileWorker(RabbitMQWorker):
         :return: no return
         """
         self.params = params
-        from lib import WriteMetaFile
         self.f = WriteMetaFile.extract_content
         self.logger = self.setup_logging()
-        self.logger.debug("Initialized")
+        self.logger.debug('Initialized')
 
     def on_message(self, channel, method_frame, header_frame, body):
         """
@@ -396,11 +395,6 @@ class ErrorHandlerWorker(RabbitMQWorker):
         self.params = params
         self.logger = self.setup_logging()
         self.logger.debug('Initialised')
-
-        from pipeline import psettings
-        from lib import CheckIfExtract
-        from lib import StandardFileExtract
-        from lib import WriteMetaFile
 
         self.params['WORKERS'] = psettings.WORKERS
 
@@ -553,8 +547,6 @@ class ProxyPublishWorker(RabbitMQWorker):
         self.params = params
         self.logger = self.setup_logging()
         self.logger.debug("Initialized")
-
-        from pipeline import psettings
 
         self.params['WORKERS'] = psettings.WORKERS
 

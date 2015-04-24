@@ -11,7 +11,7 @@ __version__ = '1.0'
 __email__ = 'ads@cfa.harvard.edu'
 __status__ = 'Production'
 __credit__ = ['V. Sudilovsky']
-__license__ = "GPLv3"
+__license__ = 'GPLv3'
 
 import sys
 import time
@@ -38,7 +38,7 @@ def purge_queues(queues=psettings.RABBITMQ_ROUTES['QUEUES']):
 
     for queue in queues:
         _q = queue['queue']
-        logger.info('Purging queue: %s' % _q)
+        logger.info('Purging queue: {0}'.format(_q))
         publish_worker.channel.queue_purge(queue=_q)
 
 
@@ -119,9 +119,14 @@ def run(full_text_links, **kwargs):
 
     logger.info('Loading records from: {0}'.format(full_text_links))
 
+    if 'force_extract' in kwargs:
+        force_extract = kwargs['force_extract']
+    else:
+        force_extract = False
+
     records = read_links_from_file(
         full_text_links,
-        force_extract=kwargs['force_extract']
+        force_extract=force_extract
     )
 
     logger.info('Constructing temporary worker for publising records.')
@@ -153,7 +158,7 @@ def run(full_text_links, **kwargs):
             routing_key='CheckIfExtractRoute')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Process user input.')
 

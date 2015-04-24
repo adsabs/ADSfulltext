@@ -13,7 +13,7 @@ __version__ = '1.0'
 __email__ = 'ads@cfa.harvard.edu'
 __status__ = 'Production'
 __credit__ = ['V. Sudilovsky', 'A. Accomazzi', 'J. Luke']
-__license__ = "GPLv3"
+__license__ = 'GPLv3'
 
 
 import sys

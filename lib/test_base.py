@@ -10,7 +10,7 @@ __version__ = '1.0'
 __email__ = 'ads@cfa.harvard.edu'
 __status__ = 'Production'
 __credit__ = ['V. Sudilovsky', 'A. Accomazzi', 'J. Luke']
-__license__ = "GPLv3"
+__license__ = 'GPLv3'
 
 import sys
 import os
@@ -315,7 +315,7 @@ class TestGeneric(unittest.TestCase):
                         os.remove(file_)
                 os.rmdir(path)
 
-                print 'deleted: %s and its content' % path
+                print('deleted: {0} and its content'.format(path))
             else:
-                print 'Could not delete %s, does not exist' % path
+                print('Could not delete {0}, does not exist'.format(path))
 
