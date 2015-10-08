@@ -15,7 +15,7 @@ __copyright__ = 'Copyright 2015'
 __version__ = '1.0'
 __email__ = 'ads@cfa.harvard.edu'
 __status__ = 'Production'
-__credit__ = ['V. Sudilovsky', 'A. Accomazzi', 'J. Luke']
+__credit__ = ['V. Sudilovsky', 'A. Accomazzi', 'J. Luker']
 __license__ = 'GPLv3'
 
 import sys
@@ -183,7 +183,7 @@ class StandardExtractorHTML(object):
         """
         Used to match the tables listed within the HTML, by links, to full text
         extracted. The tables are defined in the table that contains the article
-        link data.
+        link data.  This setup appears for A&A papers 2003-2011.
 
         :return: dictionary conotaining all of the related tables
         """
@@ -572,6 +572,19 @@ class StandardExtractorXML(object):
         return meta_out
 
 
+class StandardExtractorTEIXML(StandardExtractorXML):
+    """
+    Class for parsing TEI XML as output from Grobid.
+    Right now it's just a stub.
+    See: http://grobid.readthedocs.org/en/latest/
+    """
+    
+    def __init__(self, dict_item):
+        StandardExtractorXML.__init__(self, dict_item)
+        self.meta_name = 'teixml'
+        
+
+
 class StandardElsevierExtractorXML(StandardExtractorXML):
     """
     Class for extracting text from an Elsevier XML file. This is used instead of
@@ -744,6 +757,7 @@ EXTRACTOR_FACTORY = {
     "txt": StandardExtractorBasicText,
     "ocr": StandardExtractorBasicText,
     "elsevier": StandardElsevierExtractorXML,
+    "teixml": StandardExtractorTEIXML,
     "http": StandardExtractorHTTP,
 }
 
@@ -766,7 +780,7 @@ def extract_content(input_list, **kwargs):
 
     output_list = []
 
-    ACCEPTED_FORMATS = ['xml', 'html', 'txt', 'ocr', 'http']
+    ACCEPTED_FORMATS = ['xml', 'teixml', 'html', 'txt', 'ocr', 'http']
 
     for dict_item in input_list:
 

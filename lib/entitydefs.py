@@ -10,7 +10,7 @@ __copyright__ = 'Copyright 2015'
 __version__ = '1.0'
 __email__ = 'ads@cfa.harvard.edu'
 __status__ = 'Production'
-__credit__ = ['V. Sudilovsky', 'A. Accomazzi', 'J. Luke']
+__credit__ = ['V. Sudilovsky', 'A. Accomazzi', 'J. Luker']
 __license__ = 'GPLv3'
 
 import re

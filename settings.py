@@ -64,6 +64,20 @@ META_CONTENT = {
             'info': 'xlink:href',
         }
     },
+    'teixml': {
+        'fulltext': {
+            'xpath': ['//body',
+                      ],
+            'type': 'string',
+            'info': '',
+            },
+        'acknowledgements': {
+            'xpath': ['//div[@type="acknowledgement"]',
+                      ],
+            'type': 'string',
+            'info': '',
+            },
+    },
     'xmlelsevier': {
         'fulltext': {
             'xpath': ['//body',
