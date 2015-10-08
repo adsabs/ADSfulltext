@@ -4,7 +4,7 @@ $build_packages = ['python', 'python-pip', 'python-dev', 'libpq-dev', 'libxml2-d
 $pip_requirements = "/vagrant/requirements.txt"
 
 exec {'add_repo_1':
-    command => 'echo "oracle-java8-installer shared/accepted-oracle-license-v1-1 select true" | debconf-set-selections && add-apt-repository ppa:webupd8team/java'
+    command => 'echo "oracle-java8-installer shared/accepted-oracle-license-v1-1 select true" | debconf-set-selections && add-apt-repository ppa:webupd8team/java',
     path => $path_var,
 }
 

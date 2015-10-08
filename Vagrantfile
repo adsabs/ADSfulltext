@@ -37,8 +37,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
   config.vm.provision :docker do |docker|
-    docker.pull_images "dockerfile/rabbitmq"
-    docker.run "dockerfile/rabbitmq",
+    docker.pull_images "rabbitmq:3.5"
+    docker.run "rabbitmq",
       args: "-d -p 5672:5672 -p 15672:15672"
   end
 
