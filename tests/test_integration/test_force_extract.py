@@ -1,20 +1,17 @@
-"""
-Integration test for a bibcode that has no full text referenced in the meta file
-"""
-
 __author__ = 'J. Elliott'
 __maintainer__ = 'J. Elliott'
 __copyright__ = 'Copyright 2015'
 __version__ = '1.0'
 __email__ = 'ads@cfa.harvard.edu'
 __status__ = 'Production'
-__license__ = 'GPLv3'
+__credit__ = ['V. Sudilovsky']
+__license__ = "GPLv3"
 
 import sys
 import os
 
-PROJECT_HOME = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), '../../'))
+PROJECT_HOME = \
+    os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))
 sys.path.append(PROJECT_HOME)
 
 from lib.test_base import *
@@ -23,8 +20,7 @@ from datetime import datetime
 
 class TestExtractWorker(TestGeneric):
     """
-    Class that tests the scenario in which the bibcode has content extracted
-    before, but this content does not involve any full text.
+    Class for testing that a file is force extracted if specified by the user.
     """
 
     def setUp(self):
@@ -38,9 +34,10 @@ class TestExtractWorker(TestGeneric):
         """
 
         super(TestExtractWorker, self).setUp()
+
         self.test_publish = os.path.join(
-            PROJ_HOME,
-            'tests/test_integration/stub_data/fulltext_exists_txt.links'
+            PROJ_HOME,'tests/test_integration/stub_data/fulltext_exists_txt'
+                      '.links'
         )
         self.expected_paths = self.calculate_expected_folders(self.test_publish)
 
@@ -55,57 +52,64 @@ class TestExtractWorker(TestGeneric):
         self.clean_up_path(self.expected_paths)
         super(TestExtractWorker, self).tearDown()
 
-    def test_extraction_of_non_extracted(self):
+    def test_extraction_of_forced_extraction(self):
         """
-        Tests the scenario that the bibcode received has content on disk, but
-        has not had any full text extracted.
+        Tests that when a user specifies 'force_extract' that the full text
+        is extracted regardless of its underlying reason for being or not
+        being extracted.
 
         :return: no return
         """
 
-        # user loads the list of full text files and publishes them to the first
-        #  queue
-        records = read_links_from_file(self.test_publish)
+        # User loads the list of full text files and publishes them to the
+        # first queue
+        records = read_links_from_file(self.test_publish, force_extract=True)
 
         self.helper_get_details(self.test_publish)
         self.assertEqual(
-            len(records.bibcode),
-            self.nor,
-            'The number of records should match the number of lines.'
-            ' It does not: %d [%d]'.format(len(records.bibcode), self.nor)
-        )
+            len(records.bibcode), self.nor,
+            'The number of records should match'
+            ' the number of lines. It does not: '
+            '{0} [{1}]'.format(len(records.bibcode), self.nor))
 
-        # Make the fake data to use
+        # Setup the fake meta data so it is not hard coded
         if not os.path.exists(self.meta_path):
             os.makedirs(self.meta_path)
 
-        test_meta_content = {
-            'index_date': datetime.utcnow().isoformat()+'Z',
-            'bibcode': 'test4',
-            'provider': 'mnras'
+        test_meta_content = {'index_date': datetime.utcnow().isoformat()+'Z',
+                             'bibcode': self.bibcode,
+                             'provider': self.provider,
+                             'ft_source': self.ft_source
         }
 
         with open(self.test_expected, 'w') as test_meta_file:
             json.dump(test_meta_content, test_meta_file)
 
-        # The pipeline converts the input into a payload expected by the workers
+        with open(self.test_expected.replace('meta.json', 'fulltext.txt'), 'w')\
+                as test_full_text_file:
+            test_full_text_file.write('Full text content')
+
+        time.sleep(1)
+
+        # Submit payload
         records.make_payload()
-        self.assertTrue(len(records.payload)>0)
+        self.assertTrue(len(records.payload) > 0)
 
         # External worker publishes the payload created before to the RabbitMQ
         # queue for the workers to start consuming
         ret = publish(self.publish_worker,
                       records.payload,
                       exchange='FulltextExtractionExchange',
-                      routing_key='CheckIfExtractRoute')
+                      routing_key='CheckIfExtractRoute'
+        )
         self.assertTrue(ret)
         time.sleep(10)
 
         # Worker receives packet of information and checks to see if it needs to
         #  be updated
         # see: http://stackoverflow.com/questions/22061082/\
-        # getting-pika-exceptions-connectionclosed-error-while-using-rabbitmq-
-        # in-python
+        # getting-pika-exceptions-connectionclosed-error-while-using-
+        # rabbitmq-in-python
         print('starting check worker...')
         self.check_worker.run()
 
@@ -129,27 +133,35 @@ class TestExtractWorker(TestGeneric):
         self.assertTrue(
             standard_queue.method.message_count ==
             self.number_of_standard_files,
-            'Standard queue should have at least '
-            '{0:d} message, but it has: {1:d}'
-            .format(self.number_of_standard_files,
-                    standard_queue.method.message_count)
+            'Standard queue should have at least {0} message, but it has: {1}'
+            .format(
+                self.number_of_standard_files,
+                standard_queue.method.message_count
+            )
         )
+
         self.assertTrue(
-            pdf_queue.method.message_count == self.number_of_PDFs,
-            'PDF queue should have at least {0:d} message, but it has: {1:d}'
-                .format(self.number_of_PDFs, pdf_queue.method.message_count)
+            pdf_queue.method.message_count ==
+            self.number_of_PDFs,
+            'PDF queue should have at least {0} message, but it has: {1}'
+            .format(
+                self.number_of_PDFs,
+                pdf_queue.method.message_count
+            )
         )
 
         # Double check with the worker output
-        pdf_res = json.loads(self.check_worker.results["PDF"])
-        standard_res = json.loads(self.check_worker.results["Standard"])
+        pdf_res = json.loads(self.check_worker.results['PDF'])
+        standard_res = json.loads(self.check_worker.results['Standard'])
 
         self.assertEqual(
-            'MISSING_FULL_TEXT',
+            'FORCE_TO_EXTRACT',
             standard_res[0][CONSTANTS['UPDATE']],
-            'This should be MISING_FULL_TEXT, but is in fact: {0}'
-            .format(standard_res[0][CONSTANTS['UPDATE']])
+            'This should be FORCE_TO_EXTRACT, but is in fact: {0}'
+            .format(
+                standard_res[0][CONSTANTS['UPDATE']]
             )
+        )
 
         if pdf_res:
             pdf_res = len(pdf_res)
@@ -159,7 +171,8 @@ class TestExtractWorker(TestGeneric):
         self.assertEqual(
             pdf_res,
             self.number_of_PDFs,
-            'Expected number of PDFs: {0}'.format(self.number_of_PDFs)
+            'Expected number of PDFs: {0:d}'
+            .format(self.number_of_PDFs)
         )
         self.assertEqual(
             len(standard_res),
@@ -187,6 +200,7 @@ class TestExtractWorker(TestGeneric):
         self.standard_worker.run()
         number_of_standard_files_2 = \
             len(json.loads(self.standard_worker.results))
+
         self.assertTrue(
             number_of_standard_files_2,
             self.number_of_standard_files
@@ -200,13 +214,25 @@ class TestExtractWorker(TestGeneric):
         time.sleep(5)
 
         for path in self.expected_paths:
+            meta_path = os.path.join(path, 'meta.json')
+
             self.assertTrue(
-                os.path.exists(os.path.join(path, 'meta.json')),
+                os.path.exists(meta_path),
                 'Meta file not created: {0}'.format(path)
             )
+
+            if os.path.exists(meta_path):
+                with open(meta_path, 'r') as meta_file:
+                    meta_content = meta_file.read()
+                self.assertTrue(
+                    'FORCE_TO_EXTRACT' in meta_content,
+                    'meta file does not contain the right extract keyword: {0}'
+                    .format(meta_content)
+                )
+
             self.assertTrue(
                 os.path.exists(os.path.join(path, 'fulltext.txt')),
-                'Full text file not created: {0}'.format(path)
+                'Full text file not created: %s'.format(path)
             )
 
 

@@ -30,6 +30,7 @@ import org.adslabs.adsfulltext.ConfigLoader;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import org.json.JSONObject;
 import org.json.JSONArray;
@@ -120,6 +121,13 @@ public class Worker {
         } catch (java.io.IOException error) {
 
             logger.error("IO Error, is RabbitMQ running???: {}", error.getMessage());
+            try {
+                logger.error("Sleeping before exit");
+                TimeUnit.SECONDS.sleep(5);
+                logger.error("Finished sleeping.");
+            } catch (java.lang.InterruptedException errorTime) {
+                logger.error("Interrupt: {}", errorTime.getMessage());
+            }
             return false;
 
         } catch (java.security.NoSuchAlgorithmException error) {
@@ -219,7 +227,8 @@ public class Worker {
 
             } catch (java.io.IOException error) {
                 logger.error("IO Error, does the queue exist and is RabbitMQ running?: {}", error.getMessage());
-            } catch(java.lang.InterruptedException error) {
+
+            } catch (java.lang.InterruptedException error) {
                 logger.error("IO Error, does the queue exist and is RabbitMQ running?: {}", error.getMessage());
             }
         }

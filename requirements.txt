@@ -1,4 +1,4 @@
-pika
+pika==0.9.14
 nose
 ptree
 ConcurrentLogHandler
@@ -8,3 +8,5 @@ dateutils
 httpretty
 requests
 supervisor
+coveralls
+

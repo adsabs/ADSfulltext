@@ -1,12 +1,23 @@
 """
 WriteMetaFile Worker Functions
 
-These are the functions for the WriteMetaFile class. This worker should write the meta content to the
-pair tree directory path.
+The function class for the WriteMetaFile workers. The aim of the worker is to
+take the content delivered, and write it to a file on disk.
 """
 
-import sys, os
-PROJECT_HOME = os.path.abspath(os.path.join(os.path.dirname(__file__),'../'))
+__author__ = 'J. Elliott'
+__maintainer__ = 'J. Elliott'
+__copyright__ = 'Copyright 2015'
+__version__ = '1.0'
+__email__ = 'ads@cfa.harvard.edu'
+__status__ = 'Production'
+__credit__ = ['V. Sudilovsky', 'A. Accomazzi', 'J. Luker']
+__license__ = 'GPLv3'
+
+import sys
+import os
+
+PROJECT_HOME = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
 sys.path.append(PROJECT_HOME)
 
 import json
@@ -19,44 +30,97 @@ logger = setup_logging(__file__, __name__)
 
 
 def write_to_temp_file(payload, temp_path='/tmp/', json_format=True):
+    """
+    Writes the received payloadto a temporary file using the temporary file lib
 
-    with tempfile.NamedTemporaryFile(mode='w', dir=temp_path, delete=False) as temp_file:
+    :param payload: text received from the pipeline
+    :param temp_path: path to write the temporary file
+    :param json_format: whether the given content is in json format
+    :return: the temporary file name written to disk
+    """
+
+    with tempfile.NamedTemporaryFile(mode='w', dir=temp_path,
+                                     delete=False) as temp_file:
         temp_file_name = temp_file.name
         if json_format:
             json.dump(payload, temp_file)
         else:
             temp_file.write(payload.encode('utf-8'))
 
-    print 'Temp file name: %s' % temp_file_name
+    logger.debug('Temp file name: {0}'.format(temp_file_name))
+
     return temp_file_name
 
 
 def move_temp_file_to_file(temp_file_name, new_file_name):
+    """
+    Copies the temporary file to a new file with the wanted name. Removes the
+    old  temporary file on success.
+
+    :param temp_file_name: name of the temporary file
+    :param new_file_name: name wanted for the final file
+    :return: no return is given
+    """
 
     try:
         shutil.copy(temp_file_name, new_file_name)
-    except Exception, err:
-        logger.error('Unexpected error from shutil in copying temporary file to new file: %s' % err)
+    except Exception as err:
+        logger.error('Unexpected error from shutil in copying temporary file to'
+                     ' new file: {0}'.format(err))
 
     try:
         os.remove(temp_file_name)
-    except Exception, err:
-        logger.error('Unexpected error from os removing a file: %s' % err)
+    except Exception as err:
+        logger.error(
+            'Unexpected error from os removing a file: {0}'.format(err))
 
+    logger.debug(
+        'Succeeded to copy: {0} to {1}'.format(temp_file_name, new_file_name)
+    )
 
 def write_file(file_name, payload, json_format=True):
+    """
+    A wrapper function for two separate functions, with the aim of:
+      1. creating a temporary file with the payload as content
+      2. moving the temporary file to the wanted file name
+
+    This approach is used in case of a race-condition, where two workers
+    have the same output path, and will stop the chance of corrupted files
+
+    :param file_name: desired file name for output
+    :param payload: the content to be written to disk
+    :param json_format: whether or not the payload is in json format
+    :return: no return
+    """
 
     temp_path = os.path.dirname(file_name)
-
-    temp_file_name = write_to_temp_file(payload, temp_path=temp_path, json_format=json_format)
+    temp_file_name = write_to_temp_file(payload, temp_path=temp_path,
+                                        json_format=json_format)
     move_temp_file_to_file(temp_file_name, file_name)
 
 
 def write_content(payload_dictionary):
+    """
+    Function that writes a single document to file. It expects a json-type
+    payload that has been converted into a Python dictionary.
+    A temporary file will be written to disk for:
+      1. full text content
+      2. acknowledgements
+      3. dataset items
+      4. a meta.json file containing relevant meta-data defined in settings.py
+
+    The files are then moved to their expected names, and the temporary
+    files removed.
+
+    :param payload_dictionary: the complete extracted content and meta-data of
+    the document payload
+    :return: no return
+    """
 
     meta_output_file_path = payload_dictionary[CONSTANTS['META_PATH']]
     bibcode_pair_tree_path = os.path.dirname(meta_output_file_path)
-    full_text_output_file_path = os.path.join(bibcode_pair_tree_path, 'fulltext.txt')
+    full_text_output_file_path = os.path.join(bibcode_pair_tree_path,
+                                              'fulltext.txt')
 
     if not os.path.exists(bibcode_pair_tree_path):
         try:
@@ -68,18 +132,19 @@ def write_content(payload_dictionary):
     meta_dict = {}
 
     for const in CONSTANTS:
-        if const in ["FULL_TEXT", "ACKNOWLEDGEMENTS", "DATASET"]: continue
+        if const in ['FULL_TEXT', 'ACKNOWLEDGEMENTS']:
+            continue
         try:
             meta_dict[CONSTANTS[const]] = payload_dictionary[CONSTANTS[const]]
-            logger.debug("Adding meta content: %s" % const)
+            logger.debug('Adding meta content: {0}'.format(const))
         except KeyError:
-            print("Missing meta content: %s" % const)
+            print('Missing meta content: {0}'.format(const))
             continue
 
     # Write the custom extractions of content to the meta.json
-    logger.debug("Copying extra meta content")
+    logger.debug('Copying extra meta content')
     for meta_key_word in META_CONTENT[payload_dictionary[CONSTANTS['FORMAT']]]:
-        if meta_key_word == CONSTANTS['FULL_TEXT']:
+        if meta_key_word in [CONSTANTS['FULL_TEXT'], CONSTANTS['DATASET']]:
             continue
 
         logger.debug(meta_key_word)
@@ -88,47 +153,68 @@ def write_content(payload_dictionary):
             meta_dict[meta_key_word] = meta_key_word_value
 
             try:
-                meta_constant_file_path = os.path.join(bibcode_pair_tree_path, meta_key_word) + '.txt'
-                logger.debug("Writing %s to file at: %s" % (meta_key_word, meta_constant_file_path))
-                write_file(meta_constant_file_path, meta_key_word_value, json_format=False)
-                logger.info("WriteMetaFile: completed bibcode: %s" % payload_dictionary[CONSTANTS['BIBCODE']])
+                meta_constant_file_path = os.path.join(bibcode_pair_tree_path,
+                                                       meta_key_word) + '.txt'
+                logger.debug('Writing {0} to file at: {1}'.format(
+                    meta_key_word, meta_constant_file_path))
+                write_file(meta_constant_file_path, meta_key_word_value,
+                           json_format=False)
+                logger.info('WriteMetaFile: completed bibcode: {0}'.format(
+                    payload_dictionary[CONSTANTS['BIBCODE']]))
             except IOError:
-                logger.error("IO Error when writing to file.")
+                logger.error('IO Error when writing to file.')
                 raise IOError
 
         except KeyError:
-            logger.debug("Does not contain the following meta data: %s" % meta_key_word)
+            logger.debug('Does not contain the following meta data: {0}'
+                         .format(meta_key_word))
             continue
 
     # Write the full text content to its own file fulltext.txt
-    logger.debug("Copying full text content")
-    full_text_dict = {CONSTANTS['FULL_TEXT']: payload_dictionary[CONSTANTS['FULL_TEXT']]}
+    logger.debug('Copying full text content')
+    full_text_dict = {
+        CONSTANTS['FULL_TEXT']: payload_dictionary[CONSTANTS['FULL_TEXT']]}
 
     try:
-        logger.debug("Writing to file: %s" % meta_output_file_path)
-        logger.debug("Content has keys: %s" % (meta_dict.keys()))
+        logger.debug('Writing to file: {0}'.format(meta_output_file_path))
+        logger.debug('Content has keys: {0}'.format((meta_dict.keys())))
         write_file(meta_output_file_path, meta_dict, json_format=True)
-        logger.debug("Writing complete.")
+        logger.debug('Writing complete.')
     except IOError:
-        logger.error("IO Error when writing to file.")
+        logger.error('IO Error when writing to file.')
         raise IOError
 
     try:
-        logger.debug("Writing to file: %s" % full_text_output_file_path)
-        logger.debug("Content has length: %d" % (len(full_text_dict[CONSTANTS['FULL_TEXT']])))
-        write_file(full_text_output_file_path, full_text_dict[CONSTANTS['FULL_TEXT']], json_format=False)
-        logger.debug("Writing complete.")
+        logger.debug('Writing to file: {0}'.format(full_text_output_file_path))
+        logger.debug('Content has length: {0}'.format(
+            len(full_text_dict[CONSTANTS['FULL_TEXT']])))
+        write_file(full_text_output_file_path,
+                   full_text_dict[CONSTANTS['FULL_TEXT']], json_format=False)
+        logger.debug('Writing complete.')
     except KeyError:
-        logger.error("KeyError for dictionary %s" % payload_dictionary[CONSTANTS['BIBCODE']])
+        logger.error('KeyError for dictionary {0}'.format(payload_dictionary[
+            CONSTANTS['BIBCODE']]))
         raise KeyError
     except IOError:
-        logger.error("IO Error when writing to file %s" % payload_dictionary[CONSTANTS['BIBCODE']])
+        logger.error('IO Error when writing to file {0}'.format(
+            payload_dictionary[CONSTANTS['BIBCODE']]))
         raise IOError
 
 
 def extract_content(input_list, **kwargs):
+    """
+    Loops through each document received from the upstream queue, and writes
+    them to file using the modularised function for single documents. A list
+    of all the successfully documents written to disk is created, which will
+    be passed on to an external pipeline.
 
-    logger.debug('WriteMetaFile: Beginning list with type: %s' % type(input_list))
+    :param input_list: containing a dictionary for each article extracted
+    :param kwargs: currently redundant
+    :return: list of bibcodes written to disk and converted to json format
+    """
+
+    logger.debug(
+        'WriteMetaFile: Beginning list with type: {0}'.format(input_list))
     bibcode_list = []
     for dict_item in input_list:
         try:
@@ -136,7 +222,9 @@ def extract_content(input_list, **kwargs):
             bibcode_list.append(dict_item[CONSTANTS['BIBCODE']])
         except Exception:
             import traceback
-            logger.error("Failed on dict item: %s (%s)" % (dict_item, traceback.format_exc()))
+
+            logger.error('Failed on dict item: {0} ({1})'.format((
+                dict_item, traceback.format_exc())))
             raise Exception
 
     return json.dumps(bibcode_list)
