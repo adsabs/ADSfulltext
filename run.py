@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+#!/proj.adswhy/opt/Python-2.7.8/bin/python
+
 '''
 Routine obtains and publishes the desired file list to the RabbitMQ to be full text extracted
 '''
@@ -112,7 +113,7 @@ if __name__ == "__main__":
     parser.set_defaults(fulltext_links=False)
     parser.set_defaults(packet_size=100)
     parser.set_defaults(purge_queues=False)
-    parser.set_defaults(max_queue_size=10000)
+    parser.set_defaults(max_queue_size=100000)
 
     args = parser.parse_args()
 

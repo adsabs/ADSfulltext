@@ -96,7 +96,7 @@ RABBITMQ_ROUTES = {
 WORKERS = {
 
   'CheckIfExtractWorker': { 
-    'concurrency': 1,
+    'concurrency': 5,
     'publish': {
       'PDF': [{'exchange': 'FulltextExtractionExchange', 'routing_key': 'PDFFileExtractorRoute',}],
       'Standard': [{'exchange': 'FulltextExtractionExchange', 'routing_key': 'StandardFileExtractorRoute',}],
@@ -106,7 +106,7 @@ WORKERS = {
     ],
   },
   'StandardFileExtractWorker': { 
-    'concurrency': 1,
+    'concurrency': 5,
     'publish': [
       {'exchange': 'FulltextExtractionExchange', 'routing_key': 'WriteMetaFileRoute',},
     ],
@@ -115,7 +115,7 @@ WORKERS = {
     ],
   },
     'WriteMetaFileWorker': {
-    'concurrency': 1,
+    'concurrency': 5,
     'publish': [
         {'exchange': 'FulltextExtractionExchange', 'routing_key': 'ProxyPublishRoute',},
     ],
@@ -124,7 +124,7 @@ WORKERS = {
     ],
   },
   'ErrorHandlerWorker': { 
-    'concurrency': 1,
+    'concurrency': 3,
     'publish': [
     ],
     'subscribe': [
@@ -132,7 +132,7 @@ WORKERS = {
     ],
   },
   'ProxyPublishWorker': {
-    'concurrency': 1,
+    'concurrency': 0,
     'publish': [
     ],
     'subscribe': [

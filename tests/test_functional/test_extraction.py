@@ -92,7 +92,7 @@ class TestExtractWorker(TestGeneric):
         run.run(full_text_links=os.path.join(PROJ_HOME, full_text_links),
                  packet_size=10)
 
-        time.sleep(10)
+        time.sleep(40)
 
         self.expected_folders = self.calculate_expected_folders(full_text_links)
 

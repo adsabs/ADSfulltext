@@ -77,7 +77,8 @@ def meta_needs_update(dict_input, meta_content, extract_key="FULLTEXT_EXTRACT_PA
         meta_date = parse(meta_content[CONSTANTS['TIME_STAMP']])
     except KeyError:
         logger.warning("Malformed meta-file: %s", traceback.format_exc())
-        raise KeyError
+        return 'STALE_META'
+        #raise KeyError
     except Exception:
         logger.warning("Unexpected error %s" % sys.exc_info())
         raise Exception
@@ -111,7 +112,7 @@ def meta_needs_update(dict_input, meta_content, extract_key="FULLTEXT_EXTRACT_PA
 
 def check_if_extract(message_list, extract_key="FULLTEXT_EXTRACT_PATH"):
 
-    NEEDS_UPDATE = ["MISSING_FULL_TEXT", "DIFFERING_FULL_TEXT", "STALE_CONTENT", "NOT_EXTRACTED_BEFORE"]
+    NEEDS_UPDATE = ["MISSING_FULL_TEXT", "DIFFERING_FULL_TEXT", "STALE_CONTENT", "STALE_META", "NOT_EXTRACTED_BEFORE"]
 
     publish_list_of_standard_dictionaries = []
     publish_list_of_pdf_dictionaries = []

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/proj.adswhy/opt/Python-2.7.8/bin/python
 
 '''
 Pipeline to extract full text documents. It carries out the following:
@@ -89,6 +89,7 @@ class TaskMaster(Singleton):
             params['RABBITMQ_URL'] = psettings.RABBITMQ_URL
             params['ERROR_HANDLER'] = psettings.ERROR_HANDLER
             params['PDF_EXTRACTOR'] = psettings.PDF_EXTRACTOR
+            params['PROXY_PUBLISH'] = psettings.PROXY_PUBLISH
 
             for par in extra_params:
                 logger.debug('Adding extra content: [%s]: %s' % (par, extra_params[par]))
