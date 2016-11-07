@@ -197,15 +197,11 @@ if __name__ == '__main__':
                         action='store_true',
                         help='Force the extract of all input bibcodes')
 
-    parser.set_defaults(fulltext_links=False)
+    parser.set_defaults(full_text_links=False)
     parser.set_defaults(packet_size=100)
     parser.set_defaults(purge_queues=False)
-<<<<<<< HEAD
     parser.set_defaults(max_queue_size=100000)
-=======
-    parser.set_defaults(max_queue_size=10000)
     parser.set_defaults(force_extract=False)
->>>>>>> 44bc1fdb0b3aa9d9faa2d498ee8331d7a1dc864a
 
     args = parser.parse_args()
 
@@ -218,13 +214,8 @@ if __name__ == '__main__':
         parser.print_help()
         sys.exit(0)
 
-<<<<<<< HEAD
-    # Send the files to be put on
-    run(args.full_text_links, packet_size=args.packet_size, max_queue_size=args.max_queue_size)
-=======
     # Send the files to be put on the queue
     run(args.full_text_links,
         packet_size=args.packet_size,
         max_queue_size=args.max_queue_size,
         force_extract=args.force_extract)
->>>>>>> 44bc1fdb0b3aa9d9faa2d498ee8331d7a1dc864a
