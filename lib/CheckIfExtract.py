@@ -122,6 +122,7 @@ def meta_needs_update(dict_input, meta_content,
       1. MISSING_FULL_TEXT: There is no full texte
       2. DIFFERING_FULL_TEXT: The path in the meta.json differs to the one given
       3. STALE_CONTENT: the meta.json is older than the full text file
+      4. STALE_META: the meta.json file does not all the required keys
 
     The return value is empty if none of the above are true.
 
@@ -135,7 +136,7 @@ def meta_needs_update(dict_input, meta_content,
     try:
         time_stamp = meta_content[CONSTANTS['TIME_STAMP']]
         meta_date = parse(time_stamp)
-
+        bibcode = meta_content[CONSTANTS['BIBCODE']]
     except KeyError:
         logger.warning("Malformed meta-file: %s", traceback.format_exc())
         return 'STALE_META'
