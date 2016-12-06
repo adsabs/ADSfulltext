@@ -71,9 +71,6 @@ public class PDFExtract {
         // This unifies characters such as e+accent to accented-e
         messageToClean = Normalizer.normalize(messageToClean, Normalizer.Form.NFKC);
 
-        // Remove new lines
-        messageToClean = messageToClean.replace("\n", "");
-
         return messageToClean;
     }
 
