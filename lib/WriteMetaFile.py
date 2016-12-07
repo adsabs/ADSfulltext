@@ -138,7 +138,7 @@ def write_content(payload_dictionary):
             meta_dict[CONSTANTS[const]] = payload_dictionary[CONSTANTS[const]]
             logger.debug('Adding meta content: {0}'.format(const))
         except KeyError:
-            print('Missing meta content: {0}'.format(const))
+            #print('Missing meta content: {0}'.format(const))
             continue
 
     # Write the custom extractions of content to the meta.json

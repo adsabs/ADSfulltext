@@ -692,7 +692,7 @@ class TestTEIXMLExtractor(unittest.TestCase):
         """
         
         """
-        ack = u" Acknowledgements. The usefulness of a bibliographic service is only as good as the quality and quantity of the data it contains . The ADS project has been lucky in benefitting from the skills and dedication of several people who have significantly contributed to the creation and management of the underlying datasets. In particular, we would like to acknowledge the work of Elizabeth Bohlen, Donna Thompson, Markus Demleitner, and Joyce Watson. Funding for this project has been provided by NASA under grant NCC5-189. "
+        ack = u"Acknowledgements. The usefulness of a bibliographic service is only as good as the quality and quantity of the data it contains . The ADS project has been lucky in benefitting from the skills and dedication of several people who have significantly contributed to the creation and management of the underlying datasets. In particular, we would like to acknowledge the work of Elizabeth Bohlen, Donna Thompson, Markus Demleitner, and Joyce Watson. Funding for this project has been provided by NASA under grant NCC5-189."
         
         full_text_content = self.extractor.open_xml()
         parsed_xml = self.extractor.parse_xml()
@@ -998,7 +998,7 @@ class TestOCRandTXTExtractor(unittest.TestCase):
             '\s+',
             ' ',
             'Tab\t CarriageReturn\r New line\n Random Escape characters:   '
-        )
+        ).strip()
 
         new_instring = self.extractor.parse_text(translate=True, decode=True)
 

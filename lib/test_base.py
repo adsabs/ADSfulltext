@@ -126,16 +126,15 @@ def build_links(test_name):
 
         links_file_path = os.path.join(PROJ_HOME, path) + file_name
 
-        if not os.path.exists(links_file_path):
-            with open(links_file_path, 'w') as output_file:
-                for i in range(len(test_bibcode_)):
+        with open(links_file_path, 'w') as output_file:
+            for i in range(len(test_bibcode_)):
 
-                    output_string = '{0}\t{1}\t{2}\n'.format(
-                        test_bibcode_[i],
-                        os.path.join(PROJ_HOME, test_file_[i]),
-                        test_provider_[i])
+                output_string = '{0}\t{1}\t{2}\n'.format(
+                    test_bibcode_[i],
+                    os.path.join(PROJ_HOME, test_file_[i]),
+                    test_provider_[i])
 
-                    output_file.write(output_string)
+                output_file.write(output_string)
 
 
 class TestUnit(unittest.TestCase):
