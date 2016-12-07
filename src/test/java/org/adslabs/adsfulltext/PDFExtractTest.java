@@ -45,6 +45,6 @@ public class PDFExtractTest {
         assertThat(message, containsString(accent_solo));
 
         // Removal of the new line
-        assertThat(message, not(containsString("\n")));
+        assertThat(message, containsString("\n"));
     }
 }

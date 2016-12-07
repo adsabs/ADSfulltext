@@ -106,7 +106,7 @@ META_CONTENT = {
     'html': {
         'introduction': [
             '//h2[contains(.,"ntroduction")]',
-            '//h2[contains(.,"ntroduction")]',
+            '//h3[contains(.,"ntroduction")]',
             '//p[contains(.,"Abstract")]',
             ],
         'references': [
