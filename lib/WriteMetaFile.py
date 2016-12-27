@@ -64,6 +64,8 @@ def move_temp_file_to_file(temp_file_name, new_file_name):
 
     try:
         shutil.copy(temp_file_name, new_file_name)
+        # protect full-text from world access but keep it group-readable
+        os.chmod(new_file_name, 0640)
     except Exception as err:
         logger.error('Unexpected error from shutil in copying temporary file to'
                      ' new file: {0}'.format(err))
