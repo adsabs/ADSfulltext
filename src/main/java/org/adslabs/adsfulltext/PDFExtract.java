@@ -37,6 +37,8 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.text.Normalizer;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 public class PDFExtract {
 
@@ -60,28 +62,21 @@ public class PDFExtract {
         }
     }
 
+    // ignore blobs of non-white characters longer than this length
     static int maxWordLength = 200;
+
+    static String regexString = "\\S{" + (maxWordLength + 1) + ",}";
+    static Pattern regexPattern = Pattern.compile(regexString);
 
     private static String trimWords (String buff) {
 	// removes words which are longer than maxWordLength characters
-        String lines[] = buff.split("\\r?\\n");
-        String output = "";
-        for (String l : lines) {
-            String[] words = l.split("\\s");
-            Boolean start = true;
-            for (String w : words) {
-                if (w.length() <= maxWordLength) {
-                    if (start) {
-                        start = false;
-                    } else {
-                        output += " ";
-                    }
-                    output += w;
-                }
-            }
-            output += "\n";
-        }
-        return output;
+	Matcher match = regexPattern.matcher(buff);
+	if (match.find()) {
+	    logger.debug("removing long text blobs from input buffer");
+	    return buff.replaceAll(regexString, "");
+	} else {
+	    return buff;
+	}
     }
 
 
