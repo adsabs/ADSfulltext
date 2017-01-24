@@ -60,6 +60,31 @@ public class PDFExtract {
         }
     }
 
+    static int maxWordLength = 200;
+
+    private static String trimWords (String buff) {
+	// removes words which are longer than maxWordLength characters
+        String lines[] = buff.split("\\r?\\n");
+        String output = "";
+        for (String l : lines) {
+            String[] words = l.split("\\s");
+            Boolean start = true;
+            for (String w : words) {
+                if (w.length() <= maxWordLength) {
+                    if (start) {
+                        start = false;
+                    } else {
+                        output += " ";
+                    }
+                    output += w;
+                }
+            }
+            output += "\n";
+        }
+        return output;
+    }
+
+
     public String textCleaner (String messageToClean) {
         // Normalis(z)e the text so that we have the correct characters.
         // For example, an o-umlaut goes from o" to the correct formatting, this is normalising
@@ -71,7 +96,7 @@ public class PDFExtract {
         // This unifies characters such as e+accent to accented-e
         messageToClean = Normalizer.normalize(messageToClean, Normalizer.Form.NFKC);
 
-        return messageToClean;
+        return trimWords(messageToClean);
     }
 
     // Main function that takes care of all the extraction regardless of the underlying process
