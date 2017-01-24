@@ -37,6 +37,8 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.text.Normalizer;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 public class PDFExtract {
 
@@ -60,6 +62,24 @@ public class PDFExtract {
         }
     }
 
+    // ignore blobs of non-white characters longer than this length
+    static int maxWordLength = 200;
+
+    static String regexString = "\\S{" + (maxWordLength + 1) + ",}";
+    static Pattern regexPattern = Pattern.compile(regexString);
+
+    private static String trimWords (String buff) {
+	// removes words which are longer than maxWordLength characters
+	Matcher match = regexPattern.matcher(buff);
+	if (match.find()) {
+	    logger.debug("removing long text blobs from input buffer");
+	    return buff.replaceAll(regexString, "");
+	} else {
+	    return buff;
+	}
+    }
+
+
     public String textCleaner (String messageToClean) {
         // Normalis(z)e the text so that we have the correct characters.
         // For example, an o-umlaut goes from o" to the correct formatting, this is normalising
@@ -71,7 +91,7 @@ public class PDFExtract {
         // This unifies characters such as e+accent to accented-e
         messageToClean = Normalizer.normalize(messageToClean, Normalizer.Form.NFKC);
 
-        return messageToClean;
+        return trimWords(messageToClean);
     }
 
     // Main function that takes care of all the extraction regardless of the underlying process
