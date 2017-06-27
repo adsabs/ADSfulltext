@@ -69,14 +69,14 @@ public class PDFExtract {
     static Pattern regexPattern = Pattern.compile(regexString);
 
     private static String trimWords (String buff) {
-	// removes words which are longer than maxWordLength characters
-	Matcher match = regexPattern.matcher(buff);
-	if (match.find()) {
-	    logger.debug("removing long text blobs from input buffer");
-	    return buff.replaceAll(regexString, "");
-	} else {
-	    return buff;
-	}
+    	// removes words which are longer than maxWordLength characters
+    	Matcher match = regexPattern.matcher(buff);
+    	if (match.find()) {
+    	    logger.debug("removing long text blobs from input buffer");
+    	    return buff.replaceAll(regexString, "");
+    	} else {
+    	    return buff;
+    	}
     }
 
 
