@@ -16,9 +16,8 @@ import fileinput
 import traceback
 import sys
 import codecs
-from lib import StandardFileExtract
-from settings import CONSTANTS
-from utils import TextCleaner
+from adsft import extraction
+from adsft.utils import TextCleaner
 
 # appears to be the last <sec> element in the <body> section
 sections_xpath = '//body/sec'
@@ -26,11 +25,11 @@ paragraphs_xpath = '//body/p'
 
 def process_one_file(bibcode, fname, provider):
     ext = fname.split('.')[-1]
-    d = { CONSTANTS["BIBCODE"]: bibcode,
-          CONSTANTS["PROVIDER"]: provider,
-          CONSTANTS["FORMAT"]: ext,
-          CONSTANTS["FILE_SOURCE"]: fname }
-    extractor = StandardFileExtract.StandardExtractorXML(d)
+    d = { 'bibcode': bibcode,
+          'provider': provider,
+          'file_format': ext,
+          'ft_source': fname }
+    extractor = extraction.StandardExtractorXML(d)
     extractor.open_xml()
     xml = extractor.parse_xml()
     sections = xml.xpath(sections_xpath) or xml.xpath(paragraphs_xpath)

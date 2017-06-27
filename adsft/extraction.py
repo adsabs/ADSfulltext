@@ -764,8 +764,7 @@ EXTRACTOR_FACTORY = {
 
 def extract_content(input_list, **kwargs):
     """
-    Global function of the module that is imported by the RabbitMQ worker. It
-    accepts a list of dictionaries that contain the relevant meta-data for an
+    accept a list of dictionaries that contain the relevant meta-data for an
     article. It matches the type of file to the correct extractor type, and then
     extracts the full text content and anything else relevant, e.g.,
     acknowledgements, and dataset IDs (that are defined by the user in

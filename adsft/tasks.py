@@ -1,75 +1,88 @@
 
 from __future__ import absolute_import, unicode_literals
-from adsft import app as app_module
-import adsputils
-from adsft import exceptions
-from adsft.models import KeyValue
-from celery import Task
-from celery.utils.log import get_task_logger
-from kombu import Exchange, Queue, BrokerConnection
-import datetime
-
+import adsft.app as app_module
+from adsputils import get_date, exceptions
+from kombu import Queue
+from adsft import extraction, checker, writer
 
 # ============================= INITIALIZATION ==================================== #
 
-app = app_module.create_app()
-exch = Exchange(app.conf.get('CELERY_DEFAULT_EXCHANGE', 'adsft'), 
-                type=app.conf.get('CELERY_DEFAULT_EXCHANGE_TYPE', 'topic'))
+app = app_module.ADSFulltextCelery('ads-fulltext')
+logger = app.logger
+
+
 app.conf.CELERY_QUEUES = (
-    Queue('errors', exch, routing_key='errors', durable=False, message_ttl=24*3600*5),
-    Queue('some-queue', exch, routing_key='check-orcidid')
+    Queue('check-if-extract', app.exchange, routing_key='check-if-extract'),
+    Queue('extract-standard', app.exchange, routing_key='extract-standard'),
+    Queue('extract-pdf', app.exchange, routing_key='extract-pdf'),
+    Queue('write-text', app.exchange, routing_key='write-text')
 )
-
-
-logger = adsputils.setup_logging('adsft', app.conf.get('LOGGING_LEVEL', 'INFO'))
-
-
-# connection to the other virtual host (for sending data out)
-forwarding_connection = BrokerConnection(app.conf.get('OUTPUT_CELERY_BROKER',
-                              '%s/%s' % (app.conf.get('CELRY_BROKER', 'pyamqp://'),
-                                         app.conf.get('OUTPUT_EXCHANGE', 'other-pipeline'))))
-class MyTask(Task):
-    def on_failure(self, exc, task_id, args, kwargs, einfo):
-        logger.error('{0!r} failed: {1!r}'.format(task_id, exc))
-
 
 
 # ============================= TASKS ============================================= #
 
-@app.task(base=MyTask, queue='some-queue')
-def task_hello_world(message):
+
+@app.task(queue='check-if-extract')
+def task_check_if_extract(message):
     """
-    Fetch a message from the queue. Save it into the database.
-    And print out into a log.
+    Checks if the file needs to be extracted and pushes to the correct
+    extraction queue.
+    """
+    logger.debug('Checking content: %s', message)
+    results = extraction.check_if_extract(message)
+    logger.debug('Results: %s', results)
+    if results:
+        for key in results:
+            if key == 'PDF':
+                for msg in results[key]:
+                    
+                    
+                    task_extract_pdf.delay(msg)
+            elif key == 'Standard':
+                for msg in results[key]:
+                    task_extract_standard.delay(msg)
+            else:
+                logger.error('Unknown type: %s and message: %s', (key, results[key]))
+    
+    
+    
+@app.task(queue='extract-standard')
+def task_extract_standard(message):
+    """
+    Extracts the full text from the given location and pushes to the writing
+    queue.
+    """
+    logger.debug('Extract content: %s', message)
+    if not isinstance(message, list):
+        message = [message]
+    results = extraction.extract_content(message)
+    logger.debug('Results: %s', results)
+    task_write_text.delay(results)
+
+
+@app.task(queue='extract-pdf')
+def task_extract_pdf(message):
+    """
+    Extracts the full text from the given location and pushes to the writing
+    queue.
+    """
+    logger.debug('Extract content: %s', message)
+    results = extraction.extract_content(message) # TODO(rca) call PDF worker
+    logger.debug('Results: %s', results)
+    task_write_text.delay(results)
     
 
-    :param: message: contains the message inside the packet
-        {
-         'name': '.....',
-         'start': 'ISO8801 formatted date (optional), indicates 
-             the moment we checked the orcid-service'
-        }
-    :return: no return
+@app.task(queue='write-text')
+def task_write_text(message, **kwargs):
     """
-    
-    if 'name' not in message:
-        raise exceptions.IgnorableException('Received garbage: {}'.format(message))
-    
-    with app.session_scope() as session:
-        kv = session.query(KeyValue).filter_by(key=message['name']).first()
-        if kv is None:
-            kv = KeyValue(key=message['name'])
-        
-        now = adsputils.get_date()
-        kv.value = now
-        session.add(kv)
-        session.commit()
-        
-        logger.info('Hello {key} we have recorded seeing you at {value}'.format(**kv.toJSON()))
-        
-        
-    
-    
+    Extracts the full text from the given location and pushes to the writing
+    queue.
+    """
+    logger.debug('Extract content: %s', message)
+    results = writer.extract_content(message)
+    logger.debug('Results: %s', results)
+    task_write_text.delay(results)    
+
 
 if __name__ == '__main__':
     app.start()

@@ -257,13 +257,5 @@ def check_if_extract(message_list, extract_key='FULLTEXT_EXTRACT_PATH'):
 
         logger.debug('Returning dictionaries')
 
-    if len(publish_list_of_pdf_dictionaries) == 0:
-        publish_list_of_pdf_dictionaries = None
-        logger.debug('PDF list is empty, setting to none')
-
-    if len(publish_list_of_standard_dictionaries) == 0:
-        publish_list_of_standard_dictionaries = None
-        logger.debug('Standard list is empty, setting to none')
-
-    return {'Standard': json.dumps(publish_list_of_standard_dictionaries),
-            'PDF': json.dumps(publish_list_of_pdf_dictionaries)}
+    return {'Standard': publish_list_of_standard_dictionaries,
+            'PDF': publish_list_of_pdf_dictionaries}
