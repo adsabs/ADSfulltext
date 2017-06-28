@@ -14,21 +14,12 @@ __license__ = 'GPLv3'
 
 import sys
 import os
-
-PROJECT_HOME = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
-sys.path.append(PROJECT_HOME)
-
 import unittest
 import time
 import json
-import lib.CheckIfExtract as check_if_extract
-from pipeline import psettings
-from pipeline.workers import RabbitMQWorker, CheckIfExtractWorker, \
-    StandardFileExtractWorker, WriteMetaFileWorker, ErrorHandlerWorker, \
-    ProxyPublishWorker
-from pipeline.ADSfulltext import TaskMaster
-from run import publish, read_links_from_file
-from settings import META_CONTENT, PROJ_HOME, CONSTANTS
+
+from adsft import tasks, app
+from adsft import checker
 
 
 def build_links(test_name):
@@ -124,14 +115,14 @@ def build_links(test_name):
         test_file_ = file_['file']
         test_provider_ = file_['provider']
 
-        links_file_path = os.path.join(PROJ_HOME, path) + file_name
+        links_file_path = os.path.join(tasks.app.conf['PROJ_HOME'], path) + file_name
 
         with open(links_file_path, 'w') as output_file:
             for i in range(len(test_bibcode_)):
 
                 output_string = '{0}\t{1}\t{2}\n'.format(
                     test_bibcode_[i],
-                    os.path.join(PROJ_HOME, test_file_[i]),
+                    os.path.join(tasks.app.conf['PROJ_HOME'], test_file_[i]),
                     test_provider_[i])
 
                 output_file.write(output_string)
@@ -141,8 +132,28 @@ class TestUnit(unittest.TestCase):
     """
     Default unit test class. It sets up the stub data required
     """
+    
     def setUp(self):
+        unittest.TestCase.setUp(self)
+        self.proj_home = os.path.join(os.path.dirname(__file__), '../..')
+        self._app = tasks.app
+        self.app = app.ADSFulltextCelery('test',
+            {
+            'SQLALCHEMY_URL': 'sqlite:///',
+            'SQLALCHEMY_ECHO': False
+            })
+        tasks.app = self.app # monkey-patch the app object
+        Base.metadata.bind = self.app._session.get_bind()
+        Base.metadata.create_all()
+        
         build_links(test_name='integration')
+    
+    
+    def tearDown(self):
+        unittest.TestCase.tearDown(self)
+        Base.metadata.drop_all()
+        self.app.close_app()
+        tasks.app = self._app
 
 
 class TestGeneric(unittest.TestCase):
@@ -164,74 +175,11 @@ class TestGeneric(unittest.TestCase):
         # Build the link files
         build_links(test_name='integration')
 
-        # Load the extraction worker
-        check_params = psettings.WORKERS['CheckIfExtractWorker']
-        standard_params = psettings.WORKERS['StandardFileExtractWorker']
-        writer_params = psettings.WORKERS['WriteMetaFileWorker']
-        error_params = psettings.WORKERS['ErrorHandlerWorker']
-        proxy_params = psettings.WORKERS['ProxyPublishWorker']
-
-        for params in [check_params, standard_params, writer_params,
-                       error_params, proxy_params]:
-            params['RABBITMQ_URL'] = psettings.RABBITMQ_URL
-            params['ERROR_HANDLER'] = psettings.ERROR_HANDLER
-            params['extract_key'] = 'FULLTEXT_EXTRACT_PATH_UNITTEST'
-            params['TEST_RUN'] = True
-            params['PDF_EXTRACTOR'] = psettings.PDF_EXTRACTOR
-            params['PROXY_PUBLISH'] = psettings.PROXY_PUBLISH
-
-        self.params = params
-        self.check_worker = CheckIfExtractWorker(params=check_params)
-        self.standard_worker = StandardFileExtractWorker(params=standard_params)
-
-        self.standard_worker.logger.debug('params: {0}'.format(standard_params))
-
-        self.meta_writer = WriteMetaFileWorker(params=writer_params)
-        self.error_worker = ErrorHandlerWorker(params=error_params)
-        self.proxy_worker = ProxyPublishWorker(params=proxy_params)
         self.meta_path = ''
         self.channel_list = None
 
-        # Queues and routes are switched on so that they can allow workers
-        # to connect
-        TM = TaskMaster(psettings.RABBITMQ_URL, psettings.RABBITMQ_ROUTES,
-                        psettings.WORKERS)
-        TM.initialize_rabbitmq()
 
-        self.connect_publisher()
-        self.purge_all_queues()
 
-    def connect_publisher(self):
-        """
-        Makes a connection between the worker and the RabbitMQ instance, and
-        sets up an attribute as a channel.
-
-        :return: no return
-        """
-
-        self.publish_worker = RabbitMQWorker()
-        self.ret_queue = self.publish_worker.connect(psettings.RABBITMQ_URL)
-
-    def purge_all_queues(self):
-        """
-        Purges all the content from all the queues existing in psettings.py.
-
-        :return: no return
-        """
-        for queue in psettings.RABBITMQ_ROUTES['QUEUES']:
-            _q = queue['queue']
-            self.publish_worker.channel.queue_purge(queue=_q)
-
-    def tearDown(self):
-        """
-        General tearDown of the class. Purges the queues and then sleeps so that
-        there is no contaminating the next set of tests.
-
-        :return: no return
-        """
-
-        self.purge_all_queues()
-        time.sleep(5)
 
     def helper_get_details(self, test_publish):
         """
@@ -242,7 +190,7 @@ class TestGeneric(unittest.TestCase):
         :return: no return
         """
 
-        with open(os.path.join(PROJ_HOME, test_publish), "r") as f:
+        with open(os.path.join(app.conf['PROJ_HOME'], test_publish), "r") as f:
             lines = f.readlines()
             self.nor = len(lines)
 
@@ -250,13 +198,13 @@ class TestGeneric(unittest.TestCase):
             lines[0].strip().split('\t')
         self.bibcode_list = [i.strip().split('\t')[0] for i in lines]
 
-        self.test_expected = check_if_extract.create_meta_path(
+        self.test_expected = checker.create_meta_path(
             {'bibcode': self.bibcode},
             extract_key='FULLTEXT_EXTRACT_PATH_UNITTEST'
         )
 
         self.meta_list = \
-            [check_if_extract.create_meta_path(
+            [checker.create_meta_path(
                 {"bibcode": j},
                 extract_key='FULLTEXT_EXTRACT_PATH_UNITTEST'
             ).replace('meta.json', '') for j in self.bibcode_list]
@@ -281,12 +229,12 @@ class TestGeneric(unittest.TestCase):
         was extracted
         """
 
-        with open(os.path.join(PROJ_HOME, full_text_links), "r") as inf:
+        with open(os.path.join(app.conf['PROJ_HOME'], full_text_links), "r") as inf:
             lines = inf.readlines()
 
         expected_paths = \
-            [check_if_extract.create_meta_path(
-                {CONSTANTS['BIBCODE']: line.strip().split('\t')[0]},
+            [checker.create_meta_path(
+                {'bibcode': line.strip().split('\t')[0]},
                 extract_key='FULLTEXT_EXTRACT_PATH_UNITTEST'
             ).replace('meta.json', '') for line in lines]
 
