@@ -75,8 +75,7 @@ def task_extract_pdf(message):
 @app.task(queue='write-text')
 def task_write_text(message, **kwargs):
     """
-    Extracts the full text from the given location and pushes to the writing
-    queue.
+    Writes the full text to file
     """
     logger.debug('Extract content: %s', message)
     results = writer.extract_content(message)

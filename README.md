@@ -7,3 +7,10 @@
 Article full text extraction pipeline. Set of workers that check the filesystem and convert
 binary files into text.
 
+
+
+## Notes
+
+The java process subscribes to the queue; that should change!
+
+command=/usr/bin/java -jar /vagrant/target/ADSfulltext-1.0-SNAPSHOT-jar-with-dependencies.jar --consume-queue ; the program (relative uses PATH, can take args)

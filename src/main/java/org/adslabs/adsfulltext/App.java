@@ -35,7 +35,7 @@ public class App {
     static Logger logger = LoggerFactory.getLogger(App.class);
     // --------------------------
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
 
         // Parsing details
         // -------------------------------------------------------------------
@@ -63,14 +63,14 @@ public class App {
         
         for (String file: (List<String>) ns.get("pdfs")) {
           if (file.indexOf("|") > -1) {
-            String[] parts = file.split("|");
+            String[] parts = file.split("\\|");
             if (parts.length != 2) {
               logger.info("Ignoring erroneous input: " + file);
             }
             else {
               try {
                 result = extractor.extract(parts[0]);
-                Files.write(Paths.get(parts[1]), result.getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8);
+                Files.write(Paths.get(parts[1]), result.getBytes(StandardCharsets.UTF_8));
               }
               catch (IOException e) {
                 logger.error("Failed extracting {}, error: {}", file, e.getMessage());
