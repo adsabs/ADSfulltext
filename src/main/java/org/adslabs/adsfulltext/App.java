@@ -12,7 +12,6 @@
 
 package org.adslabs.adsfulltext;
 
-import org.adslabs.adsfulltext.Worker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,6 +21,13 @@ import net.sourceforge.argparse4j.inf.Namespace;
 import net.sourceforge.argparse4j.inf.MutuallyExclusiveGroup;
 import net.sourceforge.argparse4j.impl.Arguments;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.lang.String;
+import java.io.IOException;
+
 public class App {
 
     // Variable declaration
@@ -29,30 +35,19 @@ public class App {
     static Logger logger = LoggerFactory.getLogger(App.class);
     // --------------------------
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
 
         // Parsing details
         // -------------------------------------------------------------------
 
-        ArgumentParser parser = ArgumentParsers.newArgumentParser("ADSfulltextPDF")
+        ArgumentParser parser = ArgumentParsers.newArgumentParser("ExtractPDF")
                 .defaultHelp(true)
-                .description("Application that starts workers for ADSfulltext PDF parsing.");
-
-        boolean testRun = false;
-
-        MutuallyExclusiveGroup flags = parser.addMutuallyExclusiveGroup("flags")
-                .required(true);
-
-        flags.addArgument("--no-consume-queue")
-                .action(Arguments.storeTrue())
-                .setDefault(testRun)
-                .type(boolean.class)
-                .help("Worker will exit the queue after consuming a single message.");
-
-        flags.addArgument("--consume-queue")
-                .action(Arguments.storeFalse())
-                .setDefault(testRun)
-                .help("Worker will sit on the queue, continuously consuming.");
+                .description("Application for extracting fulltext from PDF.");
+        parser.addArgument("pdfs")
+              .metavar("N")
+              .type(String.class)
+              .nargs("+")
+              .help("Location of the source pdf[| + output path to save results to]");
         // -------------------------------------------------------------------
         Namespace ns = null;
         try {
@@ -62,25 +57,31 @@ public class App {
             System.exit(1);
         }
 
-        testRun = ns.getBoolean("no_consume_queue") || ns.getBoolean("consume_queue");
-
-        if (testRun) {
-            logger.info("TestRun designated, will only consume once.");
-        } else {
-            logger.info("Normal consume designated, will consume until cancelled.");
+         
+        PDFExtract extractor = new PDFExtract();
+        String result = null;
+        
+        for (String file: (List<String>) ns.get("pdfs")) {
+          if (file.indexOf("|") > -1) {
+            String[] parts = file.split("\\|");
+            if (parts.length != 2) {
+              logger.info("Ignoring erroneous input: " + file);
+            }
+            else {
+              try {
+                result = extractor.extract(parts[0]);
+                Files.write(Paths.get(parts[1]), result.getBytes(StandardCharsets.UTF_8));
+              }
+              catch (IOException e) {
+                logger.error("Failed extracting {}, error: {}", file, e.getMessage());
+                e.printStackTrace();
+              }
+            }
+          }
+          else {
+            System.out.print(extractor.extract(file));
+          }
         }
-
-        // Initalise the worker
-        logger.info("Instantiating the worker");
-        Worker pdfWorker = new Worker(testRun);
-
-        // Run the worker
-        // This will:
-        //  1. connect
-        //  2. subscribe (start consuming)
-        logger.info("Running the worker");
-        pdfWorker.run();
-        logger.info("Worker exited.");
 
         System.exit(0);
     }

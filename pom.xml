@@ -143,11 +143,13 @@
         <version>3.1.0</version>
         <configuration>
           <repoToken>yourcoverallsprojectrepositorytoken</repoToken>
+          <scanForSources>true</scanForSources>
         </configuration>
       </plugin>
 
     </plugins>
 
+    
     <resources>
       <resource>
         <directory>src/main/resources</directory>

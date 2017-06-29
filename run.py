@@ -1,91 +1,13 @@
 #!/usr/bin/env python
-"""
-Routine obtains and publishes the desired file list to the RabbitMQ to be full
-text extracted
-"""
 
-__author__ = 'J. Elliott'
-__maintainer__ = 'J. Elliott'
-__copyright__ = 'Copyright 2015'
-__version__ = '1.0'
-__email__ = 'ads@cfa.harvard.edu'
-__status__ = 'Production'
-__credit__ = ['V. Sudilovsky']
-__license__ = 'GPLv3'
 
 import sys
-import time
-import utils
 import argparse
 import json
-from settings import CONSTANTS
-from pipeline import psettings, workers, ADSfulltext
-from utils import setup_logging
+from adsft import tasks, utils
+from adsputils import setup_logging
 
-logger = setup_logging(__file__, __name__)
-
-
-def purge_queues(queues=psettings.RABBITMQ_ROUTES['QUEUES']):
-    """
-    Purges the ADSfulltext queue on the RabbitMQ instance of its content
-
-    :param queues: queue name that needs to be purged
-    :return: no return
-    """
-
-    publish_worker = workers.RabbitMQWorker()
-    publish_worker.connect(psettings.RABBITMQ_URL)
-
-    for queue in queues:
-        _q = queue['queue']
-        logger.info('Purging queue: {0}'.format(_q))
-        publish_worker.channel.queue_purge(queue=_q)
-
-
-def publish(w, records, sleep=5, max_queue_size=10000,
-            url=psettings.RABBITMQ_URL, exchange='FulltextExtractionExchange',
-            routing_key='CheckIfExtractRoute'):
-    """
-    Used to publish packets to the RabbitMQ instance.
-
-    :param w: worker used to communicate with the RabbitMQ instance
-    :param records: the list of records to be published to the queue
-    :param sleep: how long it should sleep if max_queue_size has been reached
-    :param max_queue_size: the max number of items to be on the queue
-    :param url: the URI of the RabbitMQ instance
-    :param exchange: name of the exchange to publish to
-    :param routing_key: the routing key of the queue to publish to
-    :return: boolean to denote if the publishing was a success
-    """
-
-    logger.info('Injecting into the queue')
-    n = len(records)
-    ni = 1
-    for record in records:
-
-        response = w.channel.queue_declare(queue='CheckIfExtractQueue',
-                                           passive=True)
-
-        while response.method.message_count >= max_queue_size:
-            logger.info('Max queue size reached [{0}], sleeping until can '
-                        'inject to the queue safely' % max_queue_size)
-            time.sleep(sleep)
-            response = w.channel.queue_declare(queue='CheckIfExtractQueue',
-                                               passive=True)
-
-        temp = json.loads(record)
-        first = temp[0][CONSTANTS['BIBCODE']]
-        last = temp[-1][CONSTANTS['BIBCODE']]
-
-        logger.info(
-            'Publishing [{0:d}/{1:d}, {2:d}]: [{3}] ---> [{4}]'.format(
-                ni, n, len(temp), first, last)
-        )
-
-        w.channel.basic_publish(exchange, routing_key, record)
-        ni += 1
-
-    return True
+logger = setup_logging('run.py')
 
 
 def read_links_from_file(file_input, force_extract=False):
@@ -129,9 +51,6 @@ def run(full_text_links, **kwargs):
         force_extract=force_extract
     )
 
-    logger.info('Constructing temporary worker for publising records.')
-    publish_worker = workers.RabbitMQWorker()
-    publish_worker.connect(psettings.RABBITMQ_URL)
 
     logger.info('Setting variables')
     if 'packet_size' in kwargs:
@@ -145,17 +64,30 @@ def run(full_text_links, **kwargs):
         max_queue_size = kwargs['max_queue_size']
         logger.info('Max queue size overridden: %d' % kwargs['max_queue_size'])
     else:
-        max_queue_size = 10000
+        max_queue_size = 0
 
     logger.info('Making payload')
     records.make_payload(packet_size=packet_size)
 
     logger.info('Publishing records to: CheckIfExtract')
-    publish(publish_worker,
-            records=records.payload,
-            max_queue_size=max_queue_size,
-            exchange='FulltextExtractionExchange',
-            routing_key='CheckIfExtractRoute')
+    
+    i = 0
+    for record in records.payload:
+        temp = json.loads(record)
+        first = temp[0]['bibcode']
+        last = temp[-1]['bibcode']
+
+        logger.info(
+            'Publishing [{0:d}/{1:d}, {2:d}]: [{3}] ---> [{4}]'.format(
+                i, i+len(temp), len(temp), first, last)
+        )
+        i += len(temp)
+        
+        if max_queue_size and i > max_queue_size:
+            logger.info('Max_queue_size reached, stopping...')
+            break
+        
+        tasks.task_check_if_extract(record)
 
 
 if __name__ == '__main__':
@@ -169,20 +101,6 @@ if __name__ == '__main__':
                         type=str,
                         help='Path to the fulltext.links file'
                              ' that contains the article list.')
-
-    parser.add_argument('-p',
-                        '--packet_size',
-                        dest='packet_size',
-                        action='store',
-                        type=int,
-                        help='Size of the payloads to be sent to RabbitMQ.')
-
-    parser.add_argument('-q',
-                        '--purge_queues',
-                        dest='purge_queues',
-                        action='store_true',
-                        help='Purge all the queues so there are no remaining'
-                             ' packets')
 
     parser.add_argument('-m',
                         '--max_queue_size',
@@ -204,10 +122,6 @@ if __name__ == '__main__':
     parser.set_defaults(force_extract=False)
 
     args = parser.parse_args()
-
-    if args.purge_queues:
-        purge_queues()
-        sys.exit(0)
 
     if not args.full_text_links:
         print 'You need to give the input list'

@@ -1,3 +1,4 @@
+package org.adslabs.adsfulltext;
 //
 // * @author     Jonny Elliott
 // * @year       2015

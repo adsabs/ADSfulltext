@@ -21,19 +21,17 @@ __license__ = 'GPLv3'
 import sys
 import os
 
-PROJECT_HOME = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
-sys.path.append(PROJECT_HOME)
-
+from adsputils import setup_logging, overrides
+from adsft.utils import TextCleaner
 import re
 import traceback
 import unicodedata
-from utils import setup_logging, overrides, TextCleaner
 from lxml.html import soupparser, document_fromstring, fromstring
-from lib import entitydefs as edef
-from settings import CONSTANTS, META_CONTENT
+from adsft import entitydefs as edef
+from adsft.rules import META_CONTENT
 from requests.exceptions import HTTPError
 
-logger = setup_logging(__file__, __name__)
+logger = setup_logging(__name__)
 
 
 class StandardExtractorBasicText(object):
@@ -62,7 +60,7 @@ class StandardExtractorBasicText(object):
         :return: content of the file
         """
 
-        with open(self.dict_item[CONSTANTS['FILE_SOURCE']], 'r') as f:
+        with open(self.dict_item['ft_source'], 'r') as f:
             raw_text = f.read()
 
         self.raw_text = raw_text
@@ -104,7 +102,7 @@ class StandardExtractorBasicText(object):
                         decode=decode)
 
         meta_out = {}
-        meta_out[CONSTANTS['FULL_TEXT']] = self.parsed_text
+        meta_out['fulltext'] = self.parsed_text
         return meta_out
 
 
@@ -122,7 +120,7 @@ class StandardExtractorHTML(object):
         :return: no return
         """
         self.dict_item = dict_item
-        self.file_input = self.dict_item[CONSTANTS['FILE_SOURCE']].split(',')[0]
+        self.file_input = self.dict_item['ft_source'].split(',')[0]
         self.raw_html = None
         self.parsed_html = None
         self.dictionary_of_tables = None
@@ -188,7 +186,7 @@ class StandardExtractorHTML(object):
         :return: dictionary conotaining all of the related tables
         """
         table_source_files = re.split('\s*,\s*',
-                                      self.dict_item[CONSTANTS['FILE_SOURCE']])
+                                      self.dict_item['ft_source'])
         table_source_files.reverse()
         file_source = table_source_files.pop()
 
@@ -225,15 +223,17 @@ class StandardExtractorHTML(object):
         # Remove anything before introduction
         for xpath in META_CONTENT[self.meta_name]['introduction']:
             try:
-                removed_content = self.parsed_html.xpath(xpath)[0]
-                break
+                tmp = self.parsed_html.xpath(xpath)
+                if tmp and len(tmp) > 0:
+                    removed_content = tmp[0] # TODO(rca): only first elem?
+                    break
 
             except Exception:
                 print Exception(traceback.format_exc())
 
         if removed_content is None:
             logger.debug('Could not find intro for {0} (last xpath: {1})'
-                         .format(self.dict_item[CONSTANTS['BIBCODE']], xpath))
+                         .format(self.dict_item['bibcode'], xpath))
         else:
             first_position_index = removed_content.getparent().index(
                 removed_content)
@@ -255,7 +255,7 @@ class StandardExtractorHTML(object):
 
             except Exception:
                 logger.debug('Could not find references for {0} (last xpath: '
-                             '{1})'.format(self.dict_item[CONSTANTS['BIBCODE']],
+                             '{1})'.format(self.dict_item['bibcode'],
                                            xpath))
 
         # Insert tables from external files
@@ -338,7 +338,7 @@ class StandardExtractorHTML(object):
             decode=decode,
             normalise=True)
 
-        meta_out = {CONSTANTS['FULL_TEXT']: string_of_all_html}
+        meta_out = {'fulltext': string_of_all_html}
 
         return meta_out
 
@@ -357,7 +357,7 @@ class StandardExtractorXML(object):
         :return: no return
         """
         self.dict_item = dict_item
-        self.file_input = dict_item[CONSTANTS['FILE_SOURCE']]
+        self.file_input = dict_item['ft_source']
         self.raw_xml = None
         self.parsed_xml = None
         self.meta_name = "xml"
@@ -549,12 +549,12 @@ class StandardExtractorXML(object):
 
                 except IndexError:
                     logger.debug('Index error for: {0}'.format(self.dict_item[
-                        CONSTANTS['BIBCODE']]))
+                        'bibcode']))
                     pass
 
                 except KeyError:
                     logger.error('Dictionary key error for: {0} [{1}]'.format(
-                        self.dict_item[CONSTANTS['BIBCODE']],
+                        self.dict_item['bibcode'],
                         META_CONTENT[self.meta_name][content_name]
                     ))
                     raise KeyError(
@@ -563,7 +563,7 @@ class StandardExtractorXML(object):
 
                 except Exception:
                     logger.error('Unknown error for: {0} [{1}]'
-                                 .format(self.dict_item[CONSTANTS['BIBCODE']],
+                                 .format(self.dict_item['bibcode'],
                                          traceback.format_exc()
                                          )
                                  )
@@ -672,7 +672,7 @@ class StandardExtractorHTTP(StandardExtractorBasicText):
                                 'Accept': 'text/plain', }
 
         try:
-            prev_time_stamp = self.dict_item[CONSTANTS['PREVIOUS_TIME_STAMP']]
+            prev_time_stamp = self.dict_item['PREVIOUS_TIME_STAMP'] #TODO(rca): this mysterious constant cannot be found (on live or codebase); it seems like it was silently failing forever..
             last_modified = prev_time_stamp.strftime('%a, %d %b %Y %H:%M:%S %Z')
             self.request_headers['If-Modified-Since'] = last_modified
 
@@ -689,7 +689,7 @@ class StandardExtractorHTTP(StandardExtractorBasicText):
 
         import requests
 
-        response = requests.get(self.dict_item[CONSTANTS['FILE_SOURCE']],
+        response = requests.get(self.dict_item['ft_source'],
                                 headers=self.request_headers)
 
         if response.status_code != 200:
@@ -745,7 +745,7 @@ class StandardExtractorHTTP(StandardExtractorBasicText):
             decode=decode,
             normalise=True)
         meta_out = {}
-        meta_out[CONSTANTS['FULL_TEXT']] = self.parsed_http
+        meta_out['fulltext'] = self.parsed_http
         return meta_out
 
 
@@ -764,8 +764,7 @@ EXTRACTOR_FACTORY = {
 
 def extract_content(input_list, **kwargs):
     """
-    Global function of the module that is imported by the RabbitMQ worker. It
-    accepts a list of dictionaries that contain the relevant meta-data for an
+    accept a list of dictionaries that contain the relevant meta-data for an
     article. It matches the type of file to the correct extractor type, and then
     extracts the full text content and anything else relevant, e.g.,
     acknowledgements, and dataset IDs (that are defined by the user in
@@ -785,12 +784,12 @@ def extract_content(input_list, **kwargs):
     for dict_item in input_list:
 
         try:
-            extension = dict_item[CONSTANTS['FORMAT']]
+            extension = dict_item['file_format']
             if extension not in ACCEPTED_FORMATS:
                 raise KeyError('You gave an unsupported file extension.')
 
             if extension == 'xml' \
-                    and dict_item[CONSTANTS['PROVIDER']] == 'Elsevier':
+                    and dict_item['provider'] == 'Elsevier':
 
                 extension = "elsevier"
 
@@ -799,7 +798,7 @@ def extract_content(input_list, **kwargs):
         except KeyError:
             raise KeyError(
                 'You gave a format not currently supported for extraction: {0}'
-                .format(dict_item[CONSTANTS['FORMAT']], traceback.format_exc()))
+                .format(dict_item['file_format'], traceback.format_exc()))
 
         try:
             extractor = ExtractorClass(dict_item)
@@ -815,4 +814,4 @@ def extract_content(input_list, **kwargs):
 
         del extractor, parsed_content
 
-    return json.dumps(output_list)
+    return output_list
