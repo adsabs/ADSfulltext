@@ -9,8 +9,7 @@ binary files into text.
 
 
 
-## Notes
+## Time-Capsule
 
-The java process subscribes to the queue; that should change!
+If you stop here, oh tired traveller, please don't judge us too harshly, mere mortals. We tried to simplify the chaos we didn't create. Blame the universe for its affinity for chaos.
 
-command=/usr/bin/java -jar /vagrant/target/ADSfulltext-1.0-SNAPSHOT-jar-with-dependencies.jar --consume-queue ; the program (relative uses PATH, can take args)
