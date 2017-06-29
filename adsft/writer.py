@@ -16,17 +16,13 @@ __license__ = 'GPLv3'
 
 import sys
 import os
-
-PROJECT_HOME = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
-sys.path.append(PROJECT_HOME)
-
 import json
 import tempfile
 import shutil
-from settings import CONSTANTS, META_CONTENT
-from utils import setup_logging
+from adsft.rules import META_CONTENT
+from adsputils import setup_logging
 
-logger = setup_logging(__file__, __name__)
+logger = setup_logging(__file__)
 
 
 def write_to_temp_file(payload, temp_path='/tmp/', json_format=True):
@@ -119,7 +115,7 @@ def write_content(payload_dictionary):
     :return: no return
     """
 
-    meta_output_file_path = payload_dictionary[CONSTANTS['META_PATH']]
+    meta_output_file_path = payload_dictionary['meta_path']
     bibcode_pair_tree_path = os.path.dirname(meta_output_file_path)
     full_text_output_file_path = os.path.join(bibcode_pair_tree_path,
                                               'fulltext.txt')
@@ -133,11 +129,9 @@ def write_content(payload_dictionary):
     # Write everything but the full text content to the meta.json
     meta_dict = {}
 
-    for const in CONSTANTS:
-        if const in ['FULL_TEXT', 'ACKNOWLEDGEMENTS']:
-            continue
+    for const in ('meta_path', 'ft_source', 'bibcode', 'provider', 'UPDATE', 'file_format', 'index_date', 'dataset'):
         try:
-            meta_dict[CONSTANTS[const]] = payload_dictionary[CONSTANTS[const]]
+            meta_dict[const] = payload_dictionary[const]
             logger.debug('Adding meta content: {0}'.format(const))
         except KeyError:
             #print('Missing meta content: {0}'.format(const))
@@ -145,8 +139,8 @@ def write_content(payload_dictionary):
 
     # Write the custom extractions of content to the meta.json
     logger.debug('Copying extra meta content')
-    for meta_key_word in META_CONTENT[payload_dictionary[CONSTANTS['FORMAT']]]:
-        if meta_key_word in [CONSTANTS['FULL_TEXT'], CONSTANTS['DATASET']]:
+    for meta_key_word in META_CONTENT[payload_dictionary['file_format']]:
+        if meta_key_word in ('dataset', 'fulltext'):
             continue
 
         logger.debug(meta_key_word)
@@ -162,7 +156,7 @@ def write_content(payload_dictionary):
                 write_file(meta_constant_file_path, meta_key_word_value,
                            json_format=False)
                 logger.info('WriteMetaFile: completed bibcode: {0}'.format(
-                    payload_dictionary[CONSTANTS['BIBCODE']]))
+                    payload_dictionary['bibcode']))
             except IOError:
                 logger.error('IO Error when writing to file.')
                 raise IOError
@@ -175,7 +169,7 @@ def write_content(payload_dictionary):
     # Write the full text content to its own file fulltext.txt
     logger.debug('Copying full text content')
     full_text_dict = {
-        CONSTANTS['FULL_TEXT']: payload_dictionary[CONSTANTS['FULL_TEXT']]}
+        'fulltext': payload_dictionary['fulltext']}
 
     try:
         logger.debug('Writing to file: {0}'.format(meta_output_file_path))
@@ -189,17 +183,17 @@ def write_content(payload_dictionary):
     try:
         logger.debug('Writing to file: {0}'.format(full_text_output_file_path))
         logger.debug('Content has length: {0}'.format(
-            len(full_text_dict[CONSTANTS['FULL_TEXT']])))
+            len(full_text_dict['fulltext'])))
         write_file(full_text_output_file_path,
-                   full_text_dict[CONSTANTS['FULL_TEXT']], json_format=False)
+                   full_text_dict['fulltext'], json_format=False)
         logger.debug('Writing complete.')
     except KeyError:
         logger.error('KeyError for dictionary {0}'.format(payload_dictionary[
-            CONSTANTS['BIBCODE']]))
+            'bibcode']))
         raise KeyError
     except IOError:
         logger.error('IO Error when writing to file {0}'.format(
-            payload_dictionary[CONSTANTS['BIBCODE']]))
+            payload_dictionary['bibcode']))
         raise IOError
 
 
@@ -221,7 +215,7 @@ def extract_content(input_list, **kwargs):
     for dict_item in input_list:
         try:
             write_content(dict_item)
-            bibcode_list.append(dict_item[CONSTANTS['BIBCODE']])
+            bibcode_list.append(dict_item['bibcode'])
         except Exception:
             import traceback
 

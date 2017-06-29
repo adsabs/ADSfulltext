@@ -18,10 +18,6 @@ __license__ = 'GPLv3'
 
 import sys
 import os
-
-PROJECT_HOME = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
-sys.path.append(PROJECT_HOME)
-
 import utils
 import json
 import ptree
@@ -29,11 +25,10 @@ import traceback
 
 from stat import ST_MTIME
 from datetime import datetime
-from settings import config, CONSTANTS
-from utils import setup_logging
+from adsputils import setup_logging
 from dateutil.parser import parse
 
-logger = setup_logging(__file__, __name__)
+logger = setup_logging(__file__)
 
 
 def file_last_modified_time(file_input):
@@ -48,7 +43,7 @@ def file_last_modified_time(file_input):
     return datetime.fromtimestamp(mtime)
 
 
-def create_meta_path(dict_input, extract_key='FULLTEXT_EXTRACT_PATH'):
+def create_meta_path(dict_input, extract_path):
     """
     Converts the BibCode of the file into a pair tree path name. For example,
     2015TEST would be converted into '20/15/TE/ST/'.
@@ -58,23 +53,23 @@ def create_meta_path(dict_input, extract_key='FULLTEXT_EXTRACT_PATH'):
     :return: BibCodes pair tree path
     """
 
-    ptr = ptree.id2ptree(dict_input[CONSTANTS['BIBCODE']])
-    extract_path = config[extract_key] + ptr + 'meta.json'
+    ptr = ptree.id2ptree(dict_input['bibcode'])
+    extract_path = extract_path + ptr + 'meta.json'
     logger.debug('extract_path: {0}'.format(extract_path))
 
     return extract_path
 
 
-def meta_output_exists(file_input, extract_key='FULLTEXT_EXTRACT_PATH'):
+def meta_output_exists(file_input, extract_path):
     """
     Checks if there is already a meta-data json file on disk.
 
     :param file_input: dictionary containing article meta-data
-    :param extract_key: path to extract the full text content to
+    :param extract_path: path to extract the full text content to
     :return: boolean value; does the path exist or not
     """
 
-    meta_full_path = create_meta_path(file_input, extract_key)
+    meta_full_path = create_meta_path(file_input, extract_path)
 
     if os.path.isfile(meta_full_path):
         return True
@@ -82,16 +77,16 @@ def meta_output_exists(file_input, extract_key='FULLTEXT_EXTRACT_PATH'):
         return False
 
 
-def load_meta_file(file_input, extract_key='FULLTEXT_EXTRACT_PATH'):
+def load_meta_file(file_input, extract_path):
     """
     Loads the meta-data file using the python JSON library.
 
     :param file_input: dictionary containing article meta-data
-    :param extract_key: path to extract the full text content to
+    :param extract_path: path to extract the full text content to
     :return: the content of the meta-data file
     """
 
-    meta_full_path = create_meta_path(file_input, extract_key)
+    meta_full_path = create_meta_path(file_input, extract_path)
 
     content = None
 
@@ -114,7 +109,7 @@ def load_meta_file(file_input, extract_key='FULLTEXT_EXTRACT_PATH'):
 
 
 def meta_needs_update(dict_input, meta_content,
-                      extract_key='FULLTEXT_EXTRACT_PATH'):
+                      extract_path):
     """
     By examining the meta-data file and the relevant full text file, it checks
     if the full text should be extracted for the first time (or again). The
@@ -134,9 +129,9 @@ def meta_needs_update(dict_input, meta_content,
 
     # Obtain the indexed date within the meta file
     try:
-        time_stamp = meta_content[CONSTANTS['TIME_STAMP']]
+        time_stamp = meta_content['index_date']
         meta_date = parse(time_stamp)
-        bibcode = meta_content[CONSTANTS['BIBCODE']]
+        bibcode = meta_content['bibcode']
     except KeyError:
         logger.warning("Malformed meta-file: %s", traceback.format_exc())
         return 'STALE_META'
@@ -148,22 +143,22 @@ def meta_needs_update(dict_input, meta_content,
     logger.debug('Opened existing meta to determine if an update is required.')
 
     # No extraction exists
-    if CONSTANTS['FILE_SOURCE'] not in meta_content:
+    if 'ft_source' not in meta_content:
         return 'MISSING_FULL_TEXT'
 
     # Full text file path has changed
-    if meta_content[CONSTANTS['FILE_SOURCE']] != \
-            dict_input[CONSTANTS['FILE_SOURCE']]:
+    if meta_content['ft_source'] != \
+            dict_input['ft_source']:
         return 'DIFFERING_FULL_TEXT'
 
     # Content is considered 'stale'
     delta_comp_time = datetime.utcnow() - datetime.now()
 
     ft_source_last_modified = \
-        file_last_modified_time(meta_content[CONSTANTS['FILE_SOURCE']])
+        file_last_modified_time(meta_content['ft_source'])
     ft_source_last_modified += delta_comp_time
 
-    meta_path = create_meta_path(dict_input, extract_key=extract_key)
+    meta_path = create_meta_path(dict_input, extract_path)
 
     meta_json_last_modified = file_last_modified_time(meta_path)
 
@@ -175,7 +170,7 @@ def meta_needs_update(dict_input, meta_content,
         return 'STALE_CONTENT'
 
 
-def check_if_extract(message_list, extract_key='FULLTEXT_EXTRACT_PATH'):
+def check_if_extract(message_list, extract_path):
     """
     For each bibcode in the list, it is checked if it should be extracted by
     examining the meta-data supplied, the meta-data that exists in the current
@@ -204,15 +199,14 @@ def check_if_extract(message_list, extract_key='FULLTEXT_EXTRACT_PATH'):
     for message in message_list:
 
         # message should be a dictionary
-        print(message.keys())
-        if CONSTANTS['UPDATE'] in message.keys() \
-                and message[CONSTANTS['UPDATE']] == 'FORCE_TO_EXTRACT':
+        if 'UPDATE' in message.keys() \
+                and message['UPDATE'] == 'FORCE_TO_EXTRACT':
             update = 'FORCE_TO_EXTRACT'
 
-        elif meta_output_exists(message, extract_key=extract_key):
-            meta_content = load_meta_file(message, extract_key=extract_key)
+        elif meta_output_exists(message, extract_path):
+            meta_content = load_meta_file(message, extract_path)
             update = meta_needs_update(message, meta_content,
-                                       extract_key=extract_key)
+                                       extract_path)
         else:
             logger.debug('No existing meta file')
             update = 'NOT_EXTRACTED_BEFORE'
@@ -220,40 +214,40 @@ def check_if_extract(message_list, extract_key='FULLTEXT_EXTRACT_PATH'):
         logger.debug('Update required?: {0}'.format(update))
         logger.debug('Creating meta path')
 
-        message[CONSTANTS['META_PATH']] = \
-            create_meta_path(message, extract_key=extract_key)
+        message['meta_path'] = \
+            create_meta_path(message, extract_path)
 
-        logger.debug('created: %s' % message[CONSTANTS['META_PATH']])
+        logger.debug('created: %s' % message['meta_path'])
 
         format_ = os.path.splitext(
-            message[CONSTANTS['FILE_SOURCE']])[-1].replace('.', '').lower()
+            message['ft_source'])[-1].replace('.', '').lower()
 
-        if not format_ and 'http://' in message[CONSTANTS['FILE_SOURCE']]:
+        if not format_ and 'http://' in message['ft_source']:
             format_ = 'http'
-        message[CONSTANTS['FORMAT']] = format_
+        message['file_format'] = format_
 
         logger.debug('Format found: %s' % format_)
         if update in NEEDS_UPDATE and format_ == 'pdf':
-            message[CONSTANTS['UPDATE']] = update
+            message['UPDATE'] = update
 
             logger.info('CheckIfExtract: needs update because {0}: {1}'.format(
-                update, message[CONSTANTS['BIBCODE']]))
+                update, message['bibcode']))
 
             publish_list_of_pdf_dictionaries.append(message)
 
         elif update in NEEDS_UPDATE:
-            message[CONSTANTS['UPDATE']] = update
+            message['UPDATE'] = update
 
             logger.info('CheckIfExtract: needs update because {0}: {1}'.format(
-                update, message[CONSTANTS['BIBCODE']]))
+                update, message['bibcode']))
 
             publish_list_of_standard_dictionaries.append(message)
 
         # Wite a time stamp of this process
-        message[CONSTANTS['TIME_STAMP']] = datetime.utcnow().isoformat() + 'Z'
+        message['index_date'] = datetime.utcnow().isoformat() + 'Z'
 
         logger.debug('Adding timestamp: {0}'.format(
-            message[CONSTANTS['TIME_STAMP']]))
+            message['index_date']))
 
         logger.debug('Returning dictionaries')
 

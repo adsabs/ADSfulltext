@@ -21,8 +21,6 @@ import unicodedata
 import re
 import json
 
-from settings import config, PROJ_HOME, CONSTANTS
-from cloghandler import ConcurrentRotatingFileHandler
 
 
 class FileInputStream(object):
@@ -67,11 +65,10 @@ class FileInputStream(object):
         in_file = self.input_stream
         try:
             with open(in_file, 'r') as f:
-                input_lines = f.readlines()
 
                 raw = []
                 bibcode, full_text_path, provider = [], [], []
-                for line in input_lines:
+                for line in f:
 
                     l = [i for i in line.strip().split('\t') if i != '']
                     if len(l) == 0:
@@ -80,13 +77,13 @@ class FileInputStream(object):
                     full_text_path.append(l[1])
                     provider.append(l[2])
                     payload_dictionary = {
-                        CONSTANTS['BIBCODE']: bibcode[-1],
-                        CONSTANTS['FILE_SOURCE']: full_text_path[-1],
-                        CONSTANTS['PROVIDER']: provider[-1]
+                        'bibcode': bibcode[-1],
+                        'ft_source': full_text_path[-1],
+                        'provider': provider[-1]
                     }
 
                     if force_extract:
-                        payload_dictionary[CONSTANTS['UPDATE']] = \
+                        payload_dictionary['UPDATE'] = \
                             'FORCE_TO_EXTRACT'
 
                     raw.append(payload_dictionary)

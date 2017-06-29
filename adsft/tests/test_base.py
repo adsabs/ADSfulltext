@@ -135,23 +135,64 @@ class TestUnit(unittest.TestCase):
     
     def setUp(self):
         unittest.TestCase.setUp(self)
-        self.proj_home = os.path.join(os.path.dirname(__file__), '../..')
+        self.proj_home = os.path.realpath(os.path.join(os.path.dirname(__file__), '../..'))
         self._app = tasks.app
-        self.app = app.ADSFulltextCelery('test',
+        self.app = app.ADSFulltextCelery('test', local_config=\
             {
-            'SQLALCHEMY_URL': 'sqlite:///',
-            'SQLALCHEMY_ECHO': False
+            'FULLTEXT_EXTRACT_PATH': os.path.join(self.proj_home, 'tests/test_unit/stub_data'),
             })
         tasks.app = self.app # monkey-patch the app object
-        Base.metadata.bind = self.app._session.get_bind()
-        Base.metadata.create_all()
         
         build_links(test_name='integration')
+        
+        PROJ_HOME = self.app.conf['PROJ_HOME']
+        self.test_file = \
+            os.path.join(PROJ_HOME,
+                         'tests/test_integration/stub_data/fulltext.links')
+        self.test_file_stub = \
+            os.path.join(PROJ_HOME,
+                         'tests/test_integration/stub_data/fulltext_stub.links')
+        self.test_file_wrong = \
+            os.path.join(PROJ_HOME,
+                         'tests/test_integration/stub_data/fulltext_wrong.links')
+        self.test_file_exists = \
+            os.path.join(PROJ_HOME,
+                         'tests/test_integration/stub_data/fulltext_exists.links')
+        self.test_single_document =\
+            os.path.join(PROJ_HOME,
+                         'tests/test_integration/stub_data/fulltext_single_document'
+                         '.links')
+        
+        self.test_stub_xml = \
+            os.path.join(PROJ_HOME,
+                         'tests/test_unit/stub_data/test.xml')
+        self.test_stub_exml = \
+            os.path.join(PROJ_HOME,
+                         'tests/test_unit/stub_data/test_elsevier.xml')
+        self.test_stub_teixml = \
+            os.path.join(PROJ_HOME,
+                         'tests/test_unit/stub_data/test.astro-ph-0002105.tei.xml')
+        self.test_stub_html = \
+            os.path.join(PROJ_HOME,
+                         'tests/test_unit/stub_data/test.html')
+        self.test_stub_html_table = \
+            os.path.join(PROJ_HOME,
+                         'tests/test_unit/stub_data/test_table.html')
+        self.test_stub_text = \
+            os.path.join(PROJ_HOME,
+                         'tests/test_unit/stub_data/test.txt')
+        self.test_stub_ocr = \
+            os.path.join(PROJ_HOME,
+                         'tests/test_unit/stub_data/test.ocr')
+        
+        self.test_functional_stub =\
+            os.path.join(PROJ_HOME,
+                         'tests/test_functional/stub_data/fulltext_functional_tests'
+                         '.links')
     
     
     def tearDown(self):
         unittest.TestCase.tearDown(self)
-        Base.metadata.drop_all()
         self.app.close_app()
         tasks.app = self._app
 
