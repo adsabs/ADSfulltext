@@ -3,10 +3,12 @@ python:
  - "2.7"
 before_install:
  - sudo apt-get update
- - sudo apt-get install openjdk-7-jdk icedtea-7-plugin
+ - sudo apt-get install openjdk-7-jdk icedtea-7-plugin libxml2-dev libxslt1-dev
  - export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64/
 install:
+ - pip install --upgrade setuptools
  - pip install -r requirements.txt
+ - pip install -r dev-requirements.txt
 services:
  - rabbitmq
 before_script:
@@ -15,8 +17,8 @@ before_script:
  - sudo rabbitmqctl set_permissions -p adsfulltext guest ".*" ".*" ".*"
  - sudo rabbitmqctl set_permissions -p external_vhost guest ".*" ".*" ".*"
 script:
- - coverage run -p --source=. tests/test_unit/test.py
- - tests/integration_test.sh
+ - py.test
+ #- tests/integration_test.sh
  - mvn test -DdryRun=true -DcoverallsFile=java_coverage.json jacoco:report coveralls:report
 after_success:
  - coverage combine
