@@ -20,7 +20,7 @@ class TestCheckIfExtracted(test_base.TestUnit):
         FileInputStream = utils.FileInputStream(self.test_file_stub)
         FileInputStream.extract()
 
-        payload = FileInputStream.raw[0]
+        payload = FileInputStream.payload[0]
 
         exists = checker.meta_output_exists(
             payload,
@@ -41,7 +41,7 @@ class TestCheckIfExtracted(test_base.TestUnit):
         FileInputStream = utils.FileInputStream(self.test_file_exists)
         FileInputStream.extract()
 
-        payload = FileInputStream.raw[0]
+        payload = FileInputStream.payload[0]
 
         exists = checker.meta_output_exists(
             payload,
@@ -66,7 +66,7 @@ class TestCheckIfExtracted(test_base.TestUnit):
         FileInputStream = utils.FileInputStream(self.test_file_exists)
         FileInputStream.extract()
 
-        payload = FileInputStream.raw[0]
+        payload = FileInputStream.payload[0]
 
         content = checker.load_meta_file(
             payload,
@@ -93,7 +93,7 @@ class TestCheckIfExtracted(test_base.TestUnit):
         FileInputStream.extract()
 
         meta_content = checker.load_meta_file(
-            FileInputStream.raw[0],
+            FileInputStream.payload[0],
             self.app.conf['FULLTEXT_EXTRACT_PATH']
         )
 
@@ -127,7 +127,7 @@ class TestCheckIfExtracted(test_base.TestUnit):
 
         FileInputStream = utils.FileInputStream(self.test_file_exists)
         FileInputStream.extract()
-        payload = FileInputStream.raw[0]
+        payload = FileInputStream.payload[0]
 
         meta_content = checker.load_meta_file(
             payload,
@@ -161,10 +161,9 @@ class TestCheckIfExtracted(test_base.TestUnit):
 
         FileInputStream = utils.FileInputStream(self.test_file_exists)
         FileInputStream.extract()
-        FileInputStream.make_payload()
 
         # Ensure the PDF more new than the meta.json
-        payload = FileInputStream.raw[0]
+        payload = FileInputStream.payload[0]
         with open(payload['ft_source'], 'w') as not_stale:
             not_stale.write('PDF')
 
@@ -212,7 +211,7 @@ class TestCheckIfExtracted(test_base.TestUnit):
             len([i for i in text.split('\n') if i != '']) - pdf_number
 
         payload = checker.check_if_extract(
-            FileInputStream.raw, self.app.conf['FULLTEXT_EXTRACT_PATH']
+            FileInputStream.payload, self.app.conf['FULLTEXT_EXTRACT_PATH']
 
         )
         pdf_payload = payload['PDF']
@@ -263,7 +262,7 @@ class TestCheckIfExtracted(test_base.TestUnit):
         FileInputStream.extract()
 
         payload = checker.check_if_extract(
-            FileInputStream.raw, self.app.conf['FULLTEXT_EXTRACT_PATH']
+            FileInputStream.payload, self.app.conf['FULLTEXT_EXTRACT_PATH']
         )
 
         expected_content = ['ft_source', 'bibcode',
@@ -292,7 +291,7 @@ class TestCheckIfExtracted(test_base.TestUnit):
         FileInputStream.extract()
 
         payload = checker.check_if_extract(
-            FileInputStream.raw, self.app.conf['FULLTEXT_EXTRACT_PATH']
+            FileInputStream.payload, self.app.conf['FULLTEXT_EXTRACT_PATH']
         )
 
         self.assertFalse(payload['PDF'])
@@ -313,13 +312,13 @@ class TestCheckIfExtracted(test_base.TestUnit):
         FileInputStream_false.extract(force_extract=False)
 
         payload_true = checker.check_if_extract(
-            FileInputStream_true.raw,
+            FileInputStream_true.payload,
             self.app.conf['FULLTEXT_EXTRACT_PATH']
         )
         first_doc_true = payload_true['PDF'][0]
 
         payload_false = checker.check_if_extract(
-            FileInputStream_false.raw,
+            FileInputStream_false.payload,
             self.app.conf['FULLTEXT_EXTRACT_PATH']
         )
         first_doc_false = payload_true['PDF'][0]

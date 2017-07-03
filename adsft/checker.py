@@ -28,7 +28,7 @@ from datetime import datetime
 from adsputils import setup_logging
 from dateutil.parser import parse
 
-logger = setup_logging(__file__)
+logger = setup_logging(__name__)
 
 
 def file_last_modified_time(file_input):
@@ -199,7 +199,7 @@ def check_if_extract(message_list, extract_path):
     for message in message_list:
 
         # message should be a dictionary
-        if 'UPDATE' in message.keys() \
+        if 'UPDATE' in message \
                 and message['UPDATE'] == 'FORCE_TO_EXTRACT':
             update = 'FORCE_TO_EXTRACT'
 

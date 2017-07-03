@@ -22,7 +22,7 @@ import shutil
 from adsft.rules import META_CONTENT
 from adsputils import setup_logging
 
-logger = setup_logging(__file__)
+logger = setup_logging(__name__)
 
 
 def write_to_temp_file(payload, temp_path='/tmp/', json_format=True):
