@@ -140,6 +140,7 @@ class TestUnit(unittest.TestCase):
         self.app = app.ADSFulltextCelery('test', local_config=\
             {
             'FULLTEXT_EXTRACT_PATH': os.path.join(self.proj_home, 'tests/test_unit/stub_data'),
+            'CELERY_BROKER': tasks.app.conf['CELERY_BROKER'] + '_test'
             })
         tasks.app = self.app # monkey-patch the app object
         
@@ -270,7 +271,7 @@ class TestGeneric(unittest.TestCase):
         was extracted
         """
 
-        with open(os.path.join(app.conf['PROJ_HOME'], full_text_links), "r") as inf:
+        with open(os.path.join(self.app.conf['PROJ_HOME'], full_text_links), "r") as inf:
             lines = inf.readlines()
 
         expected_paths = \

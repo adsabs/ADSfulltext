@@ -53,27 +53,17 @@ def run(full_text_links, **kwargs):
 
 
     logger.info('Setting variables')
-    if 'packet_size' in kwargs:
-        packet_size = kwargs['packet_size']
-        logger.info(
-            'Packet size overridden: {0:d}'.format(kwargs['packet_size']))
-    else:
-        packet_size = 10
-
     if 'max_queue_size' in kwargs:
         max_queue_size = kwargs['max_queue_size']
         logger.info('Max queue size overridden: %d' % kwargs['max_queue_size'])
     else:
         max_queue_size = 0
 
-    logger.info('Making payload')
-    records.make_payload(packet_size=packet_size)
-
     logger.info('Publishing records to: CheckIfExtract')
     
     i = 0
     for record in records.payload:
-        temp = json.loads(record)
+        temp = record
         first = temp[0]['bibcode']
         last = temp[-1]['bibcode']
 

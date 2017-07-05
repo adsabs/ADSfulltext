@@ -37,7 +37,6 @@ class FileInputStream(object):
         """
 
         self.input_stream = input_stream
-        self.raw = ''
         self.bibcode = ''
         self.full_text_path = ''
         self.provider = ''
@@ -52,14 +51,14 @@ class FileInputStream(object):
         print 'Bibcode: {0}'.format(self.bibcode)
         print 'Full text path: {0}'.format(self.full_text_path)
         print 'Provider: {0}'.format(self.provider)
-        print 'Raw content: {0}'.format(self.raw)
+        print 'Payload content: {0}'.format(self.payload)
 
     def extract(self, force_extract=False):
         """
         Opens the file and parses the content depending on the type of input
         :param force_extract: boolean decides if the normal checks should
         be ignored and extracted regardless
-        :return: the bibcode, full text path, provider, and raw content
+        :return: the bibcode, full text path, provider, and payload content
         """
 
         in_file = self.input_stream
@@ -91,29 +90,13 @@ class FileInputStream(object):
             self.bibcode = bibcode
             self.full_text_path = full_text_path
             self.provider = provider
-            self.raw = raw
+            self.payload = raw
 
         except IOError:
             print in_file, sys.exc_info()
 
-        return self.bibcode, self.full_text_path, self.provider, self.raw
+        return self.bibcode, self.full_text_path, self.provider, self.payload
 
-    def make_payload(self, **kwargs):
-        """
-        Convert the file stream input to a payload form defined below
-
-        :param kwargs: extra arguments
-        :return: list of json formatted payloads
-        """
-
-        if 'packet_size' in kwargs:
-            self.payload = \
-                [json.dumps(self.raw[i:i+kwargs['packet_size']])
-                 for i in range(0, len(self.raw), kwargs['packet_size'])]
-        else:
-            self.payload = [json.dumps(self.raw)]
-
-        return self.payload
 
 
 class TextCleaner(object):

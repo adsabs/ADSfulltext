@@ -1,5 +1,5 @@
 
-CELERY_BROKER = 'pyamqp://guest@localhost:6672/ads_fulltext'
+CELERY_BROKER = 'pyamqp://guest@localhost:6672/fulltext_pipeline'
 PDF_EXTRACTOR = 'org.adslabs.adsfulltext.PDFExtractList'
 
 

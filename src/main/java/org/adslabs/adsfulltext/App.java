@@ -68,6 +68,7 @@ public class App {
               logger.info("Ignoring erroneous input: " + file);
             }
             else {
+              logger.debug("Extracting: " + parts[0]);
               try {
                 result = extractor.extract(parts[0]);
                 Files.write(Paths.get(parts[1]), result.getBytes(StandardCharsets.UTF_8));
@@ -79,6 +80,7 @@ public class App {
             }
           }
           else {
+            logger.debug("Extracting: " + file);
             System.out.print(extractor.extract(file));
           }
         }

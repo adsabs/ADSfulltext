@@ -13,9 +13,7 @@ logger = app.logger
 
 app.conf.CELERY_QUEUES = (
     Queue('check-if-extract', app.exchange, routing_key='check-if-extract'),
-    Queue('extract-standard', app.exchange, routing_key='extract-standard'),
-    Queue('extract-pdf', app.exchange, routing_key='extract-pdf'),
-    Queue('write-text', app.exchange, routing_key='write-text')
+    Queue('extract', app.exchange, routing_key='extract')
 )
 
 
@@ -29,25 +27,22 @@ def task_check_if_extract(message):
     extraction queue.
     """
     logger.debug('Checking content: %s', message)
-    results = extraction.check_if_extract(message)
+    if not isinstance(message, list):
+        message = [message]
+    results = checker.check_if_extract(message, app.conf['FULLTEXT_EXTRACT_PATH'])
     logger.debug('Results: %s', results)
     if results:
         for key in results:
-            if key == 'PDF':
+            if key == 'PDF' or key == 'Standard':
                 for msg in results[key]:
-                    
-                    
-                    task_extract_pdf.delay(msg)
-            elif key == 'Standard':
-                for msg in results[key]:
-                    task_extract_standard.delay(msg)
+                    task_extract.delay(msg)
             else:
                 logger.error('Unknown type: %s and message: %s', (key, results[key]))
     
     
     
-@app.task(queue='extract-standard')
-def task_extract_standard(message):
+@app.task(queue='extract')
+def task_extract(message):
     """
     Extracts the full text from the given location and pushes to the writing
     queue.
@@ -57,30 +52,8 @@ def task_extract_standard(message):
         message = [message]
     results = extraction.extract_content(message)
     logger.debug('Results: %s', results)
-    task_write_text.delay(results)
-
-
-@app.task(queue='extract-pdf')
-def task_extract_pdf(message):
-    """
-    Extracts the full text from the given location and pushes to the writing
-    queue.
-    """
-    logger.debug('Extract content: %s', message)
-    results = extraction.extract_content(message) # TODO(rca) call PDF worker
-    logger.debug('Results: %s', results)
-    task_write_text.delay(results)
-    
-
-@app.task(queue='write-text')
-def task_write_text(message, **kwargs):
-    """
-    Writes the full text to file
-    """
-    logger.debug('Extract content: %s', message)
-    results = writer.extract_content(message)
-    logger.debug('Results: %s', results)
-    task_write_text.delay(results)    
+    for r in results:
+        writer.write_content(r)
 
 
 if __name__ == '__main__':

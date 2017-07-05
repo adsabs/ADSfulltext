@@ -21,7 +21,7 @@ __license__ = 'GPLv3'
 import sys
 import os
 
-from adsputils import setup_logging, overrides
+from adsputils import setup_logging, overrides, load_config
 from adsft.utils import TextCleaner
 import re
 import traceback
@@ -30,7 +30,9 @@ from lxml.html import soupparser, document_fromstring, fromstring
 from adsft import entitydefs as edef
 from adsft.rules import META_CONTENT
 from requests.exceptions import HTTPError
+from subprocess import Popen, PIPE, STDOUT
 
+proj_home = load_config()['PROJ_HOME']
 logger = setup_logging(__name__)
 
 
@@ -749,6 +751,23 @@ class StandardExtractorHTTP(StandardExtractorBasicText):
         return meta_out
 
 
+class PDFBoxExtractor(object):
+    def __init__(self, kwargs):
+        self.ft_source = kwargs.get('ft_source', None)
+        self.bibcode = kwargs.get('bibcode', None)
+        self.provider = kwargs.get('provider', None)
+        self.cmd = kwargs.get('executable', proj_home + '/scripts/extract_pdf.sh') #TODO(rca) make it configurable
+        
+        if not self.ft_source:
+            raise Exception('Missing or non-existent source: %s', self.ft_source)
+        
+    def extract_multi_content(self):
+        p = Popen([self.cmd, self.ft_source], stdout=PIPE, stderr=PIPE)
+        stdout, stderr = p.communicate()
+        if p.returncode != 0:
+            raise Exception(stderr)
+        return {'fulltext': stdout}
+    
 # Dictionary containing the relevant extensions for the relevant class
 
 EXTRACTOR_FACTORY = {
@@ -759,6 +778,7 @@ EXTRACTOR_FACTORY = {
     "elsevier": StandardElsevierExtractorXML,
     "teixml": StandardExtractorTEIXML,
     "http": StandardExtractorHTTP,
+    "pdf": PDFBoxExtractor
 }
 
 
@@ -779,7 +799,7 @@ def extract_content(input_list, **kwargs):
 
     output_list = []
 
-    ACCEPTED_FORMATS = ['xml', 'teixml', 'html', 'txt', 'ocr', 'http']
+    ACCEPTED_FORMATS = ['xml', 'teixml', 'html', 'txt', 'ocr', 'http', 'pdf']
 
     for dict_item in input_list:
 

@@ -50,24 +50,6 @@ class TestFileStreamInput(test_base.TestUnit):
         )
         self.assertIn('MNRAS', FileInputStream.provider)
 
-    def test_split_payload_into_packet_sizes(self):
-        """
-        Tests the make_payload method. It checks that when the packet size is
-        given by the user, that the ones returned by the method match the
-        number specified by the user.
-
-        :return: no return
-        """
-        FileInputStream = utils.FileInputStream(self.test_functional_stub)
-        FileInputStream.extract()
-        FileInputStream.make_payload(packet_size=10)
-
-        num_packets = int(math.ceil(len(FileInputStream.raw) / 10.0))
-
-        self.assertTrue(
-            len(FileInputStream.payload) == num_packets,
-            'Found {0:d} packets'.format(num_packets)
-        )
                 
 
 if __name__ == '__main__':
