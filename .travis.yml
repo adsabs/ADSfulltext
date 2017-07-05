@@ -3,8 +3,10 @@ python:
  - "2.7"
 before_install:
  - sudo apt-get update
- - sudo apt-get install openjdk-7-jdk icedtea-7-plugin libxml2-dev libxslt1-dev
- - export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64/
+ - sudo apt-get install libxml2-dev libxslt1-dev
+ - sudo apt-get install openjdk-8-jdk-headless
+ - sudo apt-get install maven
+ - export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/
 install:
  - pip install --upgrade setuptools
  - pip install -r requirements.txt
@@ -12,10 +14,11 @@ install:
 services:
  - rabbitmq
 before_script:
- - sudo rabbitmqctl add_vhost adsfulltext
- - sudo rabbitmqctl add_vhost external_vhost
- - sudo rabbitmqctl set_permissions -p adsfulltext guest ".*" ".*" ".*"
- - sudo rabbitmqctl set_permissions -p external_vhost guest ".*" ".*" ".*"
+ - sudo rabbitmqctl add_vhost fulltext_pipeline
+ - sudo rabbitmqctl add_vhost master_pipeline
+ - sudo rabbitmqctl set_permissions -p fulltext_pipeline guest ".*" ".*" ".*"
+ - sudo rabbitmqctl set_permissions -p master_pipeline guest ".*" ".*" ".*"
+ - mvn package
 script:
  - py.test
 # travis core dumped
