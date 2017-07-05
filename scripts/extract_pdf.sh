@@ -6,7 +6,7 @@
 
 java=java
 home=`dirname "$BASH_SOURCE"`
-jar=$home/ADSfulltext-1.2-SNAPSHOT-jar-with-dependencies.jar
+jar=$home/../target/ADSfulltext-1.2-SNAPSHOT-jar-with-dependencies.jar
 input=$0
 
 #echo "java=$java home=$home jar=$jar input=$input"

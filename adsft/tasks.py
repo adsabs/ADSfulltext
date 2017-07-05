@@ -4,10 +4,12 @@ import adsft.app as app_module
 from adsputils import get_date, exceptions
 from kombu import Queue
 from adsft import extraction, checker, writer
+import os
 
 # ============================= INITIALIZATION ==================================== #
 
-app = app_module.ADSFulltextCelery('ads-fulltext')
+proj_home = os.path.realpath(os.path.join(os.path.dirname(__file__), '../'))
+app = app_module.ADSFulltextCelery('ads-fulltext', proj_home=proj_home)
 logger = app.logger
 
 
