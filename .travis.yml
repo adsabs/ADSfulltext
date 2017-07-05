@@ -27,9 +27,8 @@ before_script:
  - mvn package
 script:
  - py.test
-# travis core dumped
-# - mvn test -DdryRun=true -DcoverallsFile=java_coverage.json jacoco:report coveralls:report
+ #- tests/integration_test.sh
+ - mvn test -DdryRun=true -DcoverallsFile=java_coverage.json jacoco:report coveralls:report
 after_success:
-# - coverage combine
-# - coveralls --merge=java_coverage.json
-  - coveralls
+ - coverage combine
+ - coveralls --merge=java_coverage.json
