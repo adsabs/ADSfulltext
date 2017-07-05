@@ -13,7 +13,7 @@ class TestWorkers(unittest.TestCase):
         unittest.TestCase.setUp(self)
         self.proj_home = tasks.app.conf['PROJ_HOME']
         self._app = tasks.app
-        self.app = app.ADSFulltextCelery('test', local_config=\
+        self.app = app.ADSFulltextCelery('test', proj_home=self.proj_home, local_config=\
             {
             })
         tasks.app = self.app # monkey-patch the app object

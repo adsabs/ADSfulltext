@@ -137,7 +137,7 @@ class TestUnit(unittest.TestCase):
         unittest.TestCase.setUp(self)
         self.proj_home = os.path.realpath(os.path.join(os.path.dirname(__file__), '../..'))
         self._app = tasks.app
-        self.app = app.ADSFulltextCelery('test', local_config=\
+        self.app = app.ADSFulltextCelery('test', proj_home=self.proj_home, local_config=\
             {
             'FULLTEXT_EXTRACT_PATH': os.path.join(self.proj_home, 'tests/test_unit/stub_data'),
             'CELERY_BROKER': tasks.app.conf['CELERY_BROKER'] + '_test'
