@@ -16,10 +16,8 @@ before_script:
  - sudo rabbitmqctl add_vhost external_vhost
  - sudo rabbitmqctl set_permissions -p adsfulltext guest ".*" ".*" ".*"
  - sudo rabbitmqctl set_permissions -p external_vhost guest ".*" ".*" ".*"
- - mvn package
 script:
  - py.test
- #- tests/integration_test.sh
  - mvn test -DdryRun=true -DcoverallsFile=java_coverage.json jacoco:report coveralls:report
 after_success:
  - coverage combine
