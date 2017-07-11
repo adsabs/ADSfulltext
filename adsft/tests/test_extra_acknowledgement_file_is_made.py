@@ -9,9 +9,10 @@ from datetime import datetime
 import json
 from mock import patch
 
-class TestForcedExtractor(test_base.TestGeneric):
+class TestExtraAcknowledgment(test_base.TestGeneric):
     """
-    Class for testing that a file is force extracted if specified by the user.
+    Class for testing that the XML extraction results in an acknowledgements
+    file being made.
     """
 
     def setUp(self):
@@ -21,14 +22,15 @@ class TestForcedExtractor(test_base.TestGeneric):
         worker as well into a class attribute so it is easier to access.
         :return:
         """
-        super(TestForcedExtractor, self).setUp()
+        super(TestExtraAcknowledgment, self).setUp()
         #self.dict_item = {'ft_source': self.test_stub_xml,
                           #'file_format': 'xml',
                           #'provider': 'MNRAS'}
         #self.extractor = extraction.EXTRACTOR_FACTORY['xml'](self.dict_item)
         self.test_publish = os.path.join(
             self.app.conf['PROJ_HOME'], 
-            'tests/test_integration/stub_data/fulltext_exists_txt.links'
+            'tests/test_integration/stub_data/'
+            'fulltext_xml_doc_with_acknowledgement.links'
         )
         self.expected_paths = self.calculate_expected_folders(self.test_publish)
 
@@ -41,13 +43,13 @@ class TestForcedExtractor(test_base.TestGeneric):
         """
 
         self.clean_up_path(self.expected_paths)
-        super(TestForcedExtractor, self).tearDown()
+        super(TestExtraAcknowledgment, self).tearDown()
 
-    def test_forced_extraction(self):
+    def test_extraction_of_non_extracted(self):
         """
-        Tests that when a user specifies 'force_extract' that the full text
-        is extracted regardless of its underlying reason for being or not
-        being extracted.
+        Submits a file to the RabbitMQ that contains a bibcode that should
+        result in an acknowlegements file is created. It checks that this file
+        is created and then removes all the content created by the tests.
 
         :return: no return
         """
@@ -56,7 +58,7 @@ class TestForcedExtractor(test_base.TestGeneric):
 
         # User loads the list of full text files and publishes them to the
         # first queue
-        records = read_links_from_file(self.test_publish, force_extract=True)
+        records = read_links_from_file(self.test_publish, force_extract=False)
 
         self.helper_get_details(self.test_publish)
         self.assertEqual(
@@ -72,13 +74,13 @@ class TestForcedExtractor(test_base.TestGeneric):
             message = records.payload[0]
             tasks.task_check_if_extract(message)
             self.assertTrue(task_extract.called)
-            expected = {'UPDATE': 'FORCE_TO_EXTRACT',
-                         'bibcode': 'test4',
-                         'file_format': 'txt',
-                         'ft_source': '{}/tests/test_unit/stub_data/test.txt'.format(self.app.conf['PROJ_HOME']),
+            expected = {'UPDATE': 'NOT_EXTRACTED_BEFORE',
+                         'bibcode': 'test1',
+                         'file_format': 'xml',
+                         'ft_source': '{}/tests/test_integration/stub_data/full_test_elsevier.xml'.format(self.app.conf['PROJ_HOME']),
                          #'index_date': '2017-07-07T14:39:11.271432Z',
-                         'meta_path': '{}/tests/test_unit/stub_data/te/st/4/meta.json'.format(self.app.conf['PROJ_HOME']),
-                         'provider': 'TEST'}
+                         'meta_path': '{}/tests/test_unit/stub_data/te/st/1/meta.json'.format(self.app.conf['PROJ_HOME']),
+                         'provider': 'Elsevier'}
             actual = task_extract.call_args[0][0]
             self.assertDictContainsSubset(expected, actual)
             self.assertTrue('index_date' in actual)
@@ -100,7 +102,7 @@ class TestForcedExtractor(test_base.TestGeneric):
                 with open(meta_path, 'r') as meta_file:
                     meta_content = meta_file.read()
                 self.assertTrue(
-                    'FORCE_TO_EXTRACT' in meta_content,
+                    'NOT_EXTRACTED_BEFORE' in meta_content,
                     'meta file does not contain the right extract keyword: {0}'
                     .format(meta_content)
                 )
@@ -114,9 +116,20 @@ class TestForcedExtractor(test_base.TestGeneric):
             if os.path.exists(fulltext_path):
                 with open(fulltext_path, 'r') as fulltext_file:
                     fulltext_content = fulltext_file.read()
-                self.assertEqual(fulltext_content, "Introduction THIS IS AN INTERESTING TITLE")
+                self.assertEqual(fulltext_content, 
+                        "application/xml JOURNAL TITLE CREATOR SUBJECT DESCRIPTION JOURNAL NAME COPYRIGHT PUBLISHER 9999-9999 VOLUME DAY MONTH YEAR 1999-99-99 999-999 999 999 99.9999/9.99999.9999.99.999 http://dx.doi.org/99.9999/9.99999.9999.99.999 doi:99.9999/9.99999.9999.99.999 Journals S300.1 JOURNAL 999999 99999-9999(99)99999-9 99.9999/9.99999.9999.99.999 COPYRIGHT Fig.1 CONTENT TITLE GIVEN NAME SURNAME a EMAIL@EMAIL.COM a AFFILIATION AUTHOR Abstract ABSTRACT Highlights HIGHLIGHTS Keywords KEYWORD 1 Introduction JOURNAL CONTENT Acknowledgments THANK YOU Appendix A APPENDIX TITLE APPENDIX References AUTHOR et al., 1999 GIVEN NAME SURNAME TITLE TITLE VOLUME YEAR 99 99")
 
+            acknowledgments_path = os.path.join(path, 'acknowledgements.txt')
+            self.assertTrue(
+                os.path.exists(acknowledgments_path),
+                'Full text file not created: %s'.format(path)
+            )
 
+            if os.path.exists(acknowledgments_path):
+                with open(acknowledgments_path, 'r') as acknowledgments_file:
+                    acknowledgements_content = acknowledgments_file.read()
+                self.assertEqual(acknowledgements_content, 
+                        "Acknowledgments THANK YOU")
 
 
 if __name__ == '__main__':

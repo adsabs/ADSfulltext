@@ -90,9 +90,9 @@ class TestNonExtractedExtraction(test_base.TestGeneric):
             expected = {'UPDATE': 'DIFFERING_FULL_TEXT',
                          'bibcode': 'test4',
                          'file_format': 'txt',
-                         'ft_source': '/home/docker/workspace/remote/vhost/Sync/Data/Boston/Code/ADSfulltext/tests/test_unit/stub_data/test.txt',
+                         'ft_source': '{}/tests/test_unit/stub_data/test.txt'.format(self.app.conf['PROJ_HOME']),
                          #'index_date': '2017-07-07T14:39:11.271432Z',
-                         'meta_path': '/home/docker/workspace/remote/vhost/Sync/Data/Boston/Code/ADSfulltext/tests/test_unit/stub_data/te/st/4/meta.json',
+                         'meta_path': '{}/tests/test_unit/stub_data/te/st/4/meta.json'.format(self.app.conf['PROJ_HOME']),
                          'provider': 'TEST'}
             actual = task_extract.call_args[0][0]
             self.assertDictContainsSubset(expected, actual)
