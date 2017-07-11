@@ -9,10 +9,10 @@ from datetime import datetime
 import json
 from mock import patch
 
-class TestNonExtractedExtraction(test_base.TestGeneric):
+class TestFullRangeFormatExtraction(test_base.TestGeneric):
     """
-    Test class to check the scenario in which the bibcode has content extracted
-    but the file used previously is incorrect.
+    Class that tests all format types that are expected to be sent to the
+    RabbitMQ instance.
     """
 
     def setUp(self):
@@ -22,14 +22,14 @@ class TestNonExtractedExtraction(test_base.TestGeneric):
         worker as well into a class attribute so it is easier to access.
         :return:
         """
-        super(TestNonExtractedExtraction, self).setUp()
+        super(TestFullRangeFormatExtraction, self).setUp()
         #self.dict_item = {'ft_source': self.test_stub_xml,
                           #'file_format': 'xml',
                           #'provider': 'MNRAS'}
         #self.extractor = extraction.EXTRACTOR_FACTORY['xml'](self.dict_item)
         self.test_publish = os.path.join(
             self.app.conf['PROJ_HOME'], 
-            'tests/test_integration/stub_data/fulltext_exists_txt.links'
+            'tests/test_integration/stub_data/fulltext_range_of_formats.links'
         )
         self.expected_paths = self.calculate_expected_folders(self.test_publish)
 
@@ -42,14 +42,13 @@ class TestNonExtractedExtraction(test_base.TestGeneric):
         """
 
         self.clean_up_path(self.expected_paths)
-        super(TestNonExtractedExtraction, self).tearDown()
+        super(TestFullRangeFormatExtraction, self).tearDown()
 
     def test_extraction_of_non_extracted(self):
         """
-        Publishes a packet that contains a bibcode that has a full text content
-        path that differs to the one that was used the previous time full text
-        content was extracted. Then it ensures all the files generated are
-        removed.
+        Submits a file containing all the relevant document types to the
+        RabbitMQ instance. Runs all the relevant workers, and then checks that
+        content was extracted. Finally, it cleans up any files or paths created.
 
         :return: no return
         """
@@ -67,43 +66,32 @@ class TestNonExtractedExtraction(test_base.TestGeneric):
             ' the number of lines. It does not: '
             '{0} [{1}]'.format(len(records.bibcode), self.nor))
 
-        self.assertTrue(len(records.payload) == 1)
+        self.assertTrue(len(records.payload) == 6)
 
         # Make the fake data to use
         if not os.path.exists(self.meta_path):
             os.makedirs(self.meta_path)
 
-        test_meta_content = {
-            'index_date': datetime.utcnow().isoformat()+'Z',
-            'bibcode': 'test4',
-            'provider': 'mnras',
-            'ft_source': 'wrong_source'
-        }
-        with open(self.test_expected, 'w') as test_meta_file:
-            json.dump(test_meta_content, test_meta_file)
-
         # Call the task to check if it should be extracted but mock the extraction task
         with patch.object(tasks.task_extract, 'delay', return_value=None) as task_extract:
-            message = records.payload[0]
-            tasks.task_check_if_extract(message)
-            self.assertTrue(task_extract.called)
-            expected = {'UPDATE': 'DIFFERING_FULL_TEXT',
-                         'bibcode': 'test4',
-                         'file_format': 'txt',
-                         'ft_source': '/home/docker/workspace/remote/vhost/Sync/Data/Boston/Code/ADSfulltext/tests/test_unit/stub_data/test.txt',
-                         #'index_date': '2017-07-07T14:39:11.271432Z',
-                         'meta_path': '/home/docker/workspace/remote/vhost/Sync/Data/Boston/Code/ADSfulltext/tests/test_unit/stub_data/te/st/4/meta.json',
-                         'provider': 'TEST'}
-            actual = task_extract.call_args[0][0]
-            self.assertDictContainsSubset(expected, actual)
-            self.assertTrue('index_date' in actual)
+            extraction_arguments_set = []
+            expected_update = 'NOT_EXTRACTED_BEFORE'
+            for message in records.payload:
+                tasks.task_check_if_extract(message)
+                self.assertTrue(task_extract.called)
+                actual = task_extract.call_args[0][0]
+                self.assertEqual(actual['UPDATE'], expected_update,
+                        'This should be %s, but is in fact: {0}'
+                        .format(expected_update, actual['UPDATE']))
+                extraction_arguments_set.append(actual)
 
         # Now we do call the extraction task with the proper arguments
-        tasks.task_extract(actual)
+        for arguments in extraction_arguments_set:
+            tasks.task_extract(arguments)
 
         # After the extractor, the meta writer should write all the payloads to
         # disk in the correct folders
-        for path in self.expected_paths:
+        for i, path in enumerate(self.expected_paths):
             meta_path = os.path.join(path, 'meta.json')
 
             self.assertTrue(
@@ -115,7 +103,7 @@ class TestNonExtractedExtraction(test_base.TestGeneric):
                 with open(meta_path, 'r') as meta_file:
                     meta_content = meta_file.read()
                 self.assertTrue(
-                    'DIFFERING_FULL_TEXT' in meta_content,
+                    'NOT_EXTRACTED_BEFORE' in meta_content,
                     'meta file does not contain the right extract keyword: {0}'
                     .format(meta_content)
                 )
@@ -129,8 +117,16 @@ class TestNonExtractedExtraction(test_base.TestGeneric):
             if os.path.exists(fulltext_path):
                 with open(fulltext_path, 'r') as fulltext_file:
                     fulltext_content = fulltext_file.read()
-                self.assertEqual(fulltext_content, "Introduction THIS IS AN INTERESTING TITLE")
-
+                expected_fulltext_content = (
+                        "Introduction THIS IS AN INTERESTING TITLE",
+                        "Introduction THIS IS AN INTERESTING TITLE",
+                        "I.INTRODUCTION INTRODUCTION GOES HERE Manual Entry",
+                        "application/xml JOURNAL TITLE CREATOR SUBJECT DESCRIPTION JOURNAL NAME COPYRIGHT PUBLISHER 9999-9999 VOLUME DAY MONTH YEAR 1999-99-99 999-999 999 999 99.9999/9.99999.9999.99.999 http://dx.doi.org/99.9999/9.99999.9999.99.999 doi:99.9999/9.99999.9999.99.999 Journals S300.1 JOURNAL 999999 99999-9999(99)99999-9 99.9999/9.99999.9999.99.999 COPYRIGHT Fig.1 CONTENT TITLE GIVEN NAME SURNAME a EMAIL@EMAIL.COM a AFFILIATION AUTHOR Abstract ABSTRACT Highlights HIGHLIGHTS Keywords KEYWORD 1 Introduction JOURNAL CONTENT Acknowledgments THANK YOU Appendix A APPENDIX TITLE APPENDIX References AUTHOR et al., 1999 GIVEN NAME SURNAME TITLE TITLE VOLUME YEAR 99 99",
+                        "No Title AA 999, 999-999 (1999) DOI: 99.9999/9999-9999:99999999 TITLE AUTHOR AFFILIATION Received 99 MONTH 1999 / Accepted 99 MONTH 1999 Abstract ABSTRACT Key words: KEYWORD INTRODUCTION SECTION Table 1: TABLE TABLE (1) COPYRIGHT",
+                        "Introduction\nTHIS IS AN INTERESTING TITLE\n",
+                        )
+                
+                self.assertEqual(fulltext_content, expected_fulltext_content[i])
 
 
 
