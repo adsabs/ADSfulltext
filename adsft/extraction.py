@@ -434,10 +434,12 @@ class StandardExtractorXML(object):
             translate = False
 
         text_content = self.parsed_xml.xpath(static_xpath)[0].text_content()
+        old = text_content
         text_content = TextCleaner(text=text_content).run(
             decode=decode,
             translate=translate,
-            normalise=True)
+            normalise=True,
+            trim=False)
 
         return text_content
 
@@ -540,6 +542,7 @@ class StandardExtractorXML(object):
                         decode=decode,
                         translate=translate,
                     )
+
 
                     if text_content:
                         meta_out[content_name] = text_content

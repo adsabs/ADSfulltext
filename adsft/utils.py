@@ -227,7 +227,7 @@ class TextCleaner(object):
         """
 
         self.text = unicodedata.normalize('NFKC', unicode(self.text))
-        self.text = re.sub('\s+', ' ', self.text)
+        #self.text = re.sub('\s+', ' ', self.text)
 
     def trimwords(self, maxlength=200):
         """
