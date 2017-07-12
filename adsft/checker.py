@@ -162,11 +162,19 @@ def meta_needs_update(dict_input, meta_content,
 
     meta_json_last_modified = file_last_modified_time(meta_path)
 
-    # If the source content is more new than the last time it was extracted
+    # If the source content is newer than the last time it was extracted
     logger.debug(
         'FILE_SOUCE last modified: {0}'.format(ft_source_last_modified))
     logger.debug('META_PATH last modified: {0}'.format(meta_json_last_modified))
     if ft_source_last_modified > meta_json_last_modified:
+        return 'STALE_CONTENT'
+
+    # If the fulltext is older than the meta file
+    fulltext_path = meta_path.replace('meta.json', 'fulltext.txt')
+    fulltext_last_modified = file_last_modified_time(fulltext_path)
+
+    logger.debug('FULLTEXT_PATH last modified: {0}'.format(fulltext_last_modified))
+    if meta_json_last_modified > fulltext_last_modified:
         return 'STALE_CONTENT'
 
 

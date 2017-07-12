@@ -8,11 +8,11 @@ from adsft.tests import test_base
 from datetime import datetime
 import json
 from mock import patch
+import time
 
-class TestNoFulltext(test_base.TestGeneric):
+class TestStaleContent(test_base.TestGeneric):
     """
-    Test class to check the scenario in which the bibcode has content extracted
-    but the file used previously is incorrect.
+    Class to test that a file on path with stale content is re-extracted.
     """
 
     def setUp(self):
@@ -22,7 +22,7 @@ class TestNoFulltext(test_base.TestGeneric):
         worker as well into a class attribute so it is easier to access.
         :return:
         """
-        super(TestNoFulltext, self).setUp()
+        super(TestStaleContent, self).setUp()
         #self.dict_item = {'ft_source': self.test_stub_xml,
                           #'file_format': 'xml',
                           #'provider': 'MNRAS'}
@@ -42,12 +42,14 @@ class TestNoFulltext(test_base.TestGeneric):
         """
 
         self.clean_up_path(self.expected_paths)
-        super(TestNoFulltext, self).tearDown()
+        super(TestStaleContent, self).tearDown()
 
-    def test_extraction_when_there_is_no_previous_fulltext_file(self):
+    def test_stale_content(self):
         """
-        Tests the scenario that the bibcode received has content on disk, but
-        has not had any full text extracted.
+        Tests the scenario that the file on disk has stale content, and so it
+        extracts the new full text and writes it to disk. The test uses a live
+        RabbitMQ instance to test the correct interactions of the pipeline with
+        RabbitMQ.
 
         :return: no return
         """
@@ -73,19 +75,26 @@ class TestNoFulltext(test_base.TestGeneric):
 
         test_meta_content = {
             'index_date': datetime.utcnow().isoformat()+'Z',
-            'bibcode': 'test4',
-            'provider': 'mnras'
+            'bibcode': self.bibcode,
+            'provider': self.provider,
+            'ft_source': self.ft_source
         }
 
+        with open(self.test_expected.replace('meta.json', 'fulltext.txt'), 'w')\
+                as test_full_text_file:
+            test_full_text_file.write('Full text content')
+
+        time.sleep(2)
         with open(self.test_expected, 'w') as test_meta_file:
             json.dump(test_meta_content, test_meta_file)
+
 
         # Call the task to check if it should be extracted but mock the extraction task
         with patch.object(tasks.task_extract, 'delay', return_value=None) as task_extract:
             message = records.payload[0]
             tasks.task_check_if_extract(message)
             self.assertTrue(task_extract.called)
-            expected = {'UPDATE': 'MISSING_FULL_TEXT',
+            expected = {'UPDATE': 'STALE_CONTENT',
                          'bibcode': 'test4',
                          'file_format': 'txt',
                          'ft_source': '{}/tests/test_unit/stub_data/test.txt'.format(self.app.conf['PROJ_HOME']),
@@ -113,7 +122,7 @@ class TestNoFulltext(test_base.TestGeneric):
                 with open(meta_path, 'r') as meta_file:
                     meta_content = meta_file.read()
                 self.assertTrue(
-                    'MISSING_FULL_TEXT' in meta_content,
+                    'STALE_CONTENT' in meta_content,
                     'meta file does not contain the right extract keyword: {0}'
                     .format(meta_content)
                 )

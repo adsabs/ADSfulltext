@@ -44,7 +44,7 @@ class TestFullRangeFormatExtraction(test_base.TestGeneric):
         self.clean_up_path(self.expected_paths)
         super(TestFullRangeFormatExtraction, self).tearDown()
 
-    def test_extraction_of_non_extracted(self):
+    def test_full_range_of_file_format_extraction(self):
         """
         Submits a file containing all the relevant document types to the
         RabbitMQ instance. Runs all the relevant workers, and then checks that

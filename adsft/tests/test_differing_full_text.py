@@ -44,7 +44,7 @@ class TestNonExtractedExtraction(test_base.TestGeneric):
         self.clean_up_path(self.expected_paths)
         super(TestNonExtractedExtraction, self).tearDown()
 
-    def test_extraction_of_non_extracted(self):
+    def test_extraction_wrong_fulltext_filename(self):
         """
         Publishes a packet that contains a bibcode that has a full text content
         path that differs to the one that was used the previous time full text

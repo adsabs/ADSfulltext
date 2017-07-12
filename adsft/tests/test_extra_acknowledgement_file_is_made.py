@@ -45,7 +45,7 @@ class TestExtraAcknowledgment(test_base.TestGeneric):
         self.clean_up_path(self.expected_paths)
         super(TestExtraAcknowledgment, self).tearDown()
 
-    def test_extraction_of_non_extracted(self):
+    def test_extra_acknowledment(self):
         """
         Submits a file to the RabbitMQ that contains a bibcode that should
         result in an acknowlegements file is created. It checks that this file

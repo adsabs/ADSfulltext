@@ -172,15 +172,6 @@ def write_content(payload_dictionary):
         'fulltext': payload_dictionary['fulltext']}
 
     try:
-        logger.debug('Writing to file: {0}'.format(meta_output_file_path))
-        logger.debug('Content has keys: {0}'.format((meta_dict.keys())))
-        write_file(meta_output_file_path, meta_dict, json_format=True)
-        logger.debug('Writing complete.')
-    except IOError:
-        logger.error('IO Error when writing to file.')
-        raise IOError
-
-    try:
         logger.debug('Writing to file: {0}'.format(full_text_output_file_path))
         logger.debug('Content has length: {0}'.format(
             len(full_text_dict['fulltext'])))
@@ -195,6 +186,16 @@ def write_content(payload_dictionary):
         logger.error('IO Error when writing to file {0}'.format(
             payload_dictionary['bibcode']))
         raise IOError
+
+    try:
+        logger.debug('Writing to file: {0}'.format(meta_output_file_path))
+        logger.debug('Content has keys: {0}'.format((meta_dict.keys())))
+        write_file(meta_output_file_path, meta_dict, json_format=True)
+        logger.debug('Writing complete.')
+    except IOError:
+        logger.error('IO Error when writing to file.')
+        raise IOError
+
 
 
 def extract_content(input_list, **kwargs):
