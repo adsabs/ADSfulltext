@@ -438,8 +438,7 @@ class StandardExtractorXML(object):
         text_content = TextCleaner(text=text_content).run(
             decode=decode,
             translate=translate,
-            normalise=True,
-            trim=False)
+            normalise=True)
 
         return text_content
 
