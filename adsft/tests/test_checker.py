@@ -77,6 +77,15 @@ class TestCheckIfExtracted(test_base.TestUnit):
             len(content) > 0,
             'Did not extract the meta data correctly'
         )
+        self.assertEqual(
+            content, 
+            {
+                u'bibcode': u'foobar',
+                u'provider': u'MNRAS',
+                u'index_date': u'2015-01-21T16:18:40.249050Z',
+                u'ft_source': u'tests/test_unit/stub_data/te/st/test.pdf'
+            }
+        )
 
 
     def test_file_should_be_updated_if_missing_fulltext(self):
