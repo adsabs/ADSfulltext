@@ -226,8 +226,9 @@ class TextCleaner(object):
         :return: no return
         """
 
-        self.text = unicodedata.normalize('NFKC', unicode(self.text))
+        #self.text = unicodedata.normalize('NFKC', unicode(self.text))
         #self.text = re.sub('\s+', ' ', self.text)
+        pass
 
     def trimwords(self, maxlength=200):
         """
