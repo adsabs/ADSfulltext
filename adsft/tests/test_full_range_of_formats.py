@@ -85,9 +85,11 @@ class TestFullRangeFormatExtraction(test_base.TestGeneric):
                         .format(expected_update, actual['UPDATE']))
                 extraction_arguments_set.append(actual)
 
-        # Now we do call the extraction task with the proper arguments
-        for arguments in extraction_arguments_set:
-            tasks.task_extract(arguments)
+        with patch.object(tasks.task_output_results, 'delay', return_value=None) as task_output_results:
+            # Now we do call the extraction task with the proper arguments
+            for arguments in extraction_arguments_set:
+                tasks.task_extract(arguments)
+                self.assertTrue(task_output_results.called)
 
         # After the extractor, the meta writer should write all the payloads to
         # disk in the correct folders

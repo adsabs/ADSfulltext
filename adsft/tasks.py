@@ -5,6 +5,7 @@ from adsputils import get_date, exceptions
 from kombu import Queue
 from adsft import extraction, checker, writer
 import os
+from adsmsg import DenormalizedRecord
 
 # ============================= INITIALIZATION ==================================== #
 
@@ -57,6 +58,33 @@ def task_extract(message):
     for r in results:
         writer.write_content(r)
 
+    # Send results to master
+    msg = {
+            'bibcode': message[0]['bibcode'],
+            'body': results[0]['fulltext'],
+            }
+    task_output_results.delay(msg)
+
+
+@app.task(queue='output-results')
+def task_output_results(msg):
+    """
+    This worker will forward results to the outside
+    exchange (typically an ADSMasterPipeline) to be
+    incorporated into the storage
+
+    :param msg: contains the bibliographic metadata
+
+            {'bibcode': '....',
+             'authors': [....],
+             'title': '.....',
+             .....
+            }
+    :return: no return
+    """
+    logger.debug('Will forward this record: %s', msg)
+    rec = DenormalizedRecord(**msg)
+    app.forward_message(rec)
 
 if __name__ == '__main__':
     app.start()
