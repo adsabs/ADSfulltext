@@ -56,14 +56,15 @@ def task_extract(message):
     results = extraction.extract_content(message)
     logger.debug('Results: %s', results)
     for r in results:
+        # Write locally to filesystem
         writer.write_content(r)
 
-    # Send results to master
-    msg = {
-            'bibcode': message[0]['bibcode'],
-            'body': results[0]['fulltext'],
-            }
-    task_output_results.delay(msg)
+        # Send results to master
+        msg = {
+                'bibcode': r['bibcode'],
+                'body': r['fulltext'],
+                }
+        task_output_results.delay(msg)
 
 
 @app.task(queue='output-results')
