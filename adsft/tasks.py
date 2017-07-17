@@ -5,7 +5,7 @@ from adsputils import get_date, exceptions
 from kombu import Queue
 from adsft import extraction, checker, writer
 import os
-from adsmsg import DenormalizedRecord
+from adsmsg import FulltextUpdate
 
 # ============================= INITIALIZATION ==================================== #
 
@@ -83,7 +83,7 @@ def task_output_results(msg):
     :return: no return
     """
     logger.debug('Will forward this record: %s', msg)
-    rec = DenormalizedRecord(**msg)
+    rec = FulltextUpdate(**msg)
     app.forward_message(rec)
 
 if __name__ == '__main__':

@@ -5,7 +5,7 @@ import json
 from mock import patch
 import unittest
 from adsft import app, tasks
-from adsmsg import DenormalizedRecord
+from adsmsg import FulltextUpdate
 
 
 class TestWorkers(unittest.TestCase):
@@ -105,7 +105,7 @@ class TestWorkers(unittest.TestCase):
             self.assertTrue(forward_message.called)
             actual = forward_message.call_args[0][0]
             #self.assertEqual(u'Introduction THIS IS AN INTERESTING TITLE', actual['fulltext'])
-            self.assertTrue(isinstance(actual, DenormalizedRecord))
+            self.assertTrue(isinstance(actual, FulltextUpdate))
             self.assertEqual(actual.bibcode, msg['bibcode'])
             self.assertEqual(actual.body, msg['body'])
 
