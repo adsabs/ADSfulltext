@@ -5,6 +5,7 @@ import json
 from mock import patch
 import unittest
 from adsft import app, tasks
+from adsmsg import FulltextUpdate
 
 
 class TestWorkers(unittest.TestCase):
@@ -71,10 +72,12 @@ class TestWorkers(unittest.TestCase):
                         'meta_path': u'{}/ft/a/meta.json'.format(self.app.conf['FULLTEXT_EXTRACT_PATH']), 
                         'ft_source': '{}/tests/test_integration/stub_data/full_test.txt'.format(self.proj_home), 
                         'provider': 'MNRAS'}
-            tasks.task_extract(msg)
-            self.assertTrue(task_write_text.called)
-            actual = task_write_text.call_args[0][0]
-            self.assertEqual(u'Introduction THIS IS AN INTERESTING TITLE', actual['fulltext'])
+            with patch.object(tasks.task_output_results, 'delay', return_value=None) as task_output_results:
+                tasks.task_extract(msg)
+                self.assertTrue(task_write_text.called)
+                actual = task_write_text.call_args[0][0]
+                self.assertEqual(u'Introduction THIS IS AN INTERESTING TITLE', actual['fulltext'])
+                self.assertTrue(task_output_results.called)
 
 
     def test_task_extract_pdf(self):
@@ -85,10 +88,26 @@ class TestWorkers(unittest.TestCase):
                         'meta_path': u'{}/ft/a/meta.json'.format(self.app.conf['FULLTEXT_EXTRACT_PATH']), 
                         'ft_source': '{}/tests/test_integration/stub_data/full_test.pdf'.format(self.proj_home), 
                         'provider': 'MNRAS'}
-            tasks.task_extract(msg)
-            self.assertTrue(task_write_text.called)
-            actual = task_write_text.call_args[0][0]
-            self.assertEqual(u'Introduction\nTHIS IS AN INTERESTING TITLE\n', actual['fulltext'])            
+            with patch.object(tasks.task_output_results, 'delay', return_value=None) as task_output_results:
+                tasks.task_extract(msg)
+                self.assertTrue(task_write_text.called)
+                actual = task_write_text.call_args[0][0]
+                self.assertEqual(u'Introduction\nTHIS IS AN INTERESTING TITLE\n', actual['fulltext'])            
+                self.assertTrue(task_output_results.called)
+
+    def test_task_output_results(self):
+        with patch('adsft.app.ADSFulltextCelery.forward_message', return_value=None) as forward_message:
+            msg = {
+                    'bibcode': 'fta', 
+                    'body': 'Introduction\nTHIS IS AN INTERESTING TITLE\n'
+                    }
+            tasks.task_output_results(msg)
+            self.assertTrue(forward_message.called)
+            actual = forward_message.call_args[0][0]
+            #self.assertEqual(u'Introduction THIS IS AN INTERESTING TITLE', actual['fulltext'])
+            self.assertTrue(isinstance(actual, FulltextUpdate))
+            self.assertEqual(actual.bibcode, msg['bibcode'])
+            self.assertEqual(actual.body, msg['body'])
 
 if __name__ == '__main__':
     unittest.main()

@@ -85,8 +85,10 @@ class TestNotExtractedBefore(test_base.TestGeneric):
             self.assertDictContainsSubset(expected, actual)
             self.assertTrue('index_date' in actual)
 
-        # Now we do call the extraction task with the proper arguments
-        tasks.task_extract(actual)
+        with patch.object(tasks.task_output_results, 'delay', return_value=None) as task_output_results:
+            # Now we do call the extraction task with the proper arguments
+            tasks.task_extract(actual)
+            self.assertTrue(task_output_results.called)
 
         # After the extractor, the meta writer should write all the payloads to
         # disk in the correct folders

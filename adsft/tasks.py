@@ -5,6 +5,7 @@ from adsputils import get_date, exceptions
 from kombu import Queue
 from adsft import extraction, checker, writer
 import os
+from adsmsg import FulltextUpdate
 
 # ============================= INITIALIZATION ==================================== #
 
@@ -55,8 +56,36 @@ def task_extract(message):
     results = extraction.extract_content(message)
     logger.debug('Results: %s', results)
     for r in results:
+        # Write locally to filesystem
         writer.write_content(r)
 
+        # Send results to master
+        msg = {
+                'bibcode': r['bibcode'],
+                'body': r['fulltext'],
+                }
+        task_output_results.delay(msg)
+
+
+@app.task(queue='output-results')
+def task_output_results(msg):
+    """
+    This worker will forward results to the outside
+    exchange (typically an ADSMasterPipeline) to be
+    incorporated into the storage
+
+    :param msg: contains the bibliographic metadata
+
+            {'bibcode': '....',
+             'authors': [....],
+             'title': '.....',
+             .....
+            }
+    :return: no return
+    """
+    logger.debug('Will forward this record: %s', msg)
+    rec = FulltextUpdate(**msg)
+    app.forward_message(rec)
 
 if __name__ == '__main__':
     app.start()
