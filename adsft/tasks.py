@@ -15,7 +15,8 @@ logger = app.logger
 
 app.conf.CELERY_QUEUES = (
     Queue('check-if-extract', app.exchange, routing_key='check-if-extract'),
-    Queue('extract', app.exchange, routing_key='extract')
+    Queue('extract', app.exchange, routing_key='extract'),
+    Queue('output-results', app.exchange, routing_key='output-results'),
 )
 
 
