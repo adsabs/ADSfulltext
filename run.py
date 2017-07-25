@@ -1,16 +1,15 @@
 #!/usr/bin/env python
-
-
 import sys
 import argparse
 import json
 from adsft import tasks, utils
 from adsputils import setup_logging
+from termcolor import colored
 
 logger = setup_logging('run.py')
 
 
-def read_links_from_file(file_input, force_extract=False):
+def read_links_from_file(file_input, force_extract=False, diagnostics=False):
     """
     Opens the link file given and parses the content into a set of lists.
 
@@ -39,12 +38,20 @@ def run(full_text_links, **kwargs):
     :return: no return
     """
 
+    if 'diagnostics' in kwargs:
+        diagnostics = kwargs['diagnostics']
+    else:
+        diagnostics = False
+
     logger.info('Loading records from: {0}'.format(full_text_links))
 
     if 'force_extract' in kwargs:
         force_extract = kwargs['force_extract']
     else:
         force_extract = False
+
+    if diagnostics:
+        print("{} Calling 'read_links_from_file' with filename '{}' and force_extract set to '{}'".format(colored(">>>", "green"), full_text_links, force_extract))
 
     records = read_links_from_file(
         full_text_links,
@@ -60,24 +67,25 @@ def run(full_text_links, **kwargs):
         max_queue_size = 0
 
     logger.info('Publishing records to: CheckIfExtract')
-    
-    i = 0
-    for record in records.payload:
-        temp = record
-        first = temp[0]['bibcode']
-        last = temp[-1]['bibcode']
 
+    i = 0
+    total = len(records.payload)
+    for record in records.payload:
         logger.info(
-            'Publishing [{0:d}/{1:d}, {2:d}]: [{3}] ---> [{4}]'.format(
-                i, i+len(temp), len(temp), first, last)
+            'Publishing [{0:d}/{1:d}]: [{2}]'.format(
+                i+1, total, record['bibcode'])
         )
-        i += len(temp)
-        
+
         if max_queue_size and i > max_queue_size:
             logger.info('Max_queue_size reached, stopping...')
             break
-        
-        tasks.task_check_if_extract(record)
+
+        if diagnostics:
+            print("{} [{}/{}] Calling 'task_check_if_extract' with '{}'".format(colored(">>>", "yellow", attrs=['bold']), i+1, total, record))
+            tasks.task_check_if_extract(record, diagnostics=diagnostics)
+        else:
+            tasks.task_check_if_extract.delay(record, diagnostics=diagnostics)
+        i += 1
 
 
 if __name__ == '__main__':
@@ -105,11 +113,18 @@ if __name__ == '__main__':
                         action='store_true',
                         help='Force the extract of all input bibcodes')
 
+    parser.add_argument('-d',
+                        '--diagnostics',
+                        dest='diagnostics',
+                        action='store_true',
+                        help='Show the execution sequence without saving the results')
+
     parser.set_defaults(full_text_links=False)
     parser.set_defaults(packet_size=100)
     parser.set_defaults(purge_queues=False)
     parser.set_defaults(max_queue_size=100000)
     parser.set_defaults(force_extract=False)
+    parser.set_defaults(diagnostics=False)
 
     args = parser.parse_args()
 
@@ -122,4 +137,5 @@ if __name__ == '__main__':
     run(args.full_text_links,
         packet_size=args.packet_size,
         max_queue_size=args.max_queue_size,
-        force_extract=args.force_extract)
+        force_extract=args.force_extract,
+        diagnostics=args.diagnostics)
