@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-
-
+import os
 import sys
+import tempfile
 import argparse
 import json
 from adsft import tasks, utils
@@ -46,6 +46,15 @@ def run(full_text_links, **kwargs):
     else:
         force_extract = False
 
+    if 'diagnose' in kwargs:
+        diagnose = kwargs['diagnose']
+    else:
+        diagnose = False
+
+
+    if diagnose:
+        print("Calling 'read_links_from_file' with filename '{}' and force_extract set to '{}'".format(full_text_links, str(force_extract)))
+    logger.debug("Calling 'read_links_from_file' with filename '%s' and force_extract set to '%s'", full_text_links, str(force_extract))
     records = read_links_from_file(
         full_text_links,
         force_extract=force_extract
@@ -60,25 +69,34 @@ def run(full_text_links, **kwargs):
         max_queue_size = 0
 
     logger.info('Publishing records to: CheckIfExtract')
-    
-    i = 0
-    for record in records.payload:
-        temp = record
-        first = temp[0]['bibcode']
-        last = temp[-1]['bibcode']
 
+    i = 0
+    total = len(records.payload)
+    for record in records.payload:
         logger.info(
-            'Publishing [{0:d}/{1:d}, {2:d}]: [{3}] ---> [{4}]'.format(
-                i, i+len(temp), len(temp), first, last)
+            'Publishing [{0:d}/{1:d}]: [{2}]'.format(
+                i+1, total, record['bibcode'])
         )
-        i += len(temp)
-        
+
         if max_queue_size and i > max_queue_size:
             logger.info('Max_queue_size reached, stopping...')
             break
-        
-        tasks.task_check_if_extract(record)
 
+        if diagnose:
+            print("[{}/{}] Calling 'task_check_if_extract' with '{}'".format(i+1, total, str(record)))
+        logger.debug("[%i/%i] Calling 'task_check_if_extract' with '%s'", i+1, total, str(record))
+        tasks.task_check_if_extract.delay(record)
+        i += 1
+
+def build_diagnostics(bibcodes=None, raw_files=None, providers=None):
+    tmp_file = tempfile.NamedTemporaryFile(delete=False)
+    print("Preparing diagnostics temporary file '{}'...".format(tmp_file.name))
+    for bibcode, raw_file, provider in zip(bibcodes, raw_files, providers):
+        tmp_str = '{}\t{}\t{}'.format(bibcode, raw_file, provider)
+        print("\t{}".format(tmp_str))
+        tmp_file.write(tmp_str+"\n")
+    tmp_file.close()
+    return tmp_file.name
 
 if __name__ == '__main__':
 
@@ -105,13 +123,63 @@ if __name__ == '__main__':
                         action='store_true',
                         help='Force the extract of all input bibcodes')
 
+    parser.add_argument('-d',
+                        '--diagnose',
+                        dest='diagnose',
+                        action='store_true',
+                        default=False,
+                        help='Show me what you would do with input files')
+
+    parser.add_argument('-b',
+                        '--bibcodes',
+                        dest='bibcodes',
+                        action='store',
+                        default=None,
+                        help='Comma delimited list of bibcodes (for diagnostics)')
+
+    parser.add_argument('-r',
+                        '--raw-files',
+                        dest='raw_files',
+                        action='store',
+                        default=None,
+                        help='Comma delimited list of raw input files (for diagnostics)')
+
+    parser.add_argument('-p',
+                        '--providers',
+                        dest='providers',
+                        action='store',
+                        default=None,
+                        help='Comma delimited list of providers (for diagnostics)')
+
     parser.set_defaults(full_text_links=False)
     parser.set_defaults(packet_size=100)
     parser.set_defaults(purge_queues=False)
     parser.set_defaults(max_queue_size=100000)
     parser.set_defaults(force_extract=False)
+    parser.set_defaults(diagnose=False)
 
     args = parser.parse_args()
+
+    if args.diagnose:
+        if args.bibcodes:
+            args.bibcodes = [x.strip() for x in args.bibcodes.split(',')]
+        else:
+            # Defaults
+            args.bibcodes = ["1908MNRAS..68..224.", "1915PA.....23..189P"]
+
+        if args.raw_files:
+            args.raw_files = [x.strip() for x in args.raw_files.split(',')]
+        else:
+            # Defaults
+            args.raw_files = ["/proj/ads/articles/bitmaps/seri/MNRAS/0068/PDF/1908MNRAS..68..224..pdf", "/proj/ads/fulltext/sources/downloads/cache/ADS/articles.adsabs.harvard.edu/full/PA/0023/1915PA.....23..189P.ocr"]
+
+        if args.providers:
+            args.providers = [x.strip() for x in args.providers.split(',')]
+        else:
+            # Defaults
+            args.providers = ["ADS", "ADS"]
+
+        args.full_text_links = build_diagnostics(raw_files=args.raw_files, bibcodes=args.bibcodes, providers=args.providers)
 
     if not args.full_text_links:
         print 'You need to give the input list'
@@ -122,4 +190,9 @@ if __name__ == '__main__':
     run(args.full_text_links,
         packet_size=args.packet_size,
         max_queue_size=args.max_queue_size,
-        force_extract=args.force_extract)
+        force_extract=args.force_extract,
+        diagnose=args.diagnose)
+
+    if args.diagnose:
+        print("Removing diagnostics temporary file '{}'".format(args.full_text_links))
+        os.unlink(args.full_text_links)
