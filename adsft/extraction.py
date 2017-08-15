@@ -23,6 +23,7 @@ import os
 
 from adsputils import setup_logging, overrides, load_config
 from adsft.utils import TextCleaner
+from adsft import reader
 import re
 import traceback
 import unicodedata
@@ -582,11 +583,11 @@ class StandardExtractorTEIXML(StandardExtractorXML):
     Right now it's just a stub.
     See: http://grobid.readthedocs.org/en/latest/
     """
-    
+
     def __init__(self, dict_item):
         StandardExtractorXML.__init__(self, dict_item)
         self.meta_name = 'teixml'
-        
+
 
 
 class StandardElsevierExtractorXML(StandardExtractorXML):
@@ -759,17 +760,17 @@ class PDFBoxExtractor(object):
         self.bibcode = kwargs.get('bibcode', None)
         self.provider = kwargs.get('provider', None)
         self.cmd = kwargs.get('executable', proj_home + '/scripts/extract_pdf.sh') #TODO(rca) make it configurable
-        
+
         if not self.ft_source:
             raise Exception('Missing or non-existent source: %s', self.ft_source)
-        
+
     def extract_multi_content(self):
         p = Popen([self.cmd, self.ft_source], stdout=PIPE, stderr=PIPE)
         stdout, stderr = p.communicate()
         if p.returncode != 0:
             raise Exception(stderr)
         return {'fulltext': stdout}
-    
+
 # Dictionary containing the relevant extensions for the relevant class
 
 EXTRACTOR_FACTORY = {
@@ -805,35 +806,46 @@ def extract_content(input_list, **kwargs):
 
     for dict_item in input_list:
 
-        try:
-            extension = dict_item['file_format']
-            if extension not in ACCEPTED_FORMATS:
-                raise KeyError('You gave an unsupported file extension.')
+        recovered_content = None
+        if 'UPDATE' in dict_item and dict_item['UPDATE'] == 'FORCE_TO_SEND':
+            # Read previously extracted data
+            recovered_content = reader.read_content(dict_item)
 
-            if extension == 'xml' \
-                    and dict_item['provider'] == 'Elsevier':
-
-                extension = "elsevier"
-
-            ExtractorClass = EXTRACTOR_FACTORY[extension]
-
-        except KeyError:
-            raise KeyError(
-                'You gave a format not currently supported for extraction: {0}'
-                .format(dict_item['file_format'], traceback.format_exc()))
-
-        try:
-            extractor = ExtractorClass(dict_item)
-            parsed_content = extractor.extract_multi_content()
-
-            for item in parsed_content:
-                dict_item[item] = parsed_content[item]
-
+        if recovered_content is not None:
+            for key, value in parsed_content.iteritems():
+                if key != 'UPDATE':
+                    dict_item[key] = value
             output_list.append(dict_item)
+        else:
+            try:
+                extension = dict_item['file_format']
+                if extension not in ACCEPTED_FORMATS:
+                    raise KeyError('You gave an unsupported file extension.')
 
-        except Exception:
-            raise Exception(traceback.format_exc())
+                if extension == 'xml' \
+                        and dict_item['provider'] == 'Elsevier':
 
-        del extractor, parsed_content
+                    extension = "elsevier"
+
+                ExtractorClass = EXTRACTOR_FACTORY[extension]
+
+            except KeyError:
+                raise KeyError(
+                    'You gave a format not currently supported for extraction: {0}'
+                    .format(dict_item['file_format'], traceback.format_exc()))
+
+            try:
+                extractor = ExtractorClass(dict_item)
+                parsed_content = extractor.extract_multi_content()
+
+                for item in parsed_content:
+                    dict_item[item] = parsed_content[item]
+
+                output_list.append(dict_item)
+
+            except Exception:
+                raise Exception(traceback.format_exc())
+
+            del extractor, parsed_content
 
     return output_list

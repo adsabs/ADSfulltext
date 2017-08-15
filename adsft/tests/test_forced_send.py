@@ -11,7 +11,7 @@ from mock import patch
 
 class TestForcedExtractor(test_base.TestGeneric):
     """
-    Class for testing that a file is force extracted if specified by the user.
+    Class for testing that a file is force send if specified by the user.
     """
 
     def setUp(self):
@@ -22,10 +22,6 @@ class TestForcedExtractor(test_base.TestGeneric):
         :return:
         """
         super(TestForcedExtractor, self).setUp()
-        #self.dict_item = {'ft_source': self.test_stub_xml,
-                          #'file_format': 'xml',
-                          #'provider': 'MNRAS'}
-        #self.extractor = extraction.EXTRACTOR_FACTORY['xml'](self.dict_item)
         self.test_publish = os.path.join(
             self.app.conf['PROJ_HOME'],
             'tests/test_integration/stub_data/fulltext_exists_txt.links'
@@ -43,7 +39,7 @@ class TestForcedExtractor(test_base.TestGeneric):
         self.clean_up_path(self.expected_paths)
         super(TestForcedExtractor, self).tearDown()
 
-    def test_forced_extraction(self):
+    def test_forced_send(self):
         """
         Tests that when a user specifies 'force_extract' that the full text
         is extracted regardless of its underlying reason for being or not
@@ -56,7 +52,7 @@ class TestForcedExtractor(test_base.TestGeneric):
 
         # User loads the list of full text files and publishes them to the
         # first queue
-        records = read_links_from_file(self.test_publish, force_extract=True, force_send=False)
+        records = read_links_from_file(self.test_publish, force_extract=False, force_send=True)
 
         self.helper_get_details(self.test_publish)
         self.assertEqual(
@@ -72,7 +68,7 @@ class TestForcedExtractor(test_base.TestGeneric):
             message = records.payload[0]
             tasks.task_check_if_extract(message)
             self.assertTrue(task_extract.called)
-            expected = {'UPDATE': 'FORCE_TO_EXTRACT',
+            expected = {'UPDATE': 'FORCE_TO_SEND',
                          'bibcode': 'test4',
                          'file_format': 'txt',
                          'ft_source': '{}/tests/test_unit/stub_data/test.txt'.format(self.app.conf['PROJ_HOME']),
@@ -102,7 +98,7 @@ class TestForcedExtractor(test_base.TestGeneric):
                 with open(meta_path, 'r') as meta_file:
                     meta_content = meta_file.read()
                 self.assertTrue(
-                    'FORCE_TO_EXTRACT' in meta_content,
+                    'FORCE_TO_SEND' in meta_content,
                     'meta file does not contain the right extract keyword: {0}'
                     .format(meta_content)
                 )
@@ -123,3 +119,4 @@ class TestForcedExtractor(test_base.TestGeneric):
 
 if __name__ == '__main__':
     unittest.main()
+

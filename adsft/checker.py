@@ -199,7 +199,8 @@ def check_if_extract(message_list, extract_path):
     """
 
     NEEDS_UPDATE = ["MISSING_FULL_TEXT", "DIFFERING_FULL_TEXT", "STALE_CONTENT",
-                    "STALE_META", "NOT_EXTRACTED_BEFORE", "FORCE_TO_EXTRACT"]
+                    "STALE_META", "NOT_EXTRACTED_BEFORE", "FORCE_TO_EXTRACT",
+                    "FORCE_TO_SEND"]
 
     publish_list_of_standard_dictionaries = []
     publish_list_of_pdf_dictionaries = []
@@ -210,7 +211,9 @@ def check_if_extract(message_list, extract_path):
         if 'UPDATE' in message \
                 and message['UPDATE'] == 'FORCE_TO_EXTRACT':
             update = 'FORCE_TO_EXTRACT'
-
+        elif 'UPDATE' in message \
+                and message['UPDATE'] == 'FORCE_TO_SEND':
+            update = 'FORCE_TO_SEND'
         elif meta_output_exists(message, extract_path):
             meta_content = load_meta_file(message, extract_path)
             update = meta_needs_update(message, meta_content,

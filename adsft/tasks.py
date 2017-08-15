@@ -57,6 +57,7 @@ def task_extract(message):
     logger.debug('Extract content: %s', message)
     if not isinstance(message, list):
         message = [message]
+
     results = extraction.extract_content(message)
     logger.debug('Results: %s', results)
     for r in results:
