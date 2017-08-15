@@ -10,17 +10,18 @@ from adsputils import setup_logging
 logger = setup_logging('run.py')
 
 
-def read_links_from_file(file_input, force_extract=False):
+def read_links_from_file(file_input, force_extract=False, force_send=False):
     """
     Opens the link file given and parses the content into a set of lists.
 
     :param file_input: path to the link file
     :param force_extract: did the user bypass the internal checks
+    :param force_send: always send results to master, even for already extracted files
     :return: file stream type (see utils.py)
     """
 
     FileInputStream = utils.FileInputStream(file_input)
-    FileInputStream.extract(force_extract=force_extract)
+    FileInputStream.extract(force_extract=force_extract, force_send=force_send)
 
     return FileInputStream
 
@@ -46,6 +47,11 @@ def run(full_text_links, **kwargs):
     else:
         force_extract = False
 
+    if 'force_send' in kwargs:
+        force_send = kwargs['force_send']
+    else:
+        force_send = False
+
     if 'diagnose' in kwargs:
         diagnose = kwargs['diagnose']
     else:
@@ -53,11 +59,12 @@ def run(full_text_links, **kwargs):
 
 
     if diagnose:
-        print("Calling 'read_links_from_file' with filename '{}' and force_extract set to '{}'".format(full_text_links, str(force_extract)))
-    logger.debug("Calling 'read_links_from_file' with filename '%s' and force_extract set to '%s'", full_text_links, str(force_extract))
+        print("Calling 'read_links_from_file' with filename '{}', force_extract set to '{}' and force_send set to '{}'".format(full_text_links, str(force_extract), str(force_send)))
+    logger.debug("Calling 'read_links_from_file' with filename '%s', force_extract set to '%s and force_send set to '%s''", full_text_links, str(force_extract), str(force_send))
     records = read_links_from_file(
         full_text_links,
-        force_extract=force_extract
+        force_extract=force_extract,
+        force_send=force_send
     )
 
 
@@ -123,6 +130,12 @@ if __name__ == '__main__':
                         action='store_true',
                         help='Force the extract of all input bibcodes')
 
+    parser.add_argument('-s',
+                        '--send_force',
+                        dest='force_send',
+                        action='store_true',
+                        help='Force sending all extracted fulltext to master (it does not extract again if it was already extracted)')
+
     parser.add_argument('-d',
                         '--diagnose',
                         dest='diagnose',
@@ -156,6 +169,7 @@ if __name__ == '__main__':
     parser.set_defaults(purge_queues=False)
     parser.set_defaults(max_queue_size=100000)
     parser.set_defaults(force_extract=False)
+    parser.set_defaults(force_send=False)
     parser.set_defaults(diagnose=False)
 
     args = parser.parse_args()
@@ -191,6 +205,7 @@ if __name__ == '__main__':
         packet_size=args.packet_size,
         max_queue_size=args.max_queue_size,
         force_extract=args.force_extract,
+        force_send=args.force_send,
         diagnose=args.diagnose)
 
     if args.diagnose:

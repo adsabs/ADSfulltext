@@ -28,7 +28,7 @@ class TestNotExtractedBefore(test_base.TestGeneric):
                           #'provider': 'MNRAS'}
         #self.extractor = extraction.EXTRACTOR_FACTORY['xml'](self.dict_item)
         self.test_publish = os.path.join(
-            self.app.conf['PROJ_HOME'], 
+            self.app.conf['PROJ_HOME'],
             'tests/test_integration/stub_data/fulltext_exists_txt.links'
         )
         self.expected_paths = self.calculate_expected_folders(self.test_publish)
@@ -58,7 +58,7 @@ class TestNotExtractedBefore(test_base.TestGeneric):
 
         # User loads the list of full text files and publishes them to the
         # first queue
-        records = read_links_from_file(self.test_publish, force_extract=False)
+        records = read_links_from_file(self.test_publish, force_extract=False, force_send=False)
 
         self.helper_get_details(self.test_publish)
         self.assertEqual(

@@ -28,7 +28,7 @@ class TestFullRangeFormatExtraction(test_base.TestGeneric):
                           #'provider': 'MNRAS'}
         #self.extractor = extraction.EXTRACTOR_FACTORY['xml'](self.dict_item)
         self.test_publish = os.path.join(
-            self.app.conf['PROJ_HOME'], 
+            self.app.conf['PROJ_HOME'],
             'tests/test_integration/stub_data/fulltext_range_of_formats.links'
         )
         self.expected_paths = self.calculate_expected_folders(self.test_publish)
@@ -57,7 +57,7 @@ class TestFullRangeFormatExtraction(test_base.TestGeneric):
 
         # User loads the list of full text files and publishes them to the
         # first queue
-        records = read_links_from_file(self.test_publish, force_extract=False)
+        records = read_links_from_file(self.test_publish, force_extract=False, force_send=False)
 
         self.helper_get_details(self.test_publish)
         self.assertEqual(
@@ -127,7 +127,7 @@ class TestFullRangeFormatExtraction(test_base.TestGeneric):
                         u"No Title AA 999, 999-999 (1999) DOI: 99.9999/9999-9999:99999999 TITLE AUTHOR AFFILIATION Received 99 MONTH 1999 / Accepted 99 MONTH 1999 Abstract ABSTRACT Key words: KEYWORD INTRODUCTION SECTION Table 1: TABLE TABLE (1) COPYRIGHT",
                         u"Introduction\nTHIS IS AN INTERESTING TITLE\n",
                         )
-                
+
                 self.assertEqual(fulltext_content, expected_fulltext_content[i])
 
 

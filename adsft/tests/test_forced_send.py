@@ -8,11 +8,10 @@ from adsft.tests import test_base
 from datetime import datetime
 import json
 from mock import patch
-import time
 
-class TestStaleContent(test_base.TestGeneric):
+class TestForcedExtractor(test_base.TestGeneric):
     """
-    Class to test that a file on path with stale content is re-extracted.
+    Class for testing that a file is force send if specified by the user.
     """
 
     def setUp(self):
@@ -22,11 +21,7 @@ class TestStaleContent(test_base.TestGeneric):
         worker as well into a class attribute so it is easier to access.
         :return:
         """
-        super(TestStaleContent, self).setUp()
-        #self.dict_item = {'ft_source': self.test_stub_xml,
-                          #'file_format': 'xml',
-                          #'provider': 'MNRAS'}
-        #self.extractor = extraction.EXTRACTOR_FACTORY['xml'](self.dict_item)
+        super(TestForcedExtractor, self).setUp()
         self.test_publish = os.path.join(
             self.app.conf['PROJ_HOME'],
             'tests/test_integration/stub_data/fulltext_exists_txt.links'
@@ -42,14 +37,13 @@ class TestStaleContent(test_base.TestGeneric):
         """
 
         self.clean_up_path(self.expected_paths)
-        super(TestStaleContent, self).tearDown()
+        super(TestForcedExtractor, self).tearDown()
 
-    def test_stale_content(self):
+    def test_forced_send(self):
         """
-        Tests the scenario that the file on disk has stale content, and so it
-        extracts the new full text and writes it to disk. The test uses a live
-        RabbitMQ instance to test the correct interactions of the pipeline with
-        RabbitMQ.
+        Tests that when a user specifies 'force_extract' that the full text
+        is extracted regardless of its underlying reason for being or not
+        being extracted.
 
         :return: no return
         """
@@ -58,7 +52,7 @@ class TestStaleContent(test_base.TestGeneric):
 
         # User loads the list of full text files and publishes them to the
         # first queue
-        records = read_links_from_file(self.test_publish, force_extract=False, force_send=False)
+        records = read_links_from_file(self.test_publish, force_extract=False, force_send=True)
 
         self.helper_get_details(self.test_publish)
         self.assertEqual(
@@ -69,32 +63,12 @@ class TestStaleContent(test_base.TestGeneric):
 
         self.assertTrue(len(records.payload) == 1)
 
-        # Make the fake data to use
-        if not os.path.exists(self.meta_path):
-            os.makedirs(self.meta_path)
-
-        test_meta_content = {
-            'index_date': datetime.utcnow().isoformat()+'Z',
-            'bibcode': self.bibcode,
-            'provider': self.provider,
-            'ft_source': self.ft_source
-        }
-
-        with open(self.test_expected.replace('meta.json', 'fulltext.txt'), 'w')\
-                as test_full_text_file:
-            test_full_text_file.write('Full text content')
-
-        time.sleep(2)
-        with open(self.test_expected, 'w') as test_meta_file:
-            json.dump(test_meta_content, test_meta_file)
-
-
         # Call the task to check if it should be extracted but mock the extraction task
         with patch.object(tasks.task_extract, 'delay', return_value=None) as task_extract:
             message = records.payload[0]
             tasks.task_check_if_extract(message)
             self.assertTrue(task_extract.called)
-            expected = {'UPDATE': 'STALE_CONTENT',
+            expected = {'UPDATE': 'FORCE_TO_SEND',
                          'bibcode': 'test4',
                          'file_format': 'txt',
                          'ft_source': '{}/tests/test_unit/stub_data/test.txt'.format(self.app.conf['PROJ_HOME']),
@@ -124,7 +98,7 @@ class TestStaleContent(test_base.TestGeneric):
                 with open(meta_path, 'r') as meta_file:
                     meta_content = meta_file.read()
                 self.assertTrue(
-                    'STALE_CONTENT' in meta_content,
+                    'FORCE_TO_SEND' in meta_content,
                     'meta file does not contain the right extract keyword: {0}'
                     .format(meta_content)
                 )
@@ -145,3 +119,4 @@ class TestStaleContent(test_base.TestGeneric):
 
 if __name__ == '__main__':
     unittest.main()
+

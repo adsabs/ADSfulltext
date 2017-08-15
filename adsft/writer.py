@@ -120,6 +120,12 @@ def write_content(payload_dictionary):
     full_text_output_file_path = os.path.join(bibcode_pair_tree_path,
                                               'fulltext.txt')
 
+    if 'UPDATE' in payload_dictionary and \
+            payload_dictionary['UPDATE'] == 'FORCE_TO_SEND' and\
+            os.path.exists(meta_output_file_path):
+                # Data was already extracted and saved
+                return
+
     if not os.path.exists(bibcode_pair_tree_path):
         try:
             os.makedirs(bibcode_pair_tree_path)
@@ -195,7 +201,6 @@ def write_content(payload_dictionary):
     except IOError:
         logger.error('IO Error when writing to file.')
         raise IOError
-
 
 
 def extract_content(input_list, **kwargs):
