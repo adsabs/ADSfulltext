@@ -28,7 +28,7 @@ class TestExtraAcknowledgment(test_base.TestGeneric):
                           #'provider': 'MNRAS'}
         #self.extractor = extraction.EXTRACTOR_FACTORY['xml'](self.dict_item)
         self.test_publish = os.path.join(
-            self.app.conf['PROJ_HOME'], 
+            self.app.conf['PROJ_HOME'],
             'tests/test_integration/stub_data/'
             'fulltext_xml_doc_with_acknowledgement.links'
         )
@@ -58,7 +58,7 @@ class TestExtraAcknowledgment(test_base.TestGeneric):
 
         # User loads the list of full text files and publishes them to the
         # first queue
-        records = read_links_from_file(self.test_publish, force_extract=False)
+        records = read_links_from_file(self.test_publish, force_extract=False, force_send=False)
 
         self.helper_get_details(self.test_publish)
         self.assertEqual(
@@ -118,7 +118,7 @@ class TestExtraAcknowledgment(test_base.TestGeneric):
             if os.path.exists(fulltext_path):
                 with open(fulltext_path, 'r') as fulltext_file:
                     fulltext_content = fulltext_file.read()
-                self.assertEqual(fulltext_content, 
+                self.assertEqual(fulltext_content,
                         "application/xml JOURNAL TITLE CREATOR SUBJECT DESCRIPTION JOURNAL NAME COPYRIGHT PUBLISHER 9999-9999 VOLUME DAY MONTH YEAR 1999-99-99 999-999 999 999 99.9999/9.99999.9999.99.999 http://dx.doi.org/99.9999/9.99999.9999.99.999 doi:99.9999/9.99999.9999.99.999 Journals S300.1 JOURNAL 999999 99999-9999(99)99999-9 99.9999/9.99999.9999.99.999 COPYRIGHT Fig.1 CONTENT TITLE GIVEN NAME SURNAME a EMAIL@EMAIL.COM a AFFILIATION AUTHOR Abstract ABSTRACT Highlights HIGHLIGHTS Keywords KEYWORD 1 Introduction JOURNAL CONTENT Acknowledgments THANK YOU Appendix A APPENDIX TITLE APPENDIX References AUTHOR et al., 1999 GIVEN NAME SURNAME TITLE TITLE VOLUME YEAR 99 99")
 
             acknowledgments_path = os.path.join(path, 'acknowledgements.txt')
@@ -130,7 +130,7 @@ class TestExtraAcknowledgment(test_base.TestGeneric):
             if os.path.exists(acknowledgments_path):
                 with open(acknowledgments_path, 'r') as acknowledgments_file:
                     acknowledgements_content = acknowledgments_file.read()
-                self.assertEqual(acknowledgements_content, 
+                self.assertEqual(acknowledgements_content,
                         "Acknowledgments THANK YOU")
 
 
