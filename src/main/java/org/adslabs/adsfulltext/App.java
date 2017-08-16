@@ -27,6 +27,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.lang.String;
 import java.io.IOException;
+import java.io.PrintStream;
 
 public class App {
 
@@ -81,7 +82,11 @@ public class App {
           }
           else {
             logger.debug("Extracting: " + file);
-            System.out.print(extractor.extract(file));
+            PrintStream out = new PrintStream(System.out, true, "UTF-8");
+            // Replace end-of-lines by spaces, except if it is a broken word by
+            // a hyphen, in which case we remove the hyphen and do not add a
+            // space
+            out.println(extractor.extract(file).replace("-\r\n", "").replace("-\n", "").replace("\r\n", " ").replace("\n", " "));
           }
         }
 
