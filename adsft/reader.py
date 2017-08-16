@@ -22,7 +22,7 @@ def read_file(input_filename, json_format=True):
 
     input_file = open(input_filename, "r")
     if json_format:
-        content = json.dump(input_file)
+        content = json.load(input_file)
     else:
         content = input_file.read()
     input_file.close()

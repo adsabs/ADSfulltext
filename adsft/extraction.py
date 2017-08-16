@@ -812,7 +812,7 @@ def extract_content(input_list, **kwargs):
             recovered_content = reader.read_content(dict_item)
 
         if recovered_content is not None:
-            for key, value in parsed_content.iteritems():
+            for key, value in recovered_content.iteritems():
                 if key != 'UPDATE':
                     dict_item[key] = value
             output_list.append(dict_item)
