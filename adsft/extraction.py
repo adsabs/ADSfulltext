@@ -769,7 +769,7 @@ class PDFBoxExtractor(object):
         stdout, stderr = p.communicate()
         if p.returncode != 0:
             raise Exception(stderr)
-        return {'fulltext': stdout}
+        return {'fulltext': stdout.decode('utf8')}
 
 # Dictionary containing the relevant extensions for the relevant class
 
