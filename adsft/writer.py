@@ -174,20 +174,20 @@ def write_content(payload_dictionary):
 
     # Write the full text content to its own file fulltext.txt
     logger.debug('Copying full text content')
-    full_text_dict = {
-        'fulltext': payload_dictionary['fulltext']}
+    try:
+        full_text_dict = {'fulltext': payload_dictionary['fulltext']}
+    except KeyError:
+        logger.warning('No fulltext found for dictionary {0} (set to empty string)'.format(payload_dictionary['bibcode']))
+        full_text_dict = {'fulltext': ""}
+        meta_dict['fulltext_extracted'] = False
+    else:
+        meta_dict['fulltext_extracted'] = True
 
     try:
         logger.debug('Writing to file: {0}'.format(full_text_output_file_path))
-        logger.debug('Content has length: {0}'.format(
-            len(full_text_dict['fulltext'])))
-        write_file(full_text_output_file_path,
-                   full_text_dict['fulltext'], json_format=False)
+        logger.debug('Content has length: {0}'.format(len(full_text_dict['fulltext'])))
+        write_file(full_text_output_file_path, full_text_dict['fulltext'], json_format=False)
         logger.debug('Writing complete.')
-    except KeyError:
-        logger.error('KeyError for dictionary {0}'.format(payload_dictionary[
-            'bibcode']))
-        raise KeyError
     except IOError:
         logger.error('IO Error when writing to file {0}'.format(
             payload_dictionary['bibcode']))
