@@ -830,9 +830,14 @@ def extract_content(input_list, **kwargs):
                 ExtractorClass = EXTRACTOR_FACTORY[extension]
 
             except KeyError:
-                raise KeyError(
-                    'You gave a format not currently supported for extraction: {0}'
-                    .format(dict_item['file_format'], traceback.format_exc()))
+                msg = "Article '{}' has a format not currently supported for extraction: {}".format(dict_item['bibcode'], dict_item['file_format'])
+                logger.exception(msg)
+                raise KeyError(msg, traceback.format_exc())
+
+            if not os.path.exists(dict_item['ft_source']):
+                msg = "[Errno 2] No such file or directory for bibcode '{}': '{}'".format(dict_item['bibcode'], dict_item['ft_source'])
+                logger.error(msg)
+                raise Exception(msg)
 
             try:
                 extractor = ExtractorClass(dict_item)
@@ -844,6 +849,7 @@ def extract_content(input_list, **kwargs):
                 output_list.append(dict_item)
 
             except Exception:
+                logger.exception("Fulltext extraction failed for bibcode '{}': '{}'".format(dict_item['bibcode'], dict_item['ft_source']))
                 raise Exception(traceback.format_exc())
 
             del extractor, parsed_content
