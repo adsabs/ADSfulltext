@@ -20,9 +20,8 @@ import json
 import tempfile
 import shutil
 from adsft.rules import META_CONTENT
-from adsputils import setup_logging
 
-logger = setup_logging(__name__)
+from adsft.app import logger
 
 
 def write_to_temp_file(payload, temp_path='/tmp/', json_format=True):
@@ -119,6 +118,7 @@ def write_content(payload_dictionary):
     bibcode_pair_tree_path = os.path.dirname(meta_output_file_path)
     full_text_output_file_path = os.path.join(bibcode_pair_tree_path,
                                               'fulltext.txt')
+    grobid_full_text_output_file_path = os.path.join(bibcode_pair_tree_path, 'grobid_fulltext.xml')
 
     if 'UPDATE' in payload_dictionary and \
             payload_dictionary['UPDATE'] == 'FORCE_TO_SEND' and\
@@ -174,24 +174,33 @@ def write_content(payload_dictionary):
 
     # Write the full text content to its own file fulltext.txt
     logger.debug('Copying full text content')
-    try:
-        full_text_dict = {'fulltext': payload_dictionary['fulltext']}
-    except KeyError:
-        logger.warning('No fulltext found for dictionary {0} (set to empty string)'.format(payload_dictionary['bibcode']))
-        full_text_dict = {'fulltext': ""}
-        meta_dict['fulltext_extracted'] = False
-    else:
-        meta_dict['fulltext_extracted'] = True
+    meta_dict['fulltext_extracted'] = 'fulltext' in payload_dictionary and payload_dictionary['fulltext'] != ""
+    meta_dict['grobid_fulltext_extracted'] = 'grobid_fulltext' in payload_dictionary and payload_dictionary['grobid_fulltext'] != ""
 
-    try:
-        logger.debug('Writing to file: {0}'.format(full_text_output_file_path))
-        logger.debug('Content has length: {0}'.format(len(full_text_dict['fulltext'])))
-        write_file(full_text_output_file_path, full_text_dict['fulltext'], json_format=False)
-        logger.debug('Writing complete.')
-    except IOError:
-        logger.error('IO Error when writing to file {0}'.format(
-            payload_dictionary['bibcode']))
-        raise IOError
+    if meta_dict['fulltext_extracted']:
+        try:
+            logger.debug('Writing to file: {0}'.format(full_text_output_file_path))
+            logger.debug('Content has length: {0}'.format(len(payload_dictionary['fulltext'])))
+            write_file(full_text_output_file_path, payload_dictionary['fulltext'], json_format=False)
+            logger.debug('Writing complete.')
+        except IOError:
+            logger.exception('IO Error when writing to file {0}'.format(payload_dictionary['bibcode']))
+            raise IOError
+    else:
+        logger.warning('No fulltext found for dictionary {0} (set to empty string)'.format(payload_dictionary['bibcode']))
+
+    if meta_dict['grobid_fulltext_extracted']:
+        try:
+            logger.debug('Writing to file: {0}'.format(grobid_full_text_output_file_path))
+            logger.debug('Content has length: {0}'.format(len(payload_dictionary['grobid_fulltext'])))
+            write_file(grobid_full_text_output_file_path, payload_dictionary['grobid_fulltext'], json_format=False)
+            logger.debug('Writing complete.')
+        except IOError:
+            logger.exception('IO Error when writing to file {0}'.format(payload_dictionary['bibcode']))
+            raise IOError
+    else:
+        logger.warning('No grobid fulltext found for dictionary {0} (set to empty string)'.format(payload_dictionary['bibcode']))
+
 
     try:
         logger.debug('Writing to file: {0}'.format(meta_output_file_path))
@@ -199,7 +208,7 @@ def write_content(payload_dictionary):
         write_file(meta_output_file_path, meta_dict, json_format=True)
         logger.debug('Writing complete.')
     except IOError:
-        logger.error('IO Error when writing to file.')
+        logger.exception('IO Error when writing to file.')
         raise IOError
 
 

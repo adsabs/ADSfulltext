@@ -21,7 +21,8 @@ __license__ = 'GPLv3'
 import sys
 import os
 
-from adsputils import setup_logging, overrides, load_config
+import requests
+from adsputils import overrides
 from adsft.utils import TextCleaner
 from adsft import reader
 import re
@@ -33,8 +34,7 @@ from adsft.rules import META_CONTENT
 from requests.exceptions import HTTPError
 from subprocess import Popen, PIPE, STDOUT
 
-proj_home = load_config()['PROJ_HOME']
-logger = setup_logging(__name__)
+from adsft.app import proj_home, logger
 
 
 class StandardExtractorBasicText(object):
@@ -760,6 +760,8 @@ class PDFBoxExtractor(object):
         self.bibcode = kwargs.get('bibcode', None)
         self.provider = kwargs.get('provider', None)
         self.cmd = kwargs.get('executable', proj_home + '/scripts/extract_pdf.sh') #TODO(rca) make it configurable
+        self.timeout = 120 # seconds
+        self.grobid_service = kwargs.get('grobid_service', None)
 
         if not self.ft_source:
             raise Exception('Missing or non-existent source: %s', self.ft_source)
@@ -769,7 +771,39 @@ class PDFBoxExtractor(object):
         stdout, stderr = p.communicate()
         if p.returncode != 0:
             raise Exception(stderr)
-        return {'fulltext': stdout.decode('utf8')}
+        fulltext = stdout.decode('utf8')
+        grobid_fulltext = self.grobid_analysis()
+        return  {
+                    'fulltext': fulltext,
+                    'grobid_fulltext': grobid_fulltext,
+                }
+
+    def grobid_analysis(self):
+        grobid_xml = ""
+        if self.grobid_service is not None:
+            try:
+                try:
+                    ft_source = open(self.ft_source, 'r')
+                except IOError, error:
+                    logger.exception("Error opening file %s: %s", self.ft_source, error)
+                logger.debug("Contacting grobid service: %s", self.grobid_service)
+                response = requests.post(url=self.grobid_service, files={'input': ft_source}, timeout=self.timeout)
+                ft_source.close()
+            except requests.exceptions.Timeout:
+                logger.exception("Grobid service timeout after %d seconds", self.timeout)
+            except:
+                logger.exception("Grobid request exception")
+            else:
+                if response.status_code == 200:
+                    logger.debug("Successful response from grobid server (%d bytes)", len(response.content))
+                    logger.debug("Successful response from grobid server: %s", response.content)
+                    grobid_xml = response.text
+                else:
+                    logger.error("Grobid service response error (code %s): %s", response.status_code, response.text)
+        else:
+            logger.debug("Grobid service not defined")
+
+        return grobid_xml
 
 # Dictionary containing the relevant extensions for the relevant class
 
@@ -794,7 +828,7 @@ def extract_content(input_list, **kwargs):
     settings.py).
 
     :param input_list: dictionaries that contain meta-data of articles
-    :param kwargs: currently not used
+    :param kwargs: used to store grobid service URL
     :return: json formatted list of dictionaries now containing full text
     """
 
@@ -840,11 +874,13 @@ def extract_content(input_list, **kwargs):
                 raise Exception(msg)
 
             try:
+                dict_item['grobid_service'] = kwargs.get('grobid_service', None)
                 extractor = ExtractorClass(dict_item)
                 parsed_content = extractor.extract_multi_content()
 
                 for item in parsed_content:
                     dict_item[item] = parsed_content[item]
+                del dict_item['grobid_service']
 
                 output_list.append(dict_item)
 

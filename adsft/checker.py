@@ -25,10 +25,9 @@ import traceback
 
 from stat import ST_MTIME
 from datetime import datetime
-from adsputils import setup_logging
 from dateutil.parser import parse
 
-logger = setup_logging(__name__)
+from adsft.app import logger
 
 
 def file_last_modified_time(file_input):

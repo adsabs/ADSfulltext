@@ -8,6 +8,7 @@ from adsft.tests import test_base
 from datetime import datetime
 import json
 from mock import patch
+import httpretty
 
 class TestFullRangeFormatExtraction(test_base.TestGeneric):
     """
@@ -27,6 +28,7 @@ class TestFullRangeFormatExtraction(test_base.TestGeneric):
                           #'file_format': 'xml',
                           #'provider': 'MNRAS'}
         #self.extractor = extraction.EXTRACTOR_FACTORY['xml'](self.dict_item)
+        self.grobid_service = tasks.app.conf['GROBID_SERVICE']
         self.test_publish = os.path.join(
             self.app.conf['PROJ_HOME'],
             'tests/test_integration/stub_data/fulltext_range_of_formats.links'
@@ -54,6 +56,12 @@ class TestFullRangeFormatExtraction(test_base.TestGeneric):
         """
         sys.path.append(self.app.conf['PROJ_HOME'])
         from run import read_links_from_file
+
+        httpretty.enable()
+        expected_grobid_fulltext = "<hello/>"
+        httpretty.register_uri(httpretty.POST, self.grobid_service,
+                       body=expected_grobid_fulltext,
+                       status=200)
 
         # User loads the list of full text files and publishes them to the
         # first queue
@@ -129,6 +137,12 @@ class TestFullRangeFormatExtraction(test_base.TestGeneric):
                         )
 
                 self.assertEqual(fulltext_content, expected_fulltext_content[i])
+
+            grobid_fulltext_path = os.path.join(path, 'grobid_fulltext.xml')
+            if os.path.exists(grobid_fulltext_path):
+                with open(grobid_fulltext_path, 'r') as grobid_fulltext_file:
+                    grobid_fulltext_content = grobid_fulltext_file.read()
+                self.assertEqual(grobid_fulltext_content, expected_grobid_fulltext)
 
 
 

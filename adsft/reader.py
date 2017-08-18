@@ -6,9 +6,8 @@ read previously extracted content.
 """
 import os
 import json
-from adsputils import setup_logging
 
-logger = setup_logging(__name__)
+from adsft.app import logger
 
 
 def read_file(input_filename, json_format=True):
@@ -45,6 +44,7 @@ def read_content(payload_dictionary):
     meta_output_file_path = payload_dictionary['meta_path']
     bibcode_pair_tree_path = os.path.dirname(meta_output_file_path)
     full_text_output_file_path = os.path.join(bibcode_pair_tree_path, 'fulltext.txt')
+    grobid_full_text_output_file_path = os.path.join(bibcode_pair_tree_path, 'grobid_fulltext.xml')
 
     content = {}
     if os.path.exists(meta_output_file_path):
@@ -57,6 +57,12 @@ def read_content(payload_dictionary):
             content['fulltext'] = fulltext
         else:
             content['fulltext'] = ""
+
+        if os.path.exists(grobid_full_text_output_file_path):
+            fulltext = read_file(grobid_full_text_output_file_path, json_format=False)
+            content['grobid_fulltext'] = grobid_fulltext
+        else:
+            content['grobid_fulltext'] = ""
 
         return content
     else:

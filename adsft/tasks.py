@@ -1,17 +1,12 @@
 from __future__ import absolute_import, unicode_literals
-import adsft.app as app_module
 from adsputils import get_date, exceptions
 from kombu import Queue
 from adsft import extraction, checker, writer
-import os
 from adsmsg import FulltextUpdate
 
 # ============================= INITIALIZATION ==================================== #
 
-proj_home = os.path.realpath(os.path.join(os.path.dirname(__file__), '../'))
-app = app_module.ADSFulltextCelery('ads-fulltext', proj_home=proj_home)
-logger = app.logger
-
+from adsft.app import app, logger
 
 app.conf.CELERY_QUEUES = (
     Queue('check-if-extract', app.exchange, routing_key='check-if-extract'),
@@ -58,7 +53,7 @@ def task_extract(message):
     if not isinstance(message, list):
         message = [message]
 
-    results = extraction.extract_content(message)
+    results = extraction.extract_content(message, grobid_service=app.conf['GROBID_SERVICE'])
     logger.debug('Results: %s', results)
     for r in results:
         logger.debug("Calling 'write_content' with '%s'", str(r))
