@@ -234,7 +234,7 @@ def check_if_extract(message_list, extract_path):
 
         if update in NEEDS_UPDATE:
             message['meta_path'] = create_meta_path(message, extract_path)
-            logger.debug('Createing meta path: %s', message['meta_path'])
+            logger.debug('Creating meta path: %s', message['meta_path'])
 
             # Wite a time stamp of this process
             message['index_date'] = datetime.utcnow().isoformat() + 'Z'

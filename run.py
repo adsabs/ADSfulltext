@@ -85,7 +85,7 @@ def run(full_text_links, **kwargs):
                 i+1, total, record['bibcode'])
         )
 
-        if max_queue_size and i > max_queue_size:
+        if max_queue_size and i >= max_queue_size:
             logger.info('Max_queue_size reached, stopping...')
             break
 

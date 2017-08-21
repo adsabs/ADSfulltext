@@ -40,6 +40,7 @@ def task_check_if_extract(message):
                     logger.debug("Calling 'task_extract' with message '%s'", msg)
                     task_extract.delay(msg)
                     if key == 'PDF':
+                        logger.debug("Calling 'task_extract_grobid' with message '%s'", msg)
                         task_extract_grobid.delay(msg)
             else:
                 logger.error('Unknown type: %s and message: %s', (key, results[key]))
@@ -76,7 +77,7 @@ def task_extract_grobid(message):
     """
     Extracts the structured full text from the given location
     """
-    logger.debug('Extract content: %s', message)
+    logger.debug('Extract grobid content: %s', message)
     if not isinstance(message, list):
         message = [message]
 
@@ -85,7 +86,7 @@ def task_extract_grobid(message):
         msg['file_format'] += "-grobid"
 
     results = extraction.extract_content(message, grobid_service=app.conf['GROBID_SERVICE'])
-    logger.debug('Results: %s', results)
+    logger.debug('Grobid results: %s', results)
     for r in results:
         logger.debug("Calling 'write_content' with '%s'", str(r))
         # Write locally to filesystem

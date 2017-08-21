@@ -146,7 +146,7 @@ def write_content(payload_dictionary):
     # Write the custom extractions of content to the meta.json
     logger.debug('Copying extra meta content')
     for meta_key_word in META_CONTENT[payload_dictionary['file_format']]:
-        if meta_key_word in ('dataset', 'fulltext'):
+        if meta_key_word in ('dataset', 'fulltext', 'grobid_fulltext'):
             continue
 
         logger.debug(meta_key_word)
