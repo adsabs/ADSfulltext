@@ -39,7 +39,7 @@ def task_check_if_extract(message):
                 for msg in results[key]:
                     logger.debug("Calling 'task_extract' with message '%s'", msg)
                     task_extract.delay(msg)
-                    if key == 'PDF':
+                    if app.conf['GROBID_SERVICE'] is not None and key == 'PDF':
                         logger.debug("Calling 'task_extract_grobid' with message '%s'", msg)
                         task_extract_grobid.delay(msg)
             else:
@@ -72,33 +72,34 @@ def task_extract(message):
         logger.debug("Calling 'task_output_results' with '%s'", msg)
         task_output_results.delay(msg)
 
-@app.task(queue='extract-grobid')
-def task_extract_grobid(message):
-    """
-    Extracts the structured full text from the given location
-    """
-    logger.debug('Extract grobid content: %s', message)
-    if not isinstance(message, list):
-        message = [message]
+if app.conf['GROBID_SERVICE'] is not None:
+    @app.task(queue='extract-grobid')
+    def task_extract_grobid(message):
+        """
+        Extracts the structured full text from the given location
+        """
+        logger.debug('Extract grobid content: %s', message)
+        if not isinstance(message, list):
+            message = [message]
 
-    # Mofiy file format to force the use of GrobidPDFExtractor
-    for msg in message:
-        msg['file_format'] += "-grobid"
+        # Mofiy file format to force the use of GrobidPDFExtractor
+        for msg in message:
+            msg['file_format'] += "-grobid"
 
-    results = extraction.extract_content(message, grobid_service=app.conf['GROBID_SERVICE'])
-    logger.debug('Grobid results: %s', results)
-    for r in results:
-        logger.debug("Calling 'write_content' with '%s'", str(r))
-        # Write locally to filesystem
-        writer.write_content(r)
+        results = extraction.extract_content(message, grobid_service=app.conf['GROBID_SERVICE'])
+        logger.debug('Grobid results: %s', results)
+        for r in results:
+            logger.debug("Calling 'write_content' with '%s'", str(r))
+            # Write locally to filesystem
+            writer.write_content(r)
 
-        ## Send results to master
-        #msg = {
-                #'bibcode': r['bibcode'],
-                #'body': r['grobid_fulltext'],
-                #}
-        #logger.debug("Calling 'task_output_results' with '%s'", msg)
-        #task_output_results.delay(msg)
+            ## Send results to master
+            #msg = {
+                    #'bibcode': r['bibcode'],
+                    #'body': r['grobid_fulltext'],
+                    #}
+            #logger.debug("Calling 'task_output_results' with '%s'", msg)
+            #task_output_results.delay(msg)
 
 
 @app.task(queue='output-results')
