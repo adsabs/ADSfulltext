@@ -759,15 +759,15 @@ class PDFBoxExtractor(object):
         self.ft_source = kwargs.get('ft_source', None)
         self.bibcode = kwargs.get('bibcode', None)
         self.provider = kwargs.get('provider', None)
-        self.cmd = kwargs.get('executable', proj_home + '/scripts/extract_pdf.sh') #TODO(rca) make it configurable
         self.timeout = 120 # seconds
         self.grobid_service = kwargs.get('grobid_service', None)
+        self.extract_pdf_script = proj_home + kwargs.get('extract_pdf_script', '/scripts/extract_pdf_with_pdftotext.sh')
 
         if not self.ft_source:
             raise Exception('Missing or non-existent source: %s', self.ft_source)
 
     def extract_multi_content(self):
-        p = Popen([self.cmd, self.ft_source], stdout=PIPE, stderr=PIPE)
+        p = Popen([self.extract_pdf_script, self.ft_source], stdout=PIPE, stderr=PIPE)
         stdout, stderr = p.communicate()
         if p.returncode != 0:
             raise Exception(stderr)
@@ -875,12 +875,14 @@ def extract_content(input_list, **kwargs):
 
             try:
                 dict_item['grobid_service'] = kwargs.get('grobid_service', None)
+                dict_item['extract_pdf_script'] = kwargs.get('extract_pdf_script', None)
                 extractor = ExtractorClass(dict_item)
                 parsed_content = extractor.extract_multi_content()
 
                 for item in parsed_content:
                     dict_item[item] = parsed_content[item]
                 del dict_item['grobid_service']
+                del dict_item['extract_pdf_script']
 
                 output_list.append(dict_item)
 

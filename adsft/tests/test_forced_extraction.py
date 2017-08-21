@@ -68,7 +68,8 @@ class TestForcedExtractor(test_base.TestGeneric):
         self.assertTrue(len(records.payload) == 1)
 
         # Call the task to check if it should be extracted but mock the extraction task
-        with patch.object(tasks.task_extract, 'delay', return_value=None) as task_extract:
+        #with patch.object(tasks.task_extract, 'delay', return_value=None) as task_extract:
+        with patch.object(tasks, 'task_extract', return_value=None) as task_extract:
             message = records.payload[0]
             tasks.task_check_if_extract(message)
             self.assertTrue(task_extract.called)
@@ -143,7 +144,8 @@ class TestForcedExtractor(test_base.TestGeneric):
         self.assertTrue(len(records.payload) == 1)
 
         # Call the task to check if it should be extracted but mock the extraction task
-        with patch.object(tasks.task_extract, 'delay', return_value=None) as task_extract:
+        #with patch.object(tasks.task_extract, 'delay', return_value=None) as task_extract:
+        with patch.object(tasks, 'task_extract', return_value=None) as task_extract:
             message = records.payload[0]
             tasks.task_check_if_extract(message)
             self.assertTrue(task_extract.called)

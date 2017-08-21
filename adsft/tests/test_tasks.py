@@ -30,7 +30,8 @@ class TestWorkers(unittest.TestCase):
 
 
     def test_task_check_if_extract(self):
-        with patch.object(tasks.task_extract, 'delay', return_value=None) as task_extract:
+        #with patch.object(tasks.task_extract, 'delay', return_value=None) as task_extract:
+        with patch.object(tasks, 'task_extract', return_value=None) as task_extract:
 
             message = {'bibcode': 'fta', 'provider': 'MNRAS',
                        'ft_source': '{}/tests/test_integration/stub_data/full_test.txt'.format(self.proj_home)}
@@ -47,7 +48,8 @@ class TestWorkers(unittest.TestCase):
             self.assertTrue('index_date' in actual)
 
 
-        with patch.object(tasks.task_extract, 'delay', return_value=None) as task_extract:
+        #with patch.object(tasks.task_extract, 'delay', return_value=None) as task_extract:
+        with patch.object(tasks, 'task_extract', return_value=None) as task_extract:
 
             message = {'bibcode': 'fta', 'provider': 'MNRAS',
                        'ft_source': '{}/tests/test_integration/stub_data/full_test.pdf'.format(self.proj_home)}
@@ -83,11 +85,12 @@ class TestWorkers(unittest.TestCase):
 
 
     def test_task_extract_pdf(self):
-        httpretty.enable()
-        expected_grobid_fulltext = "<hello/>"
-        httpretty.register_uri(httpretty.POST, self.grobid_service,
-                       body=expected_grobid_fulltext,
-                       status=200)
+        if self.grobid_service is not None:
+            httpretty.enable()
+            expected_grobid_fulltext = "<hello/>"
+            httpretty.register_uri(httpretty.POST, self.grobid_service,
+                           body=expected_grobid_fulltext,
+                           status=200)
         with patch('adsft.writer.write_content', return_value=None) as task_write_text:
             msg = {'bibcode': 'fta', 'file_format': 'pdf',
                         'index_date': '2017-06-30T22:45:47.800112Z',
@@ -100,7 +103,8 @@ class TestWorkers(unittest.TestCase):
                     tasks.task_extract(msg)
                 self.assertTrue(task_write_text.called)
                 actual = task_write_text.call_args[0][0]
-                self.assertEqual(u'Introduction\nTHIS IS AN INTERESTING TITLE\n', actual['fulltext'])
+                #self.assertEqual(u'Introduction\nTHIS IS AN INTERESTING TITLE\n', actual['fulltext']) # PDFBox
+                self.assertEqual(u'Introduction\nTHIS IS AN INTERESTING TITLE\n\n\x0c', actual['fulltext']) # pdftotext
                 if self.grobid_service is not None:
                     self.assertEqual(expected_grobid_fulltext, actual['grobid_fulltext'])
                 self.assertTrue(task_output_results.called)

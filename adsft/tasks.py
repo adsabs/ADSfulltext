@@ -37,7 +37,8 @@ def task_check_if_extract(message):
             if key == 'PDF' or key == 'Standard':
                 for msg in results[key]:
                     logger.debug("Calling 'task_extract' with message '%s'", msg)
-                    task_extract.delay(msg)
+                    #task_extract.delay(msg)
+                    task_extract(msg) # Treat synchronously to avoid saturating NFS mount access
             else:
                 logger.error('Unknown type: %s and message: %s', (key, results[key]))
 
@@ -53,7 +54,7 @@ def task_extract(message):
     if not isinstance(message, list):
         message = [message]
 
-    results = extraction.extract_content(message, grobid_service=app.conf['GROBID_SERVICE'])
+    results = extraction.extract_content(message, extract_pdf_script=app.conf['EXTRACT_PDF_SCRIPT'], grobid_service=app.conf['GROBID_SERVICE'])
     logger.debug('Results: %s', results)
     for r in results:
         logger.debug("Calling 'write_content' with '%s'", str(r))

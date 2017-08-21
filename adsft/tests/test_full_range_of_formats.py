@@ -57,11 +57,12 @@ class TestFullRangeFormatExtraction(test_base.TestGeneric):
         sys.path.append(self.app.conf['PROJ_HOME'])
         from run import read_links_from_file
 
-        httpretty.enable()
-        expected_grobid_fulltext = "<hello/>"
-        httpretty.register_uri(httpretty.POST, self.grobid_service,
-                       body=expected_grobid_fulltext,
-                       status=200)
+        if self.grobid_service is not None:
+            httpretty.enable()
+            expected_grobid_fulltext = "<hello/>"
+            httpretty.register_uri(httpretty.POST, self.grobid_service,
+                           body=expected_grobid_fulltext,
+                           status=200)
 
         # User loads the list of full text files and publishes them to the
         # first queue
@@ -81,7 +82,8 @@ class TestFullRangeFormatExtraction(test_base.TestGeneric):
             os.makedirs(self.meta_path)
 
         # Call the task to check if it should be extracted but mock the extraction task
-        with patch.object(tasks.task_extract, 'delay', return_value=None) as task_extract:
+        #with patch.object(tasks.task_extract, 'delay', return_value=None) as task_extract:
+        with patch.object(tasks, 'task_extract', return_value=None) as task_extract:
             extraction_arguments_set = []
             expected_update = 'NOT_EXTRACTED_BEFORE'
             for message in records.payload:
@@ -133,7 +135,8 @@ class TestFullRangeFormatExtraction(test_base.TestGeneric):
                         u"I.INTRODUCTION INTRODUCTION GOES HERE Manual Entry",
                         u"application/xml JOURNAL TITLE CREATOR SUBJECT DESCRIPTION JOURNAL NAME COPYRIGHT PUBLISHER 9999-9999 VOLUME DAY MONTH YEAR 1999-99-99 999-999 999 999 99.9999/9.99999.9999.99.999 http://dx.doi.org/99.9999/9.99999.9999.99.999 doi:99.9999/9.99999.9999.99.999 Journals S300.1 JOURNAL 999999 99999-9999(99)99999-9 99.9999/9.99999.9999.99.999 COPYRIGHT Fig.1 CONTENT TITLE GIVEN NAME SURNAME a EMAIL@EMAIL.COM a AFFILIATION AUTHOR Abstract ABSTRACT Highlights HIGHLIGHTS Keywords KEYWORD 1 Introduction JOURNAL CONTENT Acknowledgments THANK YOU Appendix A APPENDIX TITLE APPENDIX References AUTHOR et al., 1999 GIVEN NAME SURNAME TITLE TITLE VOLUME YEAR 99 99",
                         u"No Title AA 999, 999-999 (1999) DOI: 99.9999/9999-9999:99999999 TITLE AUTHOR AFFILIATION Received 99 MONTH 1999 / Accepted 99 MONTH 1999 Abstract ABSTRACT Key words: KEYWORD INTRODUCTION SECTION Table 1: TABLE TABLE (1) COPYRIGHT",
-                        u"Introduction\nTHIS IS AN INTERESTING TITLE\n",
+                        #u"Introduction\nTHIS IS AN INTERESTING TITLE\n", # PDFBox
+                        u"Introduction\nTHIS IS AN INTERESTING TITLE\n\n\x0c", # pdftotext
                         )
 
                 self.assertEqual(fulltext_content, expected_fulltext_content[i])
