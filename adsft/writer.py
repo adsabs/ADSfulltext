@@ -186,8 +186,8 @@ def write_content(payload_dictionary):
         except IOError:
             logger.exception('IO Error when writing to file {0}'.format(payload_dictionary['bibcode']))
             raise IOError
-    else:
-        logger.warning('No fulltext found for dictionary {0} (set to empty string)'.format(payload_dictionary['bibcode']))
+    #else:
+        #logger.warning('No fulltext found for dictionary {0}'.format(payload_dictionary['bibcode']))
 
     if meta_dict['grobid_fulltext_extracted']:
         try:
@@ -198,8 +198,11 @@ def write_content(payload_dictionary):
         except IOError:
             logger.exception('IO Error when writing to file {0}'.format(payload_dictionary['bibcode']))
             raise IOError
-    else:
-        logger.warning('No grobid fulltext found for dictionary {0} (set to empty string)'.format(payload_dictionary['bibcode']))
+    #else:
+        #logger.warning('No grobid fulltext found for dictionary {0}'.format(payload_dictionary['bibcode']))
+
+    del meta_dict['fulltext_extracted']
+    del meta_dict['grobid_fulltext_extracted']
 
 
     try:

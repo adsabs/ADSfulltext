@@ -30,8 +30,7 @@ class TestWorkers(unittest.TestCase):
 
 
     def test_task_check_if_extract(self):
-        #with patch.object(tasks.task_extract, 'delay', return_value=None) as task_extract:
-        with patch.object(tasks, 'task_extract', return_value=None) as task_extract:
+        with patch.object(tasks.task_extract, 'delay', return_value=None) as task_extract:
 
             message = {'bibcode': 'fta', 'provider': 'MNRAS',
                        'ft_source': '{}/tests/test_integration/stub_data/full_test.txt'.format(self.proj_home)}
@@ -48,8 +47,7 @@ class TestWorkers(unittest.TestCase):
             self.assertTrue('index_date' in actual)
 
 
-        #with patch.object(tasks.task_extract, 'delay', return_value=None) as task_extract:
-        with patch.object(tasks, 'task_extract', return_value=None) as task_extract:
+        with patch.object(tasks.task_extract, 'delay', return_value=None) as task_extract:
 
             message = {'bibcode': 'fta', 'provider': 'MNRAS',
                        'ft_source': '{}/tests/test_integration/stub_data/full_test.pdf'.format(self.proj_home)}

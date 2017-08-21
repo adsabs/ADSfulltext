@@ -82,8 +82,7 @@ class TestFullRangeFormatExtraction(test_base.TestGeneric):
             os.makedirs(self.meta_path)
 
         # Call the task to check if it should be extracted but mock the extraction task
-        #with patch.object(tasks.task_extract, 'delay', return_value=None) as task_extract:
-        with patch.object(tasks, 'task_extract', return_value=None) as task_extract:
+        with patch.object(tasks.task_extract, 'delay', return_value=None) as task_extract:
             extraction_arguments_set = []
             expected_update = 'NOT_EXTRACTED_BEFORE'
             for message in records.payload:

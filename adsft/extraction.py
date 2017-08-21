@@ -754,7 +754,7 @@ class StandardExtractorHTTP(StandardExtractorBasicText):
         return meta_out
 
 
-class PDFBoxExtractor(object):
+class PDFExtractor(object):
     def __init__(self, kwargs):
         self.ft_source = kwargs.get('ft_source', None)
         self.bibcode = kwargs.get('bibcode', None)
@@ -772,13 +772,22 @@ class PDFBoxExtractor(object):
         if p.returncode != 0:
             raise Exception(stderr)
         fulltext = stdout.decode('utf8')
-        grobid_fulltext = self.grobid_analysis()
         return  {
                     'fulltext': fulltext,
-                    'grobid_fulltext': grobid_fulltext,
                 }
 
-    def grobid_analysis(self):
+class GrobidPDFExtractor(object):
+    def __init__(self, kwargs):
+        self.ft_source = kwargs.get('ft_source', None)
+        self.bibcode = kwargs.get('bibcode', None)
+        self.provider = kwargs.get('provider', None)
+        self.timeout = 120 # seconds
+        self.grobid_service = kwargs.get('grobid_service', None)
+
+        if not self.ft_source:
+            raise Exception('Missing or non-existent source: %s', self.ft_source)
+
+    def extract_multi_content(self):
         grobid_xml = ""
         if self.grobid_service is not None:
             try:
@@ -803,7 +812,9 @@ class PDFBoxExtractor(object):
         else:
             logger.debug("Grobid service not defined")
 
-        return grobid_xml
+        return  {
+                    'grobid_fulltext': grobid_xml,
+                }
 
 # Dictionary containing the relevant extensions for the relevant class
 
@@ -815,7 +826,8 @@ EXTRACTOR_FACTORY = {
     "elsevier": StandardElsevierExtractorXML,
     "teixml": StandardExtractorTEIXML,
     "http": StandardExtractorHTTP,
-    "pdf": PDFBoxExtractor
+    "pdf": PDFExtractor,
+    "pdf-grobid": GrobidPDFExtractor
 }
 
 
@@ -836,7 +848,7 @@ def extract_content(input_list, **kwargs):
 
     output_list = []
 
-    ACCEPTED_FORMATS = ['xml', 'teixml', 'html', 'txt', 'ocr', 'http', 'pdf']
+    ACCEPTED_FORMATS = ['xml', 'teixml', 'html', 'txt', 'ocr', 'http', 'pdf', 'pdf-grobid']
 
     for dict_item in input_list:
 

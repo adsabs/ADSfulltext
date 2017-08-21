@@ -11,6 +11,7 @@ from adsft.app import app, logger
 app.conf.CELERY_QUEUES = (
     Queue('check-if-extract', app.exchange, routing_key='check-if-extract'),
     Queue('extract', app.exchange, routing_key='extract'),
+    Queue('extract-grobid', app.exchange, routing_key='extract-grobid'),
     Queue('output-results', app.exchange, routing_key='output-results'),
 )
 
@@ -37,8 +38,9 @@ def task_check_if_extract(message):
             if key == 'PDF' or key == 'Standard':
                 for msg in results[key]:
                     logger.debug("Calling 'task_extract' with message '%s'", msg)
-                    #task_extract.delay(msg)
-                    task_extract(msg) # Treat synchronously to avoid saturating NFS mount access
+                    task_extract.delay(msg)
+                    if key == 'PDF':
+                        task_extract_grobid.delay(msg)
             else:
                 logger.error('Unknown type: %s and message: %s', (key, results[key]))
 
@@ -54,7 +56,7 @@ def task_extract(message):
     if not isinstance(message, list):
         message = [message]
 
-    results = extraction.extract_content(message, extract_pdf_script=app.conf['EXTRACT_PDF_SCRIPT'], grobid_service=app.conf['GROBID_SERVICE'])
+    results = extraction.extract_content(message, extract_pdf_script=app.conf['EXTRACT_PDF_SCRIPT'])
     logger.debug('Results: %s', results)
     for r in results:
         logger.debug("Calling 'write_content' with '%s'", str(r))
@@ -68,6 +70,34 @@ def task_extract(message):
                 }
         logger.debug("Calling 'task_output_results' with '%s'", msg)
         task_output_results.delay(msg)
+
+@app.task(queue='extract-grobid')
+def task_extract_grobid(message):
+    """
+    Extracts the structured full text from the given location
+    """
+    logger.debug('Extract content: %s', message)
+    if not isinstance(message, list):
+        message = [message]
+
+    # Mofiy file format to force the use of GrobidPDFExtractor
+    for msg in message:
+        msg['file_format'] += "-grobid"
+
+    results = extraction.extract_content(message, grobid_service=app.conf['GROBID_SERVICE'])
+    logger.debug('Results: %s', results)
+    for r in results:
+        logger.debug("Calling 'write_content' with '%s'", str(r))
+        # Write locally to filesystem
+        writer.write_content(r)
+
+        ## Send results to master
+        #msg = {
+                #'bibcode': r['bibcode'],
+                #'body': r['grobid_fulltext'],
+                #}
+        #logger.debug("Calling 'task_output_results' with '%s'", msg)
+        #task_output_results.delay(msg)
 
 
 @app.task(queue='output-results')
