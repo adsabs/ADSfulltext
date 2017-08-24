@@ -116,13 +116,14 @@ def write_content(payload_dictionary):
 
     meta_output_file_path = payload_dictionary['meta_path']
     bibcode_pair_tree_path = os.path.dirname(meta_output_file_path)
-    full_text_output_file_path = os.path.join(bibcode_pair_tree_path,
-                                              'fulltext.txt')
+    full_text_output_file_path = os.path.join(bibcode_pair_tree_path, 'fulltext.txt')
     grobid_full_text_output_file_path = os.path.join(bibcode_pair_tree_path, 'grobid_fulltext.xml')
 
     if 'UPDATE' in payload_dictionary and \
-            payload_dictionary['UPDATE'] == 'FORCE_TO_SEND' and\
-            os.path.exists(meta_output_file_path):
+        payload_dictionary['UPDATE'] == 'FORCE_TO_SEND' and \
+        os.path.exists(meta_output_file_path) and \
+            ((payload_dictionary['file_format'] == 'pdf-grobid' and os.path.exists(grobid_full_text_output_file_path)) \
+            or (payload_dictionary['file_format'] != 'pdf-grobid' and os.path.exists(full_text_output_file_path))):
                 # Data was already extracted and saved
                 return
 

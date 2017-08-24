@@ -857,11 +857,13 @@ def extract_content(input_list, **kwargs):
             # Read previously extracted data
             recovered_content = reader.read_content(dict_item)
 
-        if recovered_content is not None:
-            for key, value in recovered_content.iteritems():
-                if key != 'UPDATE':
-                    dict_item[key] = value
-            output_list.append(dict_item)
+        if recovered_content is not None and \
+            ((dict_item['file_format'] == 'pdf-grobid' and 'grobid_fulltext' in recovered_content.keys() and recovered_content['grobid_fulltext'] != "") \
+            or (dict_item['file_format'] != 'pdf-grobid' and 'fulltext' in recovered_content.keys() and recovered_content['fulltext'] != "")):
+                for key, value in recovered_content.iteritems():
+                    if key != 'UPDATE':
+                        dict_item[key] = value
+                output_list.append(dict_item)
         else:
             try:
                 extension = dict_item['file_format']
@@ -879,11 +881,6 @@ def extract_content(input_list, **kwargs):
                 msg = "Article '{}' has a format not currently supported for extraction: {}".format(dict_item['bibcode'], dict_item['file_format'])
                 logger.exception(msg)
                 raise KeyError(msg, traceback.format_exc())
-
-            if not os.path.exists(dict_item['ft_source']):
-                msg = "[Errno 2] No such file or directory for bibcode '{}': '{}'".format(dict_item['bibcode'], dict_item['ft_source'])
-                logger.error(msg)
-                raise Exception(msg)
 
             try:
                 dict_item['grobid_service'] = kwargs.get('grobid_service', None)
