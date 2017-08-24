@@ -7,6 +7,7 @@ read previously extracted content.
 import os
 import json
 
+from adsft.rules import META_CONTENT
 from adsft.app import logger
 
 
@@ -63,6 +64,22 @@ def read_content(payload_dictionary):
             content['grobid_fulltext'] = grobid_fulltext
         else:
             content['grobid_fulltext'] = ""
+
+        # Read the custom extractions of content
+        logger.debug('Copying extra meta content')
+        for meta_key_word in META_CONTENT[payload_dictionary['file_format']]:
+            if meta_key_word in ('dataset', 'fulltext', 'grobid_fulltext') \
+                    or meta_key_word in content.keys():
+                continue
+
+            logger.debug(meta_key_word)
+            meta_constant_file_path = os.path.join(bibcode_pair_tree_path, meta_key_word) + '.txt'
+            logger.debug('Reading {0} from file at: {1}'.format(meta_key_word, meta_constant_file_path))
+            if os.path.exists(meta_constant_file_path):
+                try:
+                    content[meta_key_word] = read_file(meta_constant_file_path, json_format=False)
+                except IOError:
+                    logger.exception('IO Error when readeing from file: %s', meta_constant_file_path)
 
         return content
     else:
