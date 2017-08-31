@@ -85,4 +85,5 @@ META_CONTENT = {
     'ocr': {'fulltext': ['']},
     'http': {'fulltext': ['']},
     'pdf': {'fulltext': ['']},
+    'pdf-grobid': {'grobid_fulltext': ['']},
 }

@@ -8,6 +8,7 @@ from adsft.tests import test_base
 from datetime import datetime
 import json
 from mock import patch
+import httpretty
 
 class TestFullRangeFormatExtraction(test_base.TestGeneric):
     """
@@ -27,6 +28,7 @@ class TestFullRangeFormatExtraction(test_base.TestGeneric):
                           #'file_format': 'xml',
                           #'provider': 'MNRAS'}
         #self.extractor = extraction.EXTRACTOR_FACTORY['xml'](self.dict_item)
+        self.grobid_service = tasks.app.conf['GROBID_SERVICE']
         self.test_publish = os.path.join(
             self.app.conf['PROJ_HOME'],
             'tests/test_integration/stub_data/fulltext_range_of_formats.links'
@@ -54,6 +56,13 @@ class TestFullRangeFormatExtraction(test_base.TestGeneric):
         """
         sys.path.append(self.app.conf['PROJ_HOME'])
         from run import read_links_from_file
+
+        if self.grobid_service is not None:
+            httpretty.enable()
+            expected_grobid_fulltext = "<hello/>"
+            httpretty.register_uri(httpretty.POST, self.grobid_service,
+                           body=expected_grobid_fulltext,
+                           status=200)
 
         # User loads the list of full text files and publishes them to the
         # first queue
@@ -125,10 +134,17 @@ class TestFullRangeFormatExtraction(test_base.TestGeneric):
                         u"I.INTRODUCTION INTRODUCTION GOES HERE Manual Entry",
                         u"application/xml JOURNAL TITLE CREATOR SUBJECT DESCRIPTION JOURNAL NAME COPYRIGHT PUBLISHER 9999-9999 VOLUME DAY MONTH YEAR 1999-99-99 999-999 999 999 99.9999/9.99999.9999.99.999 http://dx.doi.org/99.9999/9.99999.9999.99.999 doi:99.9999/9.99999.9999.99.999 Journals S300.1 JOURNAL 999999 99999-9999(99)99999-9 99.9999/9.99999.9999.99.999 COPYRIGHT Fig.1 CONTENT TITLE GIVEN NAME SURNAME a EMAIL@EMAIL.COM a AFFILIATION AUTHOR Abstract ABSTRACT Highlights HIGHLIGHTS Keywords KEYWORD 1 Introduction JOURNAL CONTENT Acknowledgments THANK YOU Appendix A APPENDIX TITLE APPENDIX References AUTHOR et al., 1999 GIVEN NAME SURNAME TITLE TITLE VOLUME YEAR 99 99",
                         u"No Title AA 999, 999-999 (1999) DOI: 99.9999/9999-9999:99999999 TITLE AUTHOR AFFILIATION Received 99 MONTH 1999 / Accepted 99 MONTH 1999 Abstract ABSTRACT Key words: KEYWORD INTRODUCTION SECTION Table 1: TABLE TABLE (1) COPYRIGHT",
-                        u"Introduction\nTHIS IS AN INTERESTING TITLE\n",
+                        #u"Introduction\nTHIS IS AN INTERESTING TITLE\n", # PDFBox
+                        u"Introduction\nTHIS IS AN INTERESTING TITLE\n\n\x0c", # pdftotext
                         )
 
                 self.assertEqual(fulltext_content, expected_fulltext_content[i])
+
+            grobid_fulltext_path = os.path.join(path, 'grobid_fulltext.xml')
+            if os.path.exists(grobid_fulltext_path):
+                with open(grobid_fulltext_path, 'r') as grobid_fulltext_file:
+                    grobid_fulltext_content = grobid_fulltext_file.read()
+                self.assertEqual(grobid_fulltext_content, expected_grobid_fulltext)
 
 
 

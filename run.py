@@ -85,14 +85,15 @@ def run(full_text_links, **kwargs):
                 i+1, total, record['bibcode'])
         )
 
-        if max_queue_size and i > max_queue_size:
+        if max_queue_size and i >= max_queue_size:
             logger.info('Max_queue_size reached, stopping...')
             break
 
         if diagnose:
             print("[{}/{}] Calling 'task_check_if_extract' with '{}'".format(i+1, total, str(record)))
         logger.debug("[%i/%i] Calling 'task_check_if_extract' with '%s'", i+1, total, str(record))
-        tasks.task_check_if_extract.delay(record)
+        #tasks.task_check_if_extract.delay(record)
+        tasks.task_check_if_extract(record) # Treat synchronously to avoid saturating NFS mount access
         i += 1
 
 def build_diagnostics(bibcodes=None, raw_files=None, providers=None):
@@ -179,13 +180,13 @@ if __name__ == '__main__':
             args.bibcodes = [x.strip() for x in args.bibcodes.split(',')]
         else:
             # Defaults
-            args.bibcodes = ["1908MNRAS..68..224.", "1915PA.....23..189P"]
+            args.bibcodes = ["1908MNRAS..68..224.", "1950AFChr..20..320."]
 
         if args.raw_files:
             args.raw_files = [x.strip() for x in args.raw_files.split(',')]
         else:
             # Defaults
-            args.raw_files = ["/proj/ads/articles/bitmaps/seri/MNRAS/0068/PDF/1908MNRAS..68..224..pdf", "/proj/ads/fulltext/sources/downloads/cache/ADS/articles.adsabs.harvard.edu/full/PA/0023/1915PA.....23..189P.ocr"]
+            args.raw_files = ["/proj/ads/articles/bitmaps/seri/MNRAS/0068/PDF/1908MNRAS..68..224..pdf", "/proj/ads/fulltext/sources/downloads/cache/ADS/articles.adsabs.harvard.edu/full/AFChr/0020/1950AFChr..20..320..ocr"]
 
         if args.providers:
             args.providers = [x.strip() for x in args.providers.split(',')]

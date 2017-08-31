@@ -21,7 +21,9 @@ __license__ = 'GPLv3'
 import sys
 import os
 
-from adsputils import setup_logging, overrides, load_config
+import requests
+from adsputils import overrides
+from adsputils import setup_logging
 from adsft.utils import TextCleaner
 from adsft import reader
 import re
@@ -33,7 +35,7 @@ from adsft.rules import META_CONTENT
 from requests.exceptions import HTTPError
 from subprocess import Popen, PIPE, STDOUT
 
-proj_home = load_config()['PROJ_HOME']
+proj_home = os.path.realpath(os.path.join(os.path.dirname(__file__), '../'))
 logger = setup_logging(__name__)
 
 
@@ -754,22 +756,65 @@ class StandardExtractorHTTP(StandardExtractorBasicText):
         return meta_out
 
 
-class PDFBoxExtractor(object):
+class PDFExtractor(object):
     def __init__(self, kwargs):
         self.ft_source = kwargs.get('ft_source', None)
         self.bibcode = kwargs.get('bibcode', None)
         self.provider = kwargs.get('provider', None)
-        self.cmd = kwargs.get('executable', proj_home + '/scripts/extract_pdf.sh') #TODO(rca) make it configurable
+        self.extract_pdf_script = proj_home + kwargs.get('extract_pdf_script', '/scripts/extract_pdf_with_pdftotext.sh')
 
         if not self.ft_source:
             raise Exception('Missing or non-existent source: %s', self.ft_source)
 
     def extract_multi_content(self):
-        p = Popen([self.cmd, self.ft_source], stdout=PIPE, stderr=PIPE)
+        p = Popen([self.extract_pdf_script, self.ft_source], stdout=PIPE, stderr=PIPE)
         stdout, stderr = p.communicate()
         if p.returncode != 0:
             raise Exception(stderr)
-        return {'fulltext': stdout.decode('utf8')}
+        fulltext = stdout.decode('utf8')
+        return  {
+                    'fulltext': fulltext,
+                }
+
+class GrobidPDFExtractor(object):
+    def __init__(self, kwargs):
+        self.ft_source = kwargs.get('ft_source', None)
+        self.bibcode = kwargs.get('bibcode', None)
+        self.provider = kwargs.get('provider', None)
+        self.timeout = 120 # seconds
+        self.grobid_service = kwargs.get('grobid_service', None)
+
+        if not self.ft_source:
+            raise Exception('Missing or non-existent source: %s', self.ft_source)
+
+    def extract_multi_content(self):
+        grobid_xml = ""
+        if self.grobid_service is not None:
+            try:
+                try:
+                    ft_source = open(self.ft_source, 'r')
+                except IOError, error:
+                    logger.exception("Error opening file %s: %s", self.ft_source, error)
+                logger.debug("Contacting grobid service: %s", self.grobid_service)
+                response = requests.post(url=self.grobid_service, files={'input': ft_source}, timeout=self.timeout)
+                ft_source.close()
+            except requests.exceptions.Timeout:
+                logger.exception("Grobid service timeout after %d seconds", self.timeout)
+            except:
+                logger.exception("Grobid request exception")
+            else:
+                if response.status_code == 200:
+                    logger.debug("Successful response from grobid server (%d bytes)", len(response.content))
+                    logger.debug("Successful response from grobid server: %s", response.content)
+                    grobid_xml = response.text
+                else:
+                    logger.error("Grobid service response error (code %s): %s", response.status_code, response.text)
+        else:
+            logger.debug("Grobid service not defined")
+
+        return  {
+                    'fulltext': grobid_xml,
+                }
 
 # Dictionary containing the relevant extensions for the relevant class
 
@@ -781,7 +826,8 @@ EXTRACTOR_FACTORY = {
     "elsevier": StandardElsevierExtractorXML,
     "teixml": StandardExtractorTEIXML,
     "http": StandardExtractorHTTP,
-    "pdf": PDFBoxExtractor
+    "pdf": PDFExtractor,
+    "pdf-grobid": GrobidPDFExtractor
 }
 
 
@@ -794,7 +840,7 @@ def extract_content(input_list, **kwargs):
     settings.py).
 
     :param input_list: dictionaries that contain meta-data of articles
-    :param kwargs: currently not used
+    :param kwargs: used to store grobid service URL
     :return: json formatted list of dictionaries now containing full text
     """
 
@@ -802,7 +848,7 @@ def extract_content(input_list, **kwargs):
 
     output_list = []
 
-    ACCEPTED_FORMATS = ['xml', 'teixml', 'html', 'txt', 'ocr', 'http', 'pdf']
+    ACCEPTED_FORMATS = ['xml', 'teixml', 'html', 'txt', 'ocr', 'http', 'pdf', 'pdf-grobid']
 
     for dict_item in input_list:
 
@@ -811,7 +857,7 @@ def extract_content(input_list, **kwargs):
             # Read previously extracted data
             recovered_content = reader.read_content(dict_item)
 
-        if recovered_content is not None:
+        if recovered_content is not None and recovered_content['fulltext'] != "":
             for key, value in recovered_content.iteritems():
                 if key != 'UPDATE':
                     dict_item[key] = value
@@ -830,20 +876,25 @@ def extract_content(input_list, **kwargs):
                 ExtractorClass = EXTRACTOR_FACTORY[extension]
 
             except KeyError:
-                raise KeyError(
-                    'You gave a format not currently supported for extraction: {0}'
-                    .format(dict_item['file_format'], traceback.format_exc()))
+                msg = "Article '{}' has a format not currently supported for extraction: {}".format(dict_item['bibcode'], dict_item['file_format'])
+                logger.exception(msg)
+                raise KeyError(msg, traceback.format_exc())
 
             try:
+                dict_item['grobid_service'] = kwargs.get('grobid_service', None)
+                dict_item['extract_pdf_script'] = kwargs.get('extract_pdf_script', None)
                 extractor = ExtractorClass(dict_item)
                 parsed_content = extractor.extract_multi_content()
 
                 for item in parsed_content:
                     dict_item[item] = parsed_content[item]
+                del dict_item['grobid_service']
+                del dict_item['extract_pdf_script']
 
                 output_list.append(dict_item)
 
             except Exception:
+                logger.exception("Fulltext extraction failed for bibcode '{}': '{}'".format(dict_item['bibcode'], dict_item['ft_source']))
                 raise Exception(traceback.format_exc())
 
             del extractor, parsed_content

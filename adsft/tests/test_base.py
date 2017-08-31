@@ -132,7 +132,7 @@ class TestUnit(unittest.TestCase):
     """
     Default unit test class. It sets up the stub data required
     """
-    
+
     def setUp(self):
         unittest.TestCase.setUp(self)
         self.proj_home = os.path.realpath(os.path.join(os.path.dirname(__file__), '../..'))
@@ -143,9 +143,9 @@ class TestUnit(unittest.TestCase):
             'CELERY_BROKER': tasks.app.conf['CELERY_BROKER'] + '_test'
             })
         tasks.app = self.app # monkey-patch the app object
-        
+
         build_links(test_name='integration')
-        
+
         PROJ_HOME = self.app.conf['PROJ_HOME']
         self.test_file = \
             os.path.join(PROJ_HOME,
@@ -163,7 +163,7 @@ class TestUnit(unittest.TestCase):
             os.path.join(PROJ_HOME,
                          'tests/test_integration/stub_data/fulltext_single_document'
                          '.links')
-        
+
         self.test_stub_xml = \
             os.path.join(PROJ_HOME,
                          'tests/test_unit/stub_data/test.xml')
@@ -185,13 +185,13 @@ class TestUnit(unittest.TestCase):
         self.test_stub_ocr = \
             os.path.join(PROJ_HOME,
                          'tests/test_unit/stub_data/test.ocr')
-        
+
         self.test_functional_stub =\
             os.path.join(PROJ_HOME,
                          'tests/test_functional/stub_data/fulltext_functional_tests'
                          '.links')
-    
-    
+
+
     def tearDown(self):
         unittest.TestCase.tearDown(self)
         self.app.close_app()
@@ -222,7 +222,7 @@ class TestGeneric(unittest.TestCase):
             'CELERY_BROKER': tasks.app.conf['CELERY_BROKER'] + '_test'
             })
         tasks.app = self.app # monkey-patch the app object
-        
+
         # Build the link files
         build_links(test_name='integration')
 
@@ -309,10 +309,11 @@ class TestGeneric(unittest.TestCase):
             if os.path.exists(path):
                 meta = os.path.join(path, 'meta.json')
                 fulltext = os.path.join(path, 'fulltext.txt')
+                grobid_fulltext = os.path.join(path, 'grobid_fulltext.xml')
                 dataset = os.path.join(path, 'dataset.txt')
                 acknowledgements = os.path.join(path, 'acknowledgements.txt')
 
-                file_list = [meta, fulltext, dataset, acknowledgements]
+                file_list = [meta, fulltext, grobid_fulltext, dataset, acknowledgements]
                 for file_ in file_list:
                     if os.path.exists(file_):
                         os.remove(file_)

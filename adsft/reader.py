@@ -8,6 +8,7 @@ import os
 import json
 from adsputils import setup_logging
 
+from adsft.rules import META_CONTENT
 logger = setup_logging(__name__)
 
 
@@ -44,7 +45,10 @@ def read_content(payload_dictionary):
 
     meta_output_file_path = payload_dictionary['meta_path']
     bibcode_pair_tree_path = os.path.dirname(meta_output_file_path)
-    full_text_output_file_path = os.path.join(bibcode_pair_tree_path, 'fulltext.txt')
+    if payload_dictionary['file_format'] == "pdf-grobid":
+        full_text_output_file_path = os.path.join(bibcode_pair_tree_path, 'grobid_fulltext.xml')
+    else:
+        full_text_output_file_path = os.path.join(bibcode_pair_tree_path, 'fulltext.txt')
 
     content = {}
     if os.path.exists(meta_output_file_path):
@@ -57,6 +61,22 @@ def read_content(payload_dictionary):
             content['fulltext'] = fulltext
         else:
             content['fulltext'] = ""
+
+        # Read the custom extractions of content
+        logger.debug('Copying extra meta content')
+        for meta_key_word in META_CONTENT[payload_dictionary['file_format']]:
+            if meta_key_word in ('dataset', 'fulltext') \
+                    or meta_key_word in content.keys():
+                continue
+
+            logger.debug(meta_key_word)
+            meta_constant_file_path = os.path.join(bibcode_pair_tree_path, meta_key_word) + '.txt'
+            logger.debug('Reading {0} from file at: {1}'.format(meta_key_word, meta_constant_file_path))
+            if os.path.exists(meta_constant_file_path):
+                try:
+                    content[meta_key_word] = read_file(meta_constant_file_path, json_format=False)
+                except IOError:
+                    logger.exception('IO Error when readeing from file: %s', meta_constant_file_path)
 
         return content
     else:

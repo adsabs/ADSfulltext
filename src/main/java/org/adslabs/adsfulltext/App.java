@@ -83,10 +83,7 @@ public class App {
           else {
             logger.debug("Extracting: " + file);
             PrintStream out = new PrintStream(System.out, true, "UTF-8");
-            // Replace end-of-lines by spaces, except if it is a broken word by
-            // a hyphen, in which case we remove the hyphen and do not add a
-            // space
-            out.println(extractor.extract(file).replace("-\r\n", "").replace("-\n", "").replace("\r\n", " ").replace("\n", " "));
+            out.println(extractor.extract(file));
           }
         }
 
