@@ -137,7 +137,7 @@ class TestUnit(unittest.TestCase):
         unittest.TestCase.setUp(self)
         self.proj_home = os.path.realpath(os.path.join(os.path.dirname(__file__), '../..'))
         self._app = tasks.app
-        self.app = app.ADSFulltextCelery('test', local_config=\
+        self.app = app.ADSFulltextCelery('test', proj_home=self.proj_home, local_config=\
             {
             'FULLTEXT_EXTRACT_PATH': os.path.join(self.proj_home, 'tests/test_unit/stub_data'),
             'CELERY_BROKER': tasks.app.conf['CELERY_BROKER'] + '_test'
@@ -213,13 +213,27 @@ class TestGeneric(unittest.TestCase):
 
         :return: no return
         """
-
+        unittest.TestCase.setUp(self)
+        self.proj_home = os.path.realpath(os.path.join(os.path.dirname(__file__), '../..'))
+        self._app = tasks.app
+        self.app = app.ADSFulltextCelery('test', proj_home=self.proj_home, local_config=\
+            {
+            'FULLTEXT_EXTRACT_PATH': os.path.join(self.proj_home, 'tests/test_unit/stub_data'),
+            'CELERY_BROKER': tasks.app.conf['CELERY_BROKER'] + '_test'
+            })
+        tasks.app = self.app # monkey-patch the app object
+        
         # Build the link files
         build_links(test_name='integration')
 
         self.meta_path = ''
         self.channel_list = None
 
+
+    def tearDown(self):
+        unittest.TestCase.tearDown(self)
+        self.app.close_app()
+        tasks.app = self._app
 
 
 
@@ -232,7 +246,7 @@ class TestGeneric(unittest.TestCase):
         :return: no return
         """
 
-        with open(os.path.join(app.conf['PROJ_HOME'], test_publish), "r") as f:
+        with open(os.path.join(self.proj_home, test_publish), "r") as f:
             lines = f.readlines()
             self.nor = len(lines)
 
@@ -242,13 +256,13 @@ class TestGeneric(unittest.TestCase):
 
         self.test_expected = checker.create_meta_path(
             {'bibcode': self.bibcode},
-            extract_key='FULLTEXT_EXTRACT_PATH_UNITTEST'
+            self.app.conf['FULLTEXT_EXTRACT_PATH']
         )
 
         self.meta_list = \
             [checker.create_meta_path(
                 {"bibcode": j},
-                extract_key='FULLTEXT_EXTRACT_PATH_UNITTEST'
+                self.app.conf['FULLTEXT_EXTRACT_PATH']
             ).replace('meta.json', '') for j in self.bibcode_list]
 
         self.meta_path = self.test_expected.replace('meta.json', '')
@@ -271,13 +285,13 @@ class TestGeneric(unittest.TestCase):
         was extracted
         """
 
-        with open(os.path.join(self.app.conf['PROJ_HOME'], full_text_links), "r") as inf:
+        with open(os.path.join(self.proj_home, full_text_links), "r") as inf:
             lines = inf.readlines()
 
         expected_paths = \
             [checker.create_meta_path(
                 {'bibcode': line.strip().split('\t')[0]},
-                extract_key='FULLTEXT_EXTRACT_PATH_UNITTEST'
+                self.app.conf['FULLTEXT_EXTRACT_PATH']
             ).replace('meta.json', '') for line in lines]
 
         return expected_paths

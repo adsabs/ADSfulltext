@@ -162,11 +162,19 @@ def meta_needs_update(dict_input, meta_content,
 
     meta_json_last_modified = file_last_modified_time(meta_path)
 
-    # If the source content is more new than the last time it was extracted
+    # If the source content is newer than the last time it was extracted
     logger.debug(
         'FILE_SOUCE last modified: {0}'.format(ft_source_last_modified))
     logger.debug('META_PATH last modified: {0}'.format(meta_json_last_modified))
     if ft_source_last_modified > meta_json_last_modified:
+        return 'STALE_CONTENT'
+
+    # If the fulltext is older than the meta file
+    fulltext_path = meta_path.replace('meta.json', 'fulltext.txt')
+    fulltext_last_modified = file_last_modified_time(fulltext_path)
+
+    logger.debug('FULLTEXT_PATH last modified: {0}'.format(fulltext_last_modified))
+    if meta_json_last_modified > fulltext_last_modified:
         return 'STALE_CONTENT'
 
 
@@ -191,7 +199,8 @@ def check_if_extract(message_list, extract_path):
     """
 
     NEEDS_UPDATE = ["MISSING_FULL_TEXT", "DIFFERING_FULL_TEXT", "STALE_CONTENT",
-                    "STALE_META", "NOT_EXTRACTED_BEFORE", "FORCE_TO_EXTRACT"]
+                    "STALE_META", "NOT_EXTRACTED_BEFORE", "FORCE_TO_EXTRACT",
+                    "FORCE_TO_SEND"]
 
     publish_list_of_standard_dictionaries = []
     publish_list_of_pdf_dictionaries = []
@@ -202,7 +211,9 @@ def check_if_extract(message_list, extract_path):
         if 'UPDATE' in message \
                 and message['UPDATE'] == 'FORCE_TO_EXTRACT':
             update = 'FORCE_TO_EXTRACT'
-
+        elif 'UPDATE' in message \
+                and message['UPDATE'] == 'FORCE_TO_SEND':
+            update = 'FORCE_TO_SEND'
         elif meta_output_exists(message, extract_path):
             meta_content = load_meta_file(message, extract_path)
             update = meta_needs_update(message, meta_content,

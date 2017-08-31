@@ -53,11 +53,13 @@ class FileInputStream(object):
         print 'Provider: {0}'.format(self.provider)
         print 'Payload content: {0}'.format(self.payload)
 
-    def extract(self, force_extract=False):
+    def extract(self, force_extract=False, force_send=False):
         """
         Opens the file and parses the content depending on the type of input
         :param force_extract: boolean decides if the normal checks should
         be ignored and extracted regardless
+        :param force_send: boolean decides if the normal checks should
+        be ignored and send regardless
         :return: the bibcode, full text path, provider, and payload content
         """
 
@@ -84,6 +86,10 @@ class FileInputStream(object):
                     if force_extract:
                         payload_dictionary['UPDATE'] = \
                             'FORCE_TO_EXTRACT'
+
+                    if force_send and not force_extract:
+                        payload_dictionary['UPDATE'] = \
+                            'FORCE_TO_SEND'
 
                     raw.append(payload_dictionary)
 
@@ -238,8 +244,8 @@ class TextCleaner(object):
         :param maxlength: maximum length of words to keep
         :return: no return
         """
-        
-        # note: we want to keep the original text in the proper sequence of lines 
+
+        # note: we want to keep the original text in the proper sequence of lines
         # to avoid messing up text analysis downstream
         buffer = []
         for line in self.text.splitlines():

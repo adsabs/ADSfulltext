@@ -120,6 +120,12 @@ def write_content(payload_dictionary):
     full_text_output_file_path = os.path.join(bibcode_pair_tree_path,
                                               'fulltext.txt')
 
+    if 'UPDATE' in payload_dictionary and \
+            payload_dictionary['UPDATE'] == 'FORCE_TO_SEND' and\
+            os.path.exists(meta_output_file_path):
+                # Data was already extracted and saved
+                return
+
     if not os.path.exists(bibcode_pair_tree_path):
         try:
             os.makedirs(bibcode_pair_tree_path)
@@ -172,15 +178,6 @@ def write_content(payload_dictionary):
         'fulltext': payload_dictionary['fulltext']}
 
     try:
-        logger.debug('Writing to file: {0}'.format(meta_output_file_path))
-        logger.debug('Content has keys: {0}'.format((meta_dict.keys())))
-        write_file(meta_output_file_path, meta_dict, json_format=True)
-        logger.debug('Writing complete.')
-    except IOError:
-        logger.error('IO Error when writing to file.')
-        raise IOError
-
-    try:
         logger.debug('Writing to file: {0}'.format(full_text_output_file_path))
         logger.debug('Content has length: {0}'.format(
             len(full_text_dict['fulltext'])))
@@ -194,6 +191,15 @@ def write_content(payload_dictionary):
     except IOError:
         logger.error('IO Error when writing to file {0}'.format(
             payload_dictionary['bibcode']))
+        raise IOError
+
+    try:
+        logger.debug('Writing to file: {0}'.format(meta_output_file_path))
+        logger.debug('Content has keys: {0}'.format((meta_dict.keys())))
+        write_file(meta_output_file_path, meta_dict, json_format=True)
+        logger.debug('Writing complete.')
+    except IOError:
+        logger.error('IO Error when writing to file.')
         raise IOError
 
 
