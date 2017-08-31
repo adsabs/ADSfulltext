@@ -25,8 +25,8 @@ import traceback
 
 from stat import ST_MTIME
 from datetime import datetime
-from adsputils import setup_logging
 from dateutil.parser import parse
+from adsputils import setup_logging
 
 logger = setup_logging(__name__)
 
@@ -222,45 +222,46 @@ def check_if_extract(message_list, extract_path):
             logger.debug('No existing meta file')
             update = 'NOT_EXTRACTED_BEFORE'
 
-        logger.debug('Update required?: {0}'.format(update))
-        logger.debug('Creating meta path')
+        if os.path.exists(message['ft_source']):
+            ft_source_size = os.stat(message['ft_source']).st_size # bytes
+            if ft_source_size == 0:
+                update = 'IGNORE_ZERO_BYTE_FT_SOURCE'
+                logger.error("Bibcode '%s' is linked to a zero byte size file '%s'", message['bibcode'], message['ft_source'])
+        else:
+            update = 'IGNORE_NON_EXISTENT_FT_SOURCE'
+            logger.error("Bibcode '%s' is linked to a non-existent file '%s'", message['bibcode'], message['ft_source'])
 
-        message['meta_path'] = \
-            create_meta_path(message, extract_path)
+        logger.debug("Bibcode '%s', update required?: %s", message['bibcode'], update)
 
-        logger.debug('created: %s' % message['meta_path'])
+        if update in NEEDS_UPDATE:
+            message['meta_path'] = create_meta_path(message, extract_path)
+            logger.debug('Creating meta path: %s', message['meta_path'])
 
-        format_ = os.path.splitext(
-            message['ft_source'])[-1].replace('.', '').lower()
+            # Wite a time stamp of this process
+            message['index_date'] = datetime.utcnow().isoformat() + 'Z'
+            logger.debug('Adding timestamp: %s', message['index_date'])
 
-        if not format_ and 'http://' in message['ft_source']:
-            format_ = 'http'
-        message['file_format'] = format_
+            format_ = os.path.splitext(message['ft_source'])[-1].replace('.', '').lower()
+            if not format_ and 'http://' in message['ft_source']:
+                format_ = 'http'
+            message['file_format'] = format_
 
-        logger.debug('Format found: %s' % format_)
-        if update in NEEDS_UPDATE and format_ == 'pdf':
-            message['UPDATE'] = update
+            logger.debug('Format found: %s' % format_)
+            if format_ == 'pdf':
+                message['UPDATE'] = update
 
-            logger.info('CheckIfExtract: needs update because {0}: {1}'.format(
-                update, message['bibcode']))
+                logger.info('CheckIfExtract: needs update because {0}: {1}'.format(
+                    update, message['bibcode']))
 
-            publish_list_of_pdf_dictionaries.append(message)
+                publish_list_of_pdf_dictionaries.append(message)
+            else:
+                message['UPDATE'] = update
 
-        elif update in NEEDS_UPDATE:
-            message['UPDATE'] = update
+                logger.info('CheckIfExtract: needs update because {0}: {1}'.format(
+                    update, message['bibcode']))
 
-            logger.info('CheckIfExtract: needs update because {0}: {1}'.format(
-                update, message['bibcode']))
+                publish_list_of_standard_dictionaries.append(message)
 
-            publish_list_of_standard_dictionaries.append(message)
-
-        # Wite a time stamp of this process
-        message['index_date'] = datetime.utcnow().isoformat() + 'Z'
-
-        logger.debug('Adding timestamp: {0}'.format(
-            message['index_date']))
-
-        logger.debug('Returning dictionaries')
 
     return {'Standard': publish_list_of_standard_dictionaries,
             'PDF': publish_list_of_pdf_dictionaries}

@@ -1,10 +1,10 @@
 from __future__ import absolute_import, unicode_literals
-import adsft.app as app_module
 from adsputils import get_date, exceptions
+import adsft.app as app_module
 from kombu import Queue
 from adsft import extraction, checker, writer
-import os
 from adsmsg import FulltextUpdate
+import os
 
 # ============================= INITIALIZATION ==================================== #
 
@@ -16,6 +16,7 @@ logger = app.logger
 app.conf.CELERY_QUEUES = (
     Queue('check-if-extract', app.exchange, routing_key='check-if-extract'),
     Queue('extract', app.exchange, routing_key='extract'),
+    Queue('extract-grobid', app.exchange, routing_key='extract-grobid'),
     Queue('output-results', app.exchange, routing_key='output-results'),
 )
 
@@ -43,6 +44,9 @@ def task_check_if_extract(message):
                 for msg in results[key]:
                     logger.debug("Calling 'task_extract' with message '%s'", msg)
                     task_extract.delay(msg)
+                    if app.conf['GROBID_SERVICE'] is not None and key == 'PDF':
+                        logger.debug("Calling 'task_extract_grobid' with message '%s'", msg)
+                        task_extract_grobid.delay(msg)
             else:
                 logger.error('Unknown type: %s and message: %s', (key, results[key]))
 
@@ -58,7 +62,7 @@ def task_extract(message):
     if not isinstance(message, list):
         message = [message]
 
-    results = extraction.extract_content(message)
+    results = extraction.extract_content(message, extract_pdf_script=app.conf['EXTRACT_PDF_SCRIPT'])
     logger.debug('Results: %s', results)
     for r in results:
         logger.debug("Calling 'write_content' with '%s'", str(r))
@@ -72,6 +76,35 @@ def task_extract(message):
                 }
         logger.debug("Calling 'task_output_results' with '%s'", msg)
         task_output_results.delay(msg)
+
+if app.conf['GROBID_SERVICE'] is not None:
+    @app.task(queue='extract-grobid')
+    def task_extract_grobid(message):
+        """
+        Extracts the structured full text from the given location
+        """
+        logger.debug('Extract grobid content: %s', message)
+        if not isinstance(message, list):
+            message = [message]
+
+        # Mofiy file format to force the use of GrobidPDFExtractor
+        for msg in message:
+            msg['file_format'] += "-grobid"
+
+        results = extraction.extract_content(message, grobid_service=app.conf['GROBID_SERVICE'])
+        logger.debug('Grobid results: %s', results)
+        for r in results:
+            logger.debug("Calling 'write_content' with '%s'", str(r))
+            # Write locally to filesystem
+            writer.write_content(r)
+
+            ## Send results to master
+            #msg = {
+                    #'bibcode': r['bibcode'],
+                    #'body': r['grobid_fulltext'],
+                    #}
+            #logger.debug("Calling 'task_output_results' with '%s'", msg)
+            #task_output_results.delay(msg)
 
 
 @app.task(queue='output-results')

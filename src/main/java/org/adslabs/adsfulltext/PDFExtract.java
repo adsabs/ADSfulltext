@@ -19,10 +19,10 @@
 
 package org.adslabs.adsfulltext;
 
-import java.io.FileInputStream;
+import java.io.File;
 
-import org.apache.pdfbox.util.PDFTextStripper;
-import org.apache.pdfbox.util.TextNormalize;
+import org.apache.pdfbox.io.RandomAccessFile;
+import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.cos.COSDocument;
 import org.apache.pdfbox.pdfparser.PDFParser;
@@ -45,7 +45,7 @@ public class PDFExtract {
     // Variable declaration
     // ------------------------
     String message;
-    FileInputStream pdfFile;
+    RandomAccessFile pdfFile;
     PDFTextStripper stripper;
     PDDocument pdDocument;
     PDFParser pdfParser;
@@ -81,13 +81,6 @@ public class PDFExtract {
 
 
     public String textCleaner (String messageToClean) {
-        // Normalis(z)e the text so that we have the correct characters.
-        // For example, an o-umlaut goes from o" to the correct formatting, this is normalising
-        // For consistent comparison, I use the same naming convention as used by Jay
-        TextNormalize normalizer = new TextNormalize("UTF-8");
-        messageToClean = normalizer.normalizeDiac(messageToClean);
-        messageToClean = normalizer.normalizePres(messageToClean);
-
         // This unifies characters such as e+accent to accented-e
         messageToClean = Normalizer.normalize(messageToClean, Normalizer.Form.NFKC);
 
@@ -103,7 +96,7 @@ public class PDFExtract {
         //
         try{
             logger.debug("Creating pdf file");
-            this.pdfFile = new FileInputStream(fileSource);
+            this.pdfFile = new RandomAccessFile(new File(fileSource), "r");
         } catch (java.io.FileNotFoundException error) {
             String message = "File not found: " + error.getMessage();
             logger.error(message);
