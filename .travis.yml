@@ -11,6 +11,7 @@ addons:
   hostname: myshorthost
 before_install:
  - sudo apt-get update
+ - sudo apt-get install poppler-utils
  - sudo apt-get install libxml2-dev libxslt1-dev
  - sudo apt-get install openjdk-7-jdk icedtea-7-plugin
  - sudo apt-get install maven
