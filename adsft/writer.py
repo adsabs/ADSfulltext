@@ -20,8 +20,9 @@ import json
 import tempfile
 import shutil
 from adsft.rules import META_CONTENT
+from adsputils import setup_logging
 
-from adsft.app import logger
+logger = setup_logging(__name__)
 
 
 def write_to_temp_file(payload, temp_path='/tmp/', json_format=True):
@@ -116,14 +117,14 @@ def write_content(payload_dictionary):
 
     meta_output_file_path = payload_dictionary['meta_path']
     bibcode_pair_tree_path = os.path.dirname(meta_output_file_path)
-    full_text_output_file_path = os.path.join(bibcode_pair_tree_path, 'fulltext.txt')
-    grobid_full_text_output_file_path = os.path.join(bibcode_pair_tree_path, 'grobid_fulltext.xml')
+    if payload_dictionary['file_format'] == 'pdf-grobid':
+        full_text_output_file_path = os.path.join(bibcode_pair_tree_path, 'grobid_fulltext.xml')
+    else:
+        full_text_output_file_path = os.path.join(bibcode_pair_tree_path, 'fulltext.txt')
 
     if 'UPDATE' in payload_dictionary and \
         payload_dictionary['UPDATE'] == 'FORCE_TO_SEND' and \
-        os.path.exists(meta_output_file_path) and \
-            ((payload_dictionary['file_format'] == 'pdf-grobid' and os.path.exists(grobid_full_text_output_file_path)) \
-            or (payload_dictionary['file_format'] != 'pdf-grobid' and os.path.exists(full_text_output_file_path))):
+        os.path.exists(meta_output_file_path) and os.path.exists(full_text_output_file_path):
                 # Data was already extracted and saved
                 return
 
@@ -147,7 +148,7 @@ def write_content(payload_dictionary):
     # Write the custom extractions of content to the meta.json
     logger.debug('Copying extra meta content')
     for meta_key_word in META_CONTENT[payload_dictionary['file_format']]:
-        if meta_key_word in ('dataset', 'fulltext', 'grobid_fulltext'):
+        if meta_key_word in ('dataset', 'fulltext'):
             continue
 
         logger.debug(meta_key_word)
@@ -175,10 +176,8 @@ def write_content(payload_dictionary):
 
     # Write the full text content to its own file fulltext.txt
     logger.debug('Copying full text content')
-    meta_dict['fulltext_extracted'] = 'fulltext' in payload_dictionary and payload_dictionary['fulltext'] != ""
-    meta_dict['grobid_fulltext_extracted'] = 'grobid_fulltext' in payload_dictionary and payload_dictionary['grobid_fulltext'] != ""
 
-    if meta_dict['fulltext_extracted']:
+    if 'fulltext' in payload_dictionary and payload_dictionary['fulltext'] != "":
         try:
             logger.debug('Writing to file: {0}'.format(full_text_output_file_path))
             logger.debug('Content has length: {0}'.format(len(payload_dictionary['fulltext'])))
@@ -190,30 +189,17 @@ def write_content(payload_dictionary):
     #else:
         #logger.warning('No fulltext found for dictionary {0}'.format(payload_dictionary['bibcode']))
 
-    if meta_dict['grobid_fulltext_extracted']:
+    if payload_dictionary['file_format'] != "pdf-grobid":
+        # Do not write meta-data if it is a grobid extraction, only grobid_fulltext.xml is required
+        # and we avoid over-writting valid meta-data from the regular PDF extraction
         try:
-            logger.debug('Writing to file: {0}'.format(grobid_full_text_output_file_path))
-            logger.debug('Content has length: {0}'.format(len(payload_dictionary['grobid_fulltext'])))
-            write_file(grobid_full_text_output_file_path, payload_dictionary['grobid_fulltext'], json_format=False)
+            logger.debug('Writing to file: {0}'.format(meta_output_file_path))
+            logger.debug('Content has keys: {0}'.format((meta_dict.keys())))
+            write_file(meta_output_file_path, meta_dict, json_format=True)
             logger.debug('Writing complete.')
         except IOError:
-            logger.exception('IO Error when writing to file {0}'.format(payload_dictionary['bibcode']))
+            logger.exception('IO Error when writing to file.')
             raise IOError
-    #else:
-        #logger.warning('No grobid fulltext found for dictionary {0}'.format(payload_dictionary['bibcode']))
-
-    del meta_dict['fulltext_extracted']
-    del meta_dict['grobid_fulltext_extracted']
-
-
-    try:
-        logger.debug('Writing to file: {0}'.format(meta_output_file_path))
-        logger.debug('Content has keys: {0}'.format((meta_dict.keys())))
-        write_file(meta_output_file_path, meta_dict, json_format=True)
-        logger.debug('Writing complete.')
-    except IOError:
-        logger.exception('IO Error when writing to file.')
-        raise IOError
 
 
 def extract_content(input_list, **kwargs):

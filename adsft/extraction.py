@@ -23,6 +23,7 @@ import os
 
 import requests
 from adsputils import overrides
+from adsputils import setup_logging
 from adsft.utils import TextCleaner
 from adsft import reader
 import re
@@ -34,7 +35,8 @@ from adsft.rules import META_CONTENT
 from requests.exceptions import HTTPError
 from subprocess import Popen, PIPE, STDOUT
 
-from adsft.app import proj_home, logger
+proj_home = os.path.realpath(os.path.join(os.path.dirname(__file__), '../'))
+logger = setup_logging(__name__)
 
 
 class StandardExtractorBasicText(object):
@@ -759,8 +761,6 @@ class PDFExtractor(object):
         self.ft_source = kwargs.get('ft_source', None)
         self.bibcode = kwargs.get('bibcode', None)
         self.provider = kwargs.get('provider', None)
-        self.timeout = 120 # seconds
-        self.grobid_service = kwargs.get('grobid_service', None)
         self.extract_pdf_script = proj_home + kwargs.get('extract_pdf_script', '/scripts/extract_pdf_with_pdftotext.sh')
 
         if not self.ft_source:
@@ -813,7 +813,7 @@ class GrobidPDFExtractor(object):
             logger.debug("Grobid service not defined")
 
         return  {
-                    'grobid_fulltext': grobid_xml,
+                    'fulltext': grobid_xml,
                 }
 
 # Dictionary containing the relevant extensions for the relevant class
@@ -857,13 +857,11 @@ def extract_content(input_list, **kwargs):
             # Read previously extracted data
             recovered_content = reader.read_content(dict_item)
 
-        if recovered_content is not None and \
-            ((dict_item['file_format'] == 'pdf-grobid' and 'grobid_fulltext' in recovered_content.keys() and recovered_content['grobid_fulltext'] != "") \
-            or (dict_item['file_format'] != 'pdf-grobid' and 'fulltext' in recovered_content.keys() and recovered_content['fulltext'] != "")):
-                for key, value in recovered_content.iteritems():
-                    if key != 'UPDATE':
-                        dict_item[key] = value
-                output_list.append(dict_item)
+        if recovered_content is not None and recovered_content['fulltext'] != "":
+            for key, value in recovered_content.iteritems():
+                if key != 'UPDATE':
+                    dict_item[key] = value
+            output_list.append(dict_item)
         else:
             try:
                 extension = dict_item['file_format']

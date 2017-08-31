@@ -1,12 +1,17 @@
 from __future__ import absolute_import, unicode_literals
 from adsputils import get_date, exceptions
+import adsft.app as app_module
 from kombu import Queue
 from adsft import extraction, checker, writer
 from adsmsg import FulltextUpdate
+import os
 
 # ============================= INITIALIZATION ==================================== #
 
-from adsft.app import app, logger
+proj_home = os.path.realpath(os.path.join(os.path.dirname(__file__), '../'))
+app = app_module.ADSFulltextCelery('ads-fulltext', proj_home=proj_home)
+logger = app.logger
+
 
 app.conf.CELERY_QUEUES = (
     Queue('check-if-extract', app.exchange, routing_key='check-if-extract'),
