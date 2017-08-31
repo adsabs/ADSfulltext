@@ -180,13 +180,13 @@ if __name__ == '__main__':
             args.bibcodes = [x.strip() for x in args.bibcodes.split(',')]
         else:
             # Defaults
-            args.bibcodes = ["1908MNRAS..68..224.", "1915PA.....23..189P"]
+            args.bibcodes = ["1908MNRAS..68..224.", "1950AFChr..20..320."]
 
         if args.raw_files:
             args.raw_files = [x.strip() for x in args.raw_files.split(',')]
         else:
             # Defaults
-            args.raw_files = ["/proj/ads/articles/bitmaps/seri/MNRAS/0068/PDF/1908MNRAS..68..224..pdf", "/proj/ads/fulltext/sources/downloads/cache/ADS/articles.adsabs.harvard.edu/full/PA/0023/1915PA.....23..189P.ocr"]
+            args.raw_files = ["/proj/ads/articles/bitmaps/seri/MNRAS/0068/PDF/1908MNRAS..68..224..pdf", "/proj/ads/fulltext/sources/downloads/cache/ADS/articles.adsabs.harvard.edu/full/AFChr/0020/1950AFChr..20..320..ocr"]
 
         if args.providers:
             args.providers = [x.strip() for x in args.providers.split(',')]
