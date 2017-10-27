@@ -168,7 +168,7 @@ if __name__ == '__main__':
     parser.set_defaults(full_text_links=False)
     parser.set_defaults(packet_size=100)
     parser.set_defaults(purge_queues=False)
-    parser.set_defaults(max_queue_size=100000)
+    parser.set_defaults(max_queue_size=0)
     parser.set_defaults(force_extract=False)
     parser.set_defaults(force_send=False)
     parser.set_defaults(diagnose=False)
