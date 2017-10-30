@@ -69,13 +69,14 @@ def task_extract(message):
         # Write locally to filesystem
         writer.write_content(r)
 
-        # Send results to master
-        msg = {
-                'bibcode': r['bibcode'],
-                'body': r['fulltext'],
-                }
-        logger.debug("Calling 'task_output_results' with '%s'", msg)
-        task_output_results.delay(msg)
+        # Send results to master only if fulltext is not an empty string
+        if r['fulltext'] != "":
+            msg = {
+                    'bibcode': r['bibcode'],
+                    'body': r['fulltext'],
+                    }
+            logger.debug("Calling 'task_output_results' with '%s'", msg)
+            task_output_results.delay(msg)
 
 if app.conf['GROBID_SERVICE'] is not None:
     @app.task(queue='extract-grobid')

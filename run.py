@@ -92,8 +92,8 @@ def run(full_text_links, **kwargs):
         if diagnose:
             print("[{}/{}] Calling 'task_check_if_extract' with '{}'".format(i+1, total, str(record)))
         logger.debug("[%i/%i] Calling 'task_check_if_extract' with '%s'", i+1, total, str(record))
-        #tasks.task_check_if_extract.delay(record)
-        tasks.task_check_if_extract(record) # Treat synchronously to avoid saturating NFS mount access
+        tasks.task_check_if_extract.delay(record)
+        #tasks.task_check_if_extract(record) # Treat synchronously to avoid saturating NFS mount access
         i += 1
 
 def build_diagnostics(bibcodes=None, raw_files=None, providers=None):
