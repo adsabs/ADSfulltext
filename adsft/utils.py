@@ -233,7 +233,10 @@ class TextCleaner(object):
         """
 
         self.text = unicodedata.normalize('NFKC', unicode(self.text))
-        self.text = re.sub('\s+', ' ', self.text)
+        ## This will also substitute all tabs, newlines and other "whitespace-like" characters:
+        #self.text = re.sub('\s+', ' ', self.text)
+        # Substitute multiple spaces with just one space:
+        self.text = re.sub('  +', ' ', self.text)
 
     def trimwords(self, maxlength=200):
         """
