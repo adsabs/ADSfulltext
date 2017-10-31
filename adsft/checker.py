@@ -143,13 +143,16 @@ def meta_needs_update(dict_input, meta_content,
     logger.debug('Opened existing meta to determine if an update is required.')
 
     # No extraction exists
-    if 'ft_source' not in meta_content or not os.path.exists(meta_content['ft_source']):
+    if 'ft_source' not in meta_content:
         return 'MISSING_FULL_TEXT'
 
     # Full text file path has changed
     if meta_content['ft_source'] != \
             dict_input['ft_source']:
         return 'DIFFERING_FULL_TEXT'
+
+    if not os.path.exists(meta_content['ft_source']):
+        return 'IGNORE_NON_EXISTENT_FT_SOURCE'
 
     # Content is considered 'stale'
     delta_comp_time = datetime.utcnow() - datetime.now()

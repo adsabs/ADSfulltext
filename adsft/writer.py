@@ -41,7 +41,10 @@ def write_to_temp_file(payload, temp_path='/tmp/', json_format=True):
         if json_format:
             json.dump(payload, temp_file)
         else:
-            temp_file.write(payload.encode('utf-8'))
+            if type(payload) == unicode:
+                temp_file.write(payload)
+            else:
+                temp_file.write(payload.encode('utf-8'))
 
     logger.debug('Temp file name: {0}'.format(temp_file_name))
 

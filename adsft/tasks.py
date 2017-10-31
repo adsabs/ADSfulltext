@@ -5,6 +5,7 @@ from kombu import Queue
 from adsft import extraction, checker, writer
 from adsmsg import FulltextUpdate
 import os
+from adsft.utils import TextCleaner
 
 # ============================= INITIALIZATION ==================================== #
 
@@ -51,6 +52,17 @@ def task_check_if_extract(message):
                 logger.error('Unknown type: %s and message: %s', (key, results[key]))
 
 
+def _build_output_msg(bibcode, body):
+    """
+    Ensure we send unicode normalized trimmed text. Extractors already do this,
+    but we still have some file saved extraction that weren't cleaned.
+    """
+    body = TextCleaner(text=body).run(translate=False, decode=True, normalise=True, trim=True)
+    msg = {
+            'bibcode': bibcode,
+            'body': body,
+            }
+    return msg
 
 @app.task(queue='extract')
 def task_extract(message):
@@ -71,10 +83,7 @@ def task_extract(message):
 
         # Send results to master only if fulltext is not an empty string
         if r['fulltext'] != "":
-            msg = {
-                    'bibcode': r['bibcode'],
-                    'body': r['fulltext'],
-                    }
+            msg = _build_output_msg(r['bibcode'], r['fulltext'])
             logger.debug("Calling 'task_output_results' with '%s'", msg)
             task_output_results.delay(msg)
 
@@ -100,12 +109,10 @@ if app.conf['GROBID_SERVICE'] is not None:
             writer.write_content(r)
 
             ## Send results to master
-            #msg = {
-                    #'bibcode': r['bibcode'],
-                    #'body': r['grobid_fulltext'],
-                    #}
-            #logger.debug("Calling 'task_output_results' with '%s'", msg)
-            #task_output_results.delay(msg)
+            #if r['grobid_fulltext'] != "":
+                #msg = _build_output_msg(r['bibcode'], r['grobid_fulltext'])
+                #logger.debug("Calling 'task_output_results' with '%s'", msg)
+                #task_output_results.delay(msg)
 
 
 @app.task(queue='output-results')

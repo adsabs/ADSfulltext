@@ -25,7 +25,7 @@ def read_file(input_filename, json_format=True):
     if json_format:
         content = json.load(input_file)
     else:
-        content = input_file.read()
+        content = input_file.read().decode('utf-8')
     input_file.close()
 
     logger.debug('Read file name: {0}'.format(input_filename))

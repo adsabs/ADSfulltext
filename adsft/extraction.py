@@ -766,12 +766,14 @@ class PDFExtractor(object):
         if not self.ft_source:
             raise Exception('Missing or non-existent source: %s', self.ft_source)
 
-    def extract_multi_content(self):
+    def extract_multi_content(self, translate=False, decode=True):
         p = Popen([self.extract_pdf_script, self.ft_source], stdout=PIPE, stderr=PIPE)
         stdout, stderr = p.communicate()
         if p.returncode != 0:
             raise Exception(stderr)
-        fulltext = stdout.decode('utf8')
+        fulltext = TextCleaner(text=stdout).run(translate=translate,
+                                          decode=decode,
+                                          normalise=True)
         return  {
                     'fulltext': fulltext,
                 }
@@ -787,7 +789,7 @@ class GrobidPDFExtractor(object):
         if not self.ft_source:
             raise Exception('Missing or non-existent source: %s', self.ft_source)
 
-    def extract_multi_content(self):
+    def extract_multi_content(self, translate=False, decode=True):
         grobid_xml = ""
         if self.grobid_service is not None:
             try:
@@ -811,6 +813,9 @@ class GrobidPDFExtractor(object):
                     logger.error("Grobid service response error (code %s): %s", response.status_code, response.text)
         else:
             logger.debug("Grobid service not defined")
+        grobid_xml = TextCleaner(text=grobid_xml).run(translate=translate,
+                                          decode=decode,
+                                          normalise=True)
 
         return  {
                     'fulltext': grobid_xml,
