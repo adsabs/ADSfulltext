@@ -119,7 +119,7 @@ class TestExtraAcknowledgment(test_base.TestGeneric):
                 with open(fulltext_path, 'r') as fulltext_file:
                     fulltext_content = fulltext_file.read()
                 self.assertEqual(fulltext_content,
-                        "application/xml JOURNAL TITLE CREATOR SUBJECT DESCRIPTION JOURNAL NAME COPYRIGHT PUBLISHER 9999-9999 VOLUME DAY MONTH YEAR 1999-99-99 999-999 999 999 99.9999/9.99999.9999.99.999 http://dx.doi.org/99.9999/9.99999.9999.99.999 doi:99.9999/9.99999.9999.99.999 Journals S300.1 JOURNAL 999999 99999-9999(99)99999-9 99.9999/9.99999.9999.99.999 COPYRIGHT Fig.1 CONTENT TITLE GIVEN NAME SURNAME a EMAIL@EMAIL.COM a AFFILIATION AUTHOR Abstract ABSTRACT Highlights HIGHLIGHTS Keywords KEYWORD 1 Introduction JOURNAL CONTENT Acknowledgments THANK YOU Appendix A APPENDIX TITLE APPENDIX References AUTHOR et al., 1999 GIVEN NAME SURNAME TITLE TITLE VOLUME YEAR 99 99")
+                        "\n \n application/xml\n JOURNAL TITLE\n CREATOR\n \n \n SUBJECT\n \n DESCRIPTION\n\n JOURNAL\n NAME\n COPYRIGHT\n PUBLISHER\n 9999-9999\n VOLUME\n DAY MONTH YEAR\n 1999-99-99\n 999-999\n 999\n 999\n 99.9999/9.99999.9999.99.999\n http://dx.doi.org/99.9999/9.99999.9999.99.999\n doi:99.9999/9.99999.9999.99.999\n \n\n \n Journals\n S300.1\n \n\n \n \n JOURNAL\n 999999\n 99999-9999(99)99999-9\n 99.9999/9.99999.9999.99.999\n COPYRIGHT\n \n \n \n Fig.1\n \n \n CONTENT\n \n \n \n \n\n \n\n \n TITLE\n\n \n \n GIVEN NAME\n SURNAME\n \n a\n \n \n \n \n\n EMAIL@EMAIL.COM\n \n\n a\n\n AFFILIATION\n\n \n AUTHOR\n \n \n\n \n \n \n \n Abstract\n ABSTRACT\n \n \n\n \n Highlights\n \n HIGHLIGHTS\n \n\n \n\n Keywords\n \n KEYWORD\n \n \n\n \n \n 1\n Introduction\n JOURNAL CONTENT\n \n \n\n \n Acknowledgments\n THANK YOU\n \n\n \n Appendix A\n APPENDIX TITLE\n APPENDIX\n \n \n\n \n\n \n \n References\n\n \n AUTHOR et al., 1999\n \n \n \n \n GIVEN NAME\n SURNAME\n \n\n \n \n TITLE\n \n \n\n \n \n \n \n TITLE\n \n \n VOLUME\n \n YEAR\n \n \n 99\n 99\n \n \n \n \n\n\n \n \n\n \n \n\n")
 
             acknowledgments_path = os.path.join(path, 'acknowledgements.txt')
             self.assertTrue(
@@ -131,7 +131,7 @@ class TestExtraAcknowledgment(test_base.TestGeneric):
                 with open(acknowledgments_path, 'r') as acknowledgments_file:
                     acknowledgements_content = acknowledgments_file.read()
                 self.assertEqual(acknowledgements_content,
-                        "Acknowledgments THANK YOU")
+                        "\n Acknowledgments\n THANK YOU\n ")
 
 
 if __name__ == '__main__':

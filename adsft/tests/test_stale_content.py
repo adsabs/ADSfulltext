@@ -138,7 +138,7 @@ class TestStaleContent(test_base.TestGeneric):
             if os.path.exists(fulltext_path):
                 with open(fulltext_path, 'r') as fulltext_file:
                     fulltext_content = fulltext_file.read()
-                self.assertEqual(fulltext_content, "Introduction THIS IS AN INTERESTING TITLE")
+                self.assertEqual(fulltext_content, "Introduction\n\nTHIS IS AN INTERESTING TITLE\n")
 
 
 
