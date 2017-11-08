@@ -164,14 +164,14 @@ class TestTEIXMLExtractor(test_base.TestUnit):
         worker as well into a class attribute so it is easier to access.
         :return:
         """
-        
+
         super(TestTEIXMLExtractor, self).setUp()
         self.dict_item = {'ft_source': self.test_stub_teixml,
                           'file_format': 'teixml',
                           'provider': 'A&A',
                           'bibcode': 'TEST'}
         self.extractor = extraction.EXTRACTOR_FACTORY['teixml'](self.dict_item)
-        
+
 
     def test_that_we_can_open_an_xml_file(self):
         """
@@ -235,10 +235,10 @@ class TestTEIXMLExtractor(test_base.TestUnit):
 
     def test_that_we_can_extract_acknowledgments(self):
         """
-        
+
         """
-        ack = u"Acknowledgements. The usefulness of a bibliographic service is only as good as the quality and quantity of the data it contains . The ADS project has been lucky in benefitting from the skills and dedication of several people who have significantly contributed to the creation and management of the underlying datasets. In particular, we would like to acknowledge the work of Elizabeth Bohlen, Donna Thompson, Markus Demleitner, and Joyce Watson. Funding for this project has been provided by NASA under grant NCC5-189."
-        
+        ack = u"\nAcknowledgements. The usefulness of a bibliographic service is only as good as the quality and quantity of the data it contains . The ADS project has been lucky in benefitting from the skills and dedication of several people who have significantly contributed to the creation and management of the underlying datasets. In particular, we would like to acknowledge the work of Elizabeth Bohlen, Donna Thompson, Markus Demleitner, and Joyce Watson. Funding for this project has been provided by NASA under grant NCC5-189.\n"
+
         full_text_content = self.extractor.open_xml()
         parsed_xml = self.extractor.parse_xml()
         content = self.extractor.extract_multi_content()
@@ -263,13 +263,13 @@ class TestXMLElsevierExtractor(test_base.TestUnit):
         worker as well into a class attribute so it is easier to access.
         :return:
         """
-        
+
         super(TestXMLElsevierExtractor, self).setUp()
         self.dict_item = {'ft_source': self.test_stub_exml,
                           'bibcode': 'TEST'
                           }
         self.extractor = extraction.EXTRACTOR_FACTORY['elsevier'](self.dict_item)
-        
+
 
     def test_that_we_can_open_an_xml_file(self):
         """
@@ -392,7 +392,7 @@ class TestHTMLExtractor(test_base.TestUnit):
 
         :return: no return
         """
-        
+
         super(TestHTMLExtractor, self).setUp()
         self.dict_item = {
             'ft_source': '{0},{1}'.format(self.test_stub_html,
@@ -478,7 +478,7 @@ class TestOCRandTXTExtractor(test_base.TestUnit):
 
         :return: no return
         """
-        
+
         super(TestOCRandTXTExtractor, self).setUp()
         self.dict_item = {'ft_source': self.test_stub_text,
                           'bibcode': 'TEST'}
@@ -544,11 +544,7 @@ class TestOCRandTXTExtractor(test_base.TestUnit):
             = 'Tab\t CarriageReturn\r New line\n Random Escape characters:' \
               + chr(1) + chr(4) + chr(8)
 
-        expected_out_string = re.sub(
-            '\s+',
-            ' ',
-            'Tab\t CarriageReturn\r New line\n Random Escape characters:   '
-        ).strip()
+        expected_out_string = 'Tab\t CarriageReturn\r New line\n Random Escape characters: '
 
         new_instring = self.extractor.parse_text(translate=True, decode=True)
 
@@ -566,11 +562,7 @@ class TestOCRandTXTExtractor(test_base.TestUnit):
             u'Tab\t CarriageReturn\r New line\n Random Escape characters:' \
             + u'\u0000'
 
-        expected_out_string = re.sub(
-            '\s+',
-            ' ',
-            u'Tab\t CarriageReturn\r New line\n Random Escape characters:'
-        )
+        expected_out_string = u'Tab\t CarriageReturn\r New line\n Random Escape characters:'
 
         new_instring = self.extractor.parse_text(translate=True, decode=True)
 
@@ -640,7 +632,7 @@ class TestHTTPExtractor(test_base.TestUnit):
 
         :return: no return
         """
-        
+
         super(TestHTTPExtractor, self).setUp()
         self.dict_item = {'ft_source': 'http://fake/http/address',
                           'bibcode': 'TEST'}

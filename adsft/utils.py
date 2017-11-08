@@ -233,10 +233,6 @@ class TextCleaner(object):
         """
 
         self.text = unicodedata.normalize('NFKC', unicode(self.text))
-        ## This will also substitute all tabs, newlines and other "whitespace-like" characters:
-        #self.text = re.sub('\s+', ' ', self.text)
-        # Substitute multiple spaces with just one space:
-        self.text = re.sub('  +', ' ', self.text)
 
     def trimwords(self, maxlength=200):
         """
@@ -247,15 +243,9 @@ class TextCleaner(object):
         :param maxlength: maximum length of words to keep
         :return: no return
         """
-
-        # note: we want to keep the original text in the proper sequence of lines
-        # to avoid messing up text analysis downstream
-        buffer = []
-        for line in self.text.splitlines():
-            newline = ' '.join([word if len(word) <= maxlength else '' for word in line.split()])
-            buffer.append(newline)
-
-        self.text = '\n'.join(buffer)
+        self.text = re.sub(r'\b\w{'+str(maxlength)+r',}\b', '', self.text)
+        # Substitute multiple spaces with just one space:
+        self.text = re.sub('  +', ' ', self.text)
 
 
     def run(self, translate=True, decode=True, normalise=True, trim=True):
