@@ -74,6 +74,10 @@ def task_extract(message):
                 'bibcode': r['bibcode'],
                 'body': r['fulltext'],
                 }
+        for x in ('acknowledgements', 'dataset'):
+            if x in r and r[x]:
+                msg[x] = r[x]
+
         logger.debug("Calling 'task_output_results' with '%s'", msg)
         task_output_results.delay(msg)
 

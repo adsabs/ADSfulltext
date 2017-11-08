@@ -68,17 +68,19 @@ class TestWorkers(unittest.TestCase):
 
     def test_task_extract_standard(self):
         with patch('adsft.writer.write_content', return_value=None) as task_write_text:
-            msg = {'bibcode': 'fta', 'file_format': 'txt',
+            msg = {'bibcode': 'fta', 'file_format': 'xml',
                         'index_date': '2017-06-30T22:45:47.800112Z',
                         'UPDATE': 'NOT_EXTRACTED_BEFORE',
                         'meta_path': u'{}/ft/a/meta.json'.format(self.app.conf['FULLTEXT_EXTRACT_PATH']),
-                        'ft_source': '{}/tests/test_integration/stub_data/full_test.txt'.format(self.proj_home),
+                        'ft_source': '{}/tests/test_integration/stub_data/full_test.xml'.format(self.proj_home),
                         'provider': 'MNRAS'}
             with patch.object(tasks.task_output_results, 'delay', return_value=None) as task_output_results:
                 tasks.task_extract(msg)
                 self.assertTrue(task_write_text.called)
                 actual = task_write_text.call_args[0][0]
-                self.assertEqual(u'Introduction THIS IS AN INTERESTING TITLE', actual['fulltext'])
+                self.assertEqual(u'I.INTRODUCTION INTRODUCTION GOES HERE Manual Entry', actual['fulltext'])
+                self.assertEqual(u'Acknowledgments WE ACKNOWLEDGE.', actual['acknowledgements'])
+                self.assertEqual([u'ADS/Sa.CXO#Obs/11458'], actual['dataset'])
                 self.assertTrue(task_output_results.called)
 
 
