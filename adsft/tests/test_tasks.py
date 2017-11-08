@@ -78,8 +78,9 @@ class TestWorkers(unittest.TestCase):
                 tasks.task_extract(msg)
                 self.assertTrue(task_write_text.called)
                 actual = task_write_text.call_args[0][0]
-                self.assertEqual(u'I.INTRODUCTION INTRODUCTION GOES HERE Manual Entry', actual['fulltext'])
-                self.assertEqual(u'Acknowledgments WE ACKNOWLEDGE.', actual['acknowledgements'])
+
+                self.assertEqual(u'\nI.INTRODUCTION\nINTRODUCTION GOES HERE\n\n\nManual Entry\n\n', actual['fulltext'])
+                self.assertEqual(u'\nAcknowledgments\nWE ACKNOWLEDGE.', actual['acknowledgements'])
                 self.assertEqual([u'ADS/Sa.CXO#Obs/11458'], actual['dataset'])
                 self.assertTrue(task_output_results.called)
 
@@ -118,7 +119,7 @@ class TestWorkers(unittest.TestCase):
             tasks.task_output_results(msg)
             self.assertTrue(forward_message.called)
             actual = forward_message.call_args[0][0]
-            #self.assertEqual(u'Introduction THIS IS AN INTERESTING TITLE', actual['fulltext'])
+            #self.assertEqual(u'Introduction\n\nTHIS IS AN INTERESTING TITLE\n', actual['fulltext'])
             self.assertTrue(isinstance(actual, FulltextUpdate))
             self.assertEqual(actual.bibcode, msg['bibcode'])
             self.assertEqual(actual.body, msg['body'])

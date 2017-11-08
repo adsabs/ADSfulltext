@@ -5,6 +5,7 @@ from kombu import Queue
 from adsft import extraction, checker, writer
 from adsmsg import FulltextUpdate
 import os
+from adsft.utils import TextCleaner
 
 # ============================= INITIALIZATION ==================================== #
 
@@ -51,7 +52,6 @@ def task_check_if_extract(message):
                 logger.error('Unknown type: %s and message: %s', (key, results[key]))
 
 
-
 @app.task(queue='extract')
 def task_extract(message):
     """
@@ -81,6 +81,12 @@ def task_extract(message):
         logger.debug("Calling 'task_output_results' with '%s'", msg)
         task_output_results.delay(msg)
 
+        # Send results to master only if fulltext is not an empty string
+        if r['fulltext'] != "":
+            logger.debug("Calling 'task_output_results' with '%s'", msg)
+            task_output_results.delay(msg)
+
+
 if app.conf['GROBID_SERVICE'] is not None:
     @app.task(queue='extract-grobid')
     def task_extract_grobid(message):
@@ -103,12 +109,9 @@ if app.conf['GROBID_SERVICE'] is not None:
             writer.write_content(r)
 
             ## Send results to master
-            #msg = {
-                    #'bibcode': r['bibcode'],
-                    #'body': r['grobid_fulltext'],
-                    #}
-            #logger.debug("Calling 'task_output_results' with '%s'", msg)
-            #task_output_results.delay(msg)
+            #if r['grobid_fulltext'] != "":
+                #logger.debug("Calling 'task_output_results' with '%s'", msg)
+                #task_output_results.delay(msg)
 
 
 @app.task(queue='output-results')
@@ -127,6 +130,11 @@ def task_output_results(msg):
             }
     :return: no return
     """
+    
+    # Ensure we send unicode normalized trimmed text. Extractors already do this,
+    # but we still have some file saved extraction that weren't cleaned.
+    msg['body'] = TextCleaner(text=msg['body']).run(translate=False, decode=True, normalise=True, trim=True)
+    
     logger.debug('Will forward this record: %s', msg)
     rec = FulltextUpdate(**msg)
     logger.debug("Calling 'app.forward_message' with '%s'", str(rec))

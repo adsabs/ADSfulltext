@@ -151,6 +151,9 @@ def meta_needs_update(dict_input, meta_content,
             dict_input['ft_source']:
         return 'DIFFERING_FULL_TEXT'
 
+    if not os.path.exists(meta_content['ft_source']):
+        return 'IGNORE_NON_EXISTENT_FT_SOURCE'
+
     # Content is considered 'stale'
     delta_comp_time = datetime.utcnow() - datetime.now()
 
