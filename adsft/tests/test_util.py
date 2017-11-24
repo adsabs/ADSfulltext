@@ -50,7 +50,19 @@ class TestFileStreamInput(test_base.TestUnit):
         )
         self.assertIn('MNRAS', FileInputStream.provider)
 
-                
+    
+    def test_trim(self):
+        """
+        Tests that the trim normalizes the text.
+        """
+        # non-breakable space
+        a = 'a\xc2\xa0b'.decode('utf8')
+        b = 'a' + b'\xc2\xa0' + 'b' #utf-8 bytecode
+        c = u'a' + u'\xa0' + u'b' # unicode
+        d = u'a' + chr(160).decode('latin1') + u'b'
+        for x in (a, b, c, d):
+            r = utils.TextCleaner(x).run(translate=False, decode=True, normalise=True, trim=True)
+            self.assertEqual(r, u'a b')
 
 if __name__ == '__main__':
     unittest.main()
