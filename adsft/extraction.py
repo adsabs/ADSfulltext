@@ -799,7 +799,6 @@ class GrobidPDFExtractor(object):
                     logger.exception("Error opening file %s: %s", self.ft_source, error)
                 logger.debug("Contacting grobid service: %s", self.grobid_service)
                 response = requests.post(url=self.grobid_service, files={'input': ft_source}, timeout=self.timeout)
-                ft_source.close()
             except requests.exceptions.Timeout:
                 logger.exception("Grobid service timeout after %d seconds", self.timeout)
             except:
@@ -811,6 +810,7 @@ class GrobidPDFExtractor(object):
                     grobid_xml = response.text
                 else:
                     logger.error("Grobid service response error (code %s): %s", response.status_code, response.text)
+            ft_source.close()
         else:
             logger.debug("Grobid service not defined")
         grobid_xml = TextCleaner(text=grobid_xml).run(translate=translate,

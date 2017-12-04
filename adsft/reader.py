@@ -21,12 +21,11 @@ def read_file(input_filename, json_format=True):
     :return: File content
     """
 
-    input_file = open(input_filename, "r")
-    if json_format:
-        content = json.load(input_file)
-    else:
-        content = input_file.read().decode('utf-8')
-    input_file.close()
+    with open(input_filename, 'r') as input_file:
+        if json_format:
+            content = json.load(input_file)
+        else:
+            content = input_file.read().decode('utf-8')
 
     logger.debug('Read file name: {0}'.format(input_filename))
 
