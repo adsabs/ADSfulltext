@@ -810,7 +810,8 @@ class GrobidPDFExtractor(object):
                     grobid_xml = response.text
                 else:
                     logger.error("Grobid service response error (code %s): %s", response.status_code, response.text)
-            ft_source.close()
+            if ft_source:
+                ft_source.close()
         else:
             logger.debug("Grobid service not defined")
         grobid_xml = TextCleaner(text=grobid_xml).run(translate=translate,
