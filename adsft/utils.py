@@ -243,7 +243,7 @@ class TextCleaner(object):
         :param maxlength: maximum length of words to keep
         :return: no return
         """
-        self.text = re.sub(r'\b\w{'+str(maxlength)+r',}\b', '', self.text)
+        self.text = re.sub(r'\S{'+str(maxlength)+r',}\b', '', self.text)
         # Substitute multiple spaces with just one space:
         self.text = re.sub('  +', ' ', self.text)
 
