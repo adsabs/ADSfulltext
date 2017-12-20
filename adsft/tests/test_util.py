@@ -60,7 +60,9 @@ class TestFileStreamInput(test_base.TestUnit):
         b = 'a' + b'\xc2\xa0' + 'b' #utf-8 bytecode
         c = u'a' + u'\xa0' + u'b' # unicode
         d = u'a' + chr(160).decode('latin1') + u'b'
-        for x in (a, b, c, d):
+        # string with a large token representing table data
+        e = u'a ' + ('123%5.7890' * 100) + u' b' 
+        for x in (a, b, c, d, e):
             r = utils.TextCleaner(x).run(translate=False, decode=True, normalise=True, trim=True)
             self.assertEqual(r, u'a b')
 
