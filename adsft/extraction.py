@@ -388,7 +388,7 @@ class StandardExtractorXML(object):
         try:
             logger.debug('Opening the file: {0}'.format(self.file_input))
 
-            with open(self.file_input, 'r') as fp:
+            with open(self.file_input, 'rb') as fp:
                 raw_xml = fp.read()
 
             # use soupparser to properly encode file contents
