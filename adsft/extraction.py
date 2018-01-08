@@ -29,7 +29,6 @@ from adsft import reader
 import re
 import traceback
 import unicodedata
-from bs4 import BeautifulSoup
 from lxml.html import soupparser, document_fromstring, fromstring
 from lxml.etree import tostring
 from adsft import entitydefs as edef
