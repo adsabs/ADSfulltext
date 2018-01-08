@@ -118,8 +118,26 @@ class TestExtraAcknowledgment(test_base.TestGeneric):
             if os.path.exists(fulltext_path):
                 with open(fulltext_path, 'r') as fulltext_file:
                     fulltext_content = fulltext_file.read()
-                self.assertEqual(fulltext_content,
-                        "\n \n application/xml\n JOURNAL TITLE\n CREATOR\n \n \n SUBJECT\n \n DESCRIPTION\n\n JOURNAL\n NAME\n COPYRIGHT\n PUBLISHER\n 9999-9999\n VOLUME\n DAY MONTH YEAR\n 1999-99-99\n 999-999\n 999\n 999\n 99.9999/9.99999.9999.99.999\n http://dx.doi.org/99.9999/9.99999.9999.99.999\n doi:99.9999/9.99999.9999.99.999\n \n\n \n Journals\n S300.1\n \n\n \n \n JOURNAL\n 999999\n 99999-9999(99)99999-9\n 99.9999/9.99999.9999.99.999\n COPYRIGHT\n \n \n \n Fig.1\n \n \n CONTENT\n \n \n \n \n\n \n\n \n TITLE\n\n \n \n GIVEN NAME\n SURNAME\n \n a\n \n \n \n \n\n EMAIL@EMAIL.COM\n \n\n a\n\n AFFILIATION\n\n \n AUTHOR\n \n \n\n \n \n \n \n Abstract\n ABSTRACT\n \n \n\n \n Highlights\n \n HIGHLIGHTS\n \n\n \n\n Keywords\n \n KEYWORD\n \n \n\n \n \n 1\n Introduction\n JOURNAL CONTENT\n \n \n\n \n Acknowledgments\n THANK YOU\n \n\n \n Appendix A\n APPENDIX TITLE\n APPENDIX\n \n \n\n \n\n \n \n References\n\n \n AUTHOR et al., 1999\n \n \n \n \n GIVEN NAME\n SURNAME\n \n\n \n \n TITLE\n \n \n\n \n \n \n \n TITLE\n \n \n VOLUME\n \n YEAR\n \n \n 99\n 99\n \n \n \n \n\n\n \n \n\n \n \n\n")
+                self.assertIn('JOURNAL TITLE', fulltext_content)
+                self.assertIn('CREATOR', fulltext_content)
+                self.assertIn('SUBJECT', fulltext_content)
+                self.assertIn('DESCRIPTION', fulltext_content)
+                self.assertIn('JOURNAL', fulltext_content)
+                self.assertIn('NAME', fulltext_content)
+                self.assertIn('COPYRIGHT', fulltext_content)
+                self.assertIn('PUBLISHER', fulltext_content)
+                self.assertIn('VOLUME', fulltext_content)
+                self.assertIn('DAY MONTH YEAR', fulltext_content)
+                self.assertIn('1999-99-99', fulltext_content)
+                self.assertIn('CONTENT', fulltext_content)
+                self.assertIn('TITLE', fulltext_content)
+                self.assertIn('GIVEN NAME', fulltext_content)
+                self.assertIn('SURNAME', fulltext_content)
+                self.assertIn('COPYRIGHT', fulltext_content)
+                self.assertIn('EMAIL@EMAIL.COM', fulltext_content)
+                self.assertIn('AFFILIATION', fulltext_content)
+                self.assertIn('AUTHOR', fulltext_content)
+                self.assertIn('KEYWORD', fulltext_content)
 
             acknowledgments_path = os.path.join(path, 'acknowledgements.txt')
             self.assertTrue(
@@ -130,8 +148,9 @@ class TestExtraAcknowledgment(test_base.TestGeneric):
             if os.path.exists(acknowledgments_path):
                 with open(acknowledgments_path, 'r') as acknowledgments_file:
                     acknowledgements_content = acknowledgments_file.read()
-                self.assertEqual(acknowledgements_content,
-                        "\n Acknowledgments\n THANK YOU\n ")
+                self.assertIn('Acknowledgments', acknowledgements_content)
+                self.assertIn('THANK YOU', acknowledgements_content)
+
 
 
 if __name__ == '__main__':
