@@ -115,29 +115,12 @@ class TestExtraAcknowledgment(test_base.TestGeneric):
                 'Full text file not created: %s'.format(path)
             )
 
+            # unless changed, tests/test_integration/stub_data/full_test_elsevier.xml
             if os.path.exists(fulltext_path):
                 with open(fulltext_path, 'r') as fulltext_file:
                     fulltext_content = fulltext_file.read()
-                self.assertIn('JOURNAL TITLE', fulltext_content)
-                self.assertIn('CREATOR', fulltext_content)
-                self.assertIn('SUBJECT', fulltext_content)
-                self.assertIn('DESCRIPTION', fulltext_content)
-                self.assertIn('JOURNAL', fulltext_content)
-                self.assertIn('NAME', fulltext_content)
-                self.assertIn('COPYRIGHT', fulltext_content)
-                self.assertIn('PUBLISHER', fulltext_content)
-                self.assertIn('VOLUME', fulltext_content)
-                self.assertIn('DAY MONTH YEAR', fulltext_content)
-                self.assertIn('1999-99-99', fulltext_content)
-                self.assertIn('CONTENT', fulltext_content)
-                self.assertIn('TITLE', fulltext_content)
-                self.assertIn('GIVEN NAME', fulltext_content)
-                self.assertIn('SURNAME', fulltext_content)
-                self.assertIn('COPYRIGHT', fulltext_content)
-                self.assertIn('EMAIL@EMAIL.COM', fulltext_content)
-                self.assertIn('AFFILIATION', fulltext_content)
-                self.assertIn('AUTHOR', fulltext_content)
-                self.assertIn('KEYWORD', fulltext_content)
+                self.assertEqual(fulltext_content,
+                                 '\n\napplication/xml\nJOURNAL TITLE\nCREATOR\n\n\nSUBJECT\n\nDESCRIPTION\nJOURNAL\nNAME\nCOPYRIGHT\nPUBLISHER\n9999-9999\nVOLUME\nDAY MONTH YEAR\n1999-99-99\n999-999\n999\n999\n99.9999/9.99999.9999.99.999\nhttp://dx.doi.org/99.9999/9.99999.9999.99.999\ndoi:99.9999/9.99999.9999.99.999\n\n\nJournals\nS300.1\n\n\n\nJOURNAL\n999999\n99999-9999(99)99999-9\n99.9999/9.99999.9999.99.999\nCOPYRIGHT\n\n\n\nFig.1\n\n\n CONTENT\n \n\n\n\n\n\nTITLE\n\n\nGIVEN NAME\nSURNAME\n\na\n\n\n#x204e;\n\nEMAIL@EMAIL.COM\n\na\nAFFILIATION\n#x204e;\nAUTHOR\n\n\n\n\n\n\nAbstract\nABSTRACT\n\n\n\nHighlights\n\nHIGHLIGHTS\n\n\nKeywords\n\nKEYWORD\n\n\n\n\n1\nIntroduction\nJOURNAL CONTENT\n\n\n\nAcknowledgments\nTHANK YOU\n\n\nAppendix A\nAPPENDIX TITLE\nAPPENDIX\n\n\n\n\n\nReferences\n\nAUTHOR et al., 1999\n\n\n\n\nGIVEN NAME\nSURNAME\n\n\n\nTITLE\n\n\n\n\n\n\nTITLE\n \n\nVOLUME\n\nYEAR\n\n\n99\n99\n\n\n\n\n\n\n\n\n\n')
 
             acknowledgments_path = os.path.join(path, 'acknowledgements.txt')
             self.assertTrue(
@@ -148,8 +131,8 @@ class TestExtraAcknowledgment(test_base.TestGeneric):
             if os.path.exists(acknowledgments_path):
                 with open(acknowledgments_path, 'r') as acknowledgments_file:
                     acknowledgements_content = acknowledgments_file.read()
-                self.assertIn('Acknowledgments', acknowledgements_content)
-                self.assertIn('THANK YOU', acknowledgements_content)
+                self.assertEqual(acknowledgements_content,
+                                 "\nAcknowledgments\nTHANK YOU\n")
 
 
 
