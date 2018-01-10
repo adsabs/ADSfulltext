@@ -173,6 +173,9 @@ class TestUnit(unittest.TestCase):
         self.test_stub_teixml = \
             os.path.join(PROJ_HOME,
                          'tests/test_unit/stub_data/test.astro-ph-0002105.tei.xml')
+        self.test_stub_iso8859 = \
+            os.path.join(PROJ_HOME,
+                         'tests/test_unit/stub_data/test.stmp_2_1_014010.iop.xml')
         self.test_stub_html = \
             os.path.join(PROJ_HOME,
                          'tests/test_unit/stub_data/test.html')

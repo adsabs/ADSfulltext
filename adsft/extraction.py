@@ -30,6 +30,7 @@ import re
 import traceback
 import unicodedata
 from lxml.html import soupparser, document_fromstring, fromstring
+from lxml.etree import tostring
 from adsft import entitydefs as edef
 from adsft.rules import META_CONTENT
 from requests.exceptions import HTTPError
@@ -373,9 +374,13 @@ class StandardExtractorXML(object):
 
     def open_xml(self):
         """
-        Opens the XML file and encodes it into UTF-8. Removes some text that
-        has no relevance for XML files, such as HTML tags.
+        Opens the XML file and reads raw string, uses soupparse to encode.
 
+        Removes some text that has no relevance for XML files, such as HTML tags, LaTeX entities
+
+        Note that soupparser.fromstring is called by both open_xml and parse_xml.  
+        open_xml uses soupparser.fromstring because the html and LaTex cleanup needs a string, not a parse tree
+        
         :return: semi-parsed XML content
         """
         raw_xml = None
@@ -383,16 +388,21 @@ class StandardExtractorXML(object):
         try:
             logger.debug('Opening the file: {0}'.format(self.file_input))
 
-            import codecs
+            with open(self.file_input, 'rb') as fp:
+                raw_xml = fp.read()
 
-            with codecs.open(self.file_input, 'r', encoding='utf-8') as f:
-                raw_xml = f.read()
-
-            logger.debug('reading')
-            logger.debug('Opened file, trying to massage the input.')
+            # use soupparser to properly encode file contents
+            #  it could be utf-8, iso-8859, etc.
+            parsed_content = soupparser.fromstring(raw_xml)
+            # convert to string for ease of clean-up, convert html and LaTeX entities
+            raw_xml = tostring(parsed_content)
             raw_xml = re.sub('(<!-- body|endbody -->)', '', raw_xml)
             raw_xml = edef.convertentities(raw_xml)
             raw_xml = re.sub('<\?CDATA.+?\?>', '', raw_xml)
+
+            logger.debug('reading')
+            logger.debug('Opened file, trying to massage the input.')
+
             logger.debug('XML file opened successfully')
             self.raw_xml = raw_xml
 
@@ -404,7 +414,7 @@ class StandardExtractorXML(object):
 
     def parse_xml(self):
         """
-        Parses the opened XML file. Removes inline formula from each XML node.
+        Parses the encoded string read from the opened XML file. Removes inline formula from each XML node.
 
         :return: parsed XML file
         """

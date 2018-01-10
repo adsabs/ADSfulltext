@@ -58,6 +58,23 @@ class TestXMLExtractor(test_base.TestUnit):
         self.assertEqual(journal_title, 'JOURNAL TITLE')
 
 
+    def test_iso_8859_1_xml(self):
+        """
+        Test that we properly read iso 8859 formatted file. 
+        Since we are not reading the default file we must recreate the extractor object.
+
+        :return: no return
+        """
+
+        self.dict_item['ft_source'] = self.test_stub_iso8859
+        self.extractor = extraction.EXTRACTOR_FACTORY['xml'](self.dict_item)
+        full_text_content = self.extractor.open_xml()
+        content = self.extractor.parse_xml()
+        article_number = content.xpath('//article-number')[0].text_content()
+
+        self.assertEqual(article_number, '483879')
+
+
     def test_that_we_can_extract_using_settings_template(self):
         """
         Tests the extract_multi_content method. This checks that all the meta
@@ -361,7 +378,7 @@ class TestXMLElsevierExtractor(test_base.TestUnit):
         expected_full_text = 'CONTENT'
         self.assertTrue(
             expected_full_text in full_text,
-            'Full text is wrong: {0} [expected: {1}, data: {2}]'
+            u'Full text is wrong: {0} [expected: {1}, data: {2}]'
             .format(full_text,
                     expected_full_text,
                     full_text)

@@ -1,0 +1,628 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE article SYSTEM "http://ej.iop.org/dtd/iopv1_8.dtd">
+<article artid="stmp483879">
+<article-metadata>
+<jnl-data jnlid="stmp">
+<jnl-fullname>Surface Topography: Metrology and Properties</jnl-fullname>
+<jnl-abbreviation>Surf. Topogr.: Metrol. Prop.</jnl-abbreviation>
+<jnl-shortname>STMP</jnl-shortname>
+<jnl-issn>2051-672X</jnl-issn>
+<jnl-coden>STMPCW</jnl-coden>
+<jnl-imprint>IOP Publishing</jnl-imprint>
+<jnl-web-address>stacks.iop.org/STMP</jnl-web-address>
+</jnl-data>
+<volume-data>
+<year-publication>2014</year-publication>
+<volume-number>2</volume-number>
+</volume-data>
+<issue-data>
+<issue-number>1</issue-number>
+<coverdate>January 2014</coverdate>
+</issue-data>
+<article-data>
+<article-type type="paper" sort="regular">Paper</article-type>
+<type-number artnum="014010" numbering="article" type="paper">014010</type-number>
+<article-number>483879</article-number>
+<first-page>1</first-page>
+<last-page>9</last-page>
+<length>9</length>
+<pii/>
+<doi>10.1088/2051-672X/2/1/014010</doi>
+<copyright>2014 IOP Publishing Ltd</copyright>
+<ccc>2051-672X/14/014010+09$33.00</ccc>
+<printed></printed>
+<features colour="global" suppdata="no"/>
+</article-data>
+</article-metadata>
+<header>
+<title-group>
+<title>Spatial content analysis for precision surfaces with the area structure function</title>
+<short-title>Spatial content analysis for precision surfaces with the area structure function</short-title>
+<ej-title>Spatial content analysis for precision surfaces with the area structure function</ej-title>
+</title-group>
+<author-group>
+<author address="stmp483879ad1" email="stmp483879ea1">
+<first-names>Liangyu</first-names>
+<second-name>He</second-name>
+</author>
+<author address="stmp483879ad1">
+<first-names>Chris J</first-names>
+<second-name>Evans</second-name>
+</author>
+<author address="stmp483879ad2">
+<first-names>Angela</first-names>
+<second-name>Davies</second-name>
+</author>
+<short-author-list>L He <italic>et al</italic></short-author-list>
+</author-group>
+<address-group>
+<address id="stmp483879ad1" showid="yes">Department of Mechanical Engineering and Engineering Science, UNC Charlotte, 9201 <orgname>University City Boulevard</orgname>, Charlotte, NC 28223, <country>USA</country></address>
+<address id="stmp483879ad2" showid="yes">Department of Physics and Optical Science, UNC Charlotte, 9201 <orgname>University City Boulevard</orgname>, Charlotte, NC 28223, <country>USA</country></address>
+<e-address id="stmp483879ea1">
+<email mailto="Liangyu.he@gmail.com">Liangyu.he@gmail.com</email>
+</e-address>
+</address-group>
+<history received="15 August 2013" accepted="2 December 2013" online="30 December 2013" revised="29 November 2013"/>
+<abstract-group>
+<abstract>
+<heading>Abstract</heading>
+<p indent="no">Structure function (SF) is the average height difference squared as a function of separation, which can represent the spatial content of precision surfaces. Linear SF has been applied in astronomy to area data and it captures data of all spatial content. However, it loses the information on anisotropy. The recently introduced two-quadrant area SF characterizes surfaces of arbitrary aperture over any chosen dynamic range while retaining anisotropic information. This paper discusses some computational issues of the SF, analyses the SF for surfaces described by a combination of Zernike polynomial terms and presents an example of its application to a diamond turned surface.</p>
+</abstract>
+</abstract-group>
+<classifications>
+<keywords>
+<keyword>metrology</keyword>
+<keyword>precision surface</keyword>
+<keyword>spatial content</keyword>
+<keyword>area structure function</keyword>
+</keywords>
+</classifications>
+</header>
+<body>
+<sec-level1 id="stmp483879s1" label="1">
+
+<heading>Introduction</heading>
+<p indent="no">Engineers and scientists have expended much energy in recent decades trying to close the loop between surface specification, measurement and functional performance (see e.g. [<cite linkend="stmp483879bib01">1</cite>, <cite linkend="stmp483879bib02">2</cite>]). Generally, the easily calculated amplitude parameters (such as Ra or PV) are insufficient and a more complex characterization of the surface is required. Methods such as fractal and scale-sensitive analysis, slopes and asperity radius have been applied in different circumstances. In optics, in particular, a linear power spectral density (PSD) function has been used. Its relationship to functional performance was graphically captured by Harvey and Kotha [<cite linkend="stmp483879bib03">3</cite>], who showed the optical consequences of different spatial frequencies (figure <figref linkend="stmp483879fig1">1</figref>). The PSD has been used in characterization and specification [<cite linkend="stmp483879bib04">4</cite>] of x-ray optics, neutrons and other advanced optics, as well as in the characterization of machined surfaces. However, PSDs cannot be used to characterize all of the components of the surface error. Specifically, errors with surface wavelengths of three cycles per aperture or longer must be treated separately. Only profiles or rectangular areas can be analysed. In addition, the reported PSD is sensitive to computational details, such as windowing and zero padding.</p>
+<p><figure id="stmp483879fig1" position="float"><graphic><graphic-file filename="stmp483879f1_pr.eps" format="EPS" version="print"/><graphic-file filename="stmp483879f1_online.jpg" format="JPEG" version="ej"/></graphic><caption id="stmp483879fc1" label="Figure 1"><p indent="no">The effect of different spatial frequencies on the point spread function (PSF) (after [<cite linkend="stmp483879bib03">3</cite>]).</p></caption></figure></p>
+<p>The structure function (SF) has been used in surface metrology since the 1970s [<cite linkend="stmp483879bib05">5</cite>, <cite linkend="stmp483879bib06">6</cite>], although not extensively, and in astronomy to specify the surface of large optics [<cite linkend="stmp483879bib07">7</cite>]. The SF, which is the squared expectation of height difference as a function of separation, has some advantages when compared with other spatial representations. Section <secref linkend="stmp483879s2">2</secref> of this paper briefly introduces the definition and calculation of linear SF and two-quadrant area structure function (ASF). Section <secref linkend="stmp483879s3">3</secref> discusses the sampling issues associated with the calculation of the SF for discrete data, based on simulations of the linear SF, for simplicity. Section <secref linkend="stmp483879s4">4</secref> investigates the SF for surfaces that are described as a combination of Zernike polynomial terms. Section <secref linkend="stmp483879s5">5</secref> analyzes the SF of periodic errors. Section <secref linkend="stmp483879s6">6</secref> presents an example of a diamond turned surface. Finally, section <secref linkend="stmp483879s7">7</secref> briefly describes the challenge of the combination of ASFs based on multi-instrument measurements.</p>
+</sec-level1>
+<sec-level1 id="stmp483879s2" label="2">
+
+<heading>Structure functions</heading>
+<sec-level2 id="stmp483879s2-1" label="2.1">
+
+<heading>Linear SF</heading>
+<p indent="no">Linear SF can be computed for profile or area data, with the loss of any detail of anisotropy information. It is defined as 
+<display-eqn eqnnum="1" id="stmp483879eqn1"><?TeX \begin{equation} {\kern 1pt} {\rm{SF}}(\tau ) = E\left\{ {\left[ {Z(P + \tau ) - Z(P)} \right]^2 } \right\}, \end{equation}?>  <eqn-graphic filename="stmp483879eqn1.gif" format="GIF"/></display-eqn>
+where <italic>E</italic>{} indicates an expectation and <inline-eqn><?TeX ${\kern 1pt} Z(P + \tau )$ ?><inline-graphic filename="stmp483879ieqn1.gif" format="GIF"/></inline-eqn> is the surface error height at a distance <italic>&#964;</italic> from the position <italic>P</italic>.</p>
+<p>Figure <figref linkend="stmp483879fig2">2</figref> schematically shows the calculation of the linear SF using simulated area data. Conceptually, all possible point pairs of separation <italic>&#964;</italic><sub>1</sub><italic/> are selected. The squared height differences for each point pair are calculated and then averaged to obtain SF(<italic>&#964;</italic><sub>1</sub>). This process is repeated for all separations <italic>&#964;</italic>. The SF can be computed over any chosen dynamic range for any aperture shape. Although pre-filtering the surface error map to separate the height errors into different spatial frequency ranges (e.g. form, ripple and roughness) can still be done, it is not necessary.</p>
+<p><figure id="stmp483879fig2" position="float"><graphic><graphic-file filename="stmp483879f2_pr.eps" format="EPS" version="print"/><graphic-file filename="stmp483879f2_online.jpg" format="JPEG" version="ej"/></graphic><caption id="stmp483879fc2" label="Figure 2"><p indent="no">Calculation of linear SF.</p></caption></figure></p>
+</sec-level2>
+<sec-level2 id="stmp483879s2-2" label="2.2">
+
+<heading>Area structure function</heading>
+<p indent="no">The ASF retains information on surface anisotropy. Thomas <italic>et al</italic> (e.g. in [<cite linkend="stmp483879bib08">8</cite>]) have shown ASFs for positive values of separation in <italic>x</italic> and <italic>y</italic> for stationary surfaces. ASF is expressed as 
+<display-eqn eqnnum="2" id="stmp483879eqn2"><?TeX \begin{eqnarray} {\rm{ASF}}(\tau _x ,\tau _y ) &=& \frac{1}{{(m - \tau _x )(n - \tau _y )}}\nonumber\\ &&\times\sum\limits_{i = 1}^{m - \tau _x } {\sum\limits_{j = 1}^{n - \tau _y } {\left\{ {z(i,j) - z(i + \tau _x ,j + \tau _y )} \right\}^2}},\nonumber\\ && 0 \leqslant \tau _x \leqslant m - 1,\quad 0 \leqslant \tau _y \leqslant n - 1, \end{eqnarray}?>  <eqn-graphic filename="stmp483879eqn2.gif" format="GIF"/></display-eqn>
+where there are <italic>m</italic> equally spaced points in the <italic>x</italic> direction and <italic>n</italic> in the <italic>y</italic> direction and <italic>&#964;</italic><sub><italic>x</italic></sub> and <italic>&#964;</italic><sub><italic>y</italic></sub> are integers. The function value, ASF(<italic>&#964;</italic> <sub><italic>x</italic></sub> ,<italic>&#964;</italic> <sub><italic>y</italic></sub> ), is the expectation of the squared height difference of points separated by <italic>&#964;</italic><sub><italic>x</italic></sub> and <italic>&#964;</italic><sub><italic>y</italic></sub>.</p>
+<p>For non-stationary surfaces, which are typical of optical surfaces where form error is present, a second quadrant is required to fully describe the spatial content of the surface and its anisotropy [<cite linkend="stmp483879bib09">9</cite>]. It is worth noting that, for a stationary surface, there is a direct relationship between the SF and the autocorrelation function (ACF), which is not true for non-stationary surfaces [<cite linkend="stmp483879bib10">10</cite>].</p>
+<p>Figures <figref linkend="stmp483879fig3">3</figref>(b) and (c) show two representations of two-quadrant ASFs for the height data in figure <figref linkend="stmp483879fig3">3</figref>(a). In the first quadrant of figure <figref linkend="stmp483879fig3">3</figref>(b), the ASF values are high at the edge (large separation), showing a significant height difference between the upper-right and lower-left edges of the surface. However, for the same separation in the second quadrant, the ASF values are relatively low, indicating a similarity in the surface heights at the upper-left and lower-right [<cite linkend="stmp483879bib09">9</cite>].</p>
+<p><figure id="stmp483879fig3" position="float"><graphic><graphic-file filename="stmp483879f3_pr.eps" format="EPS" version="print"/><graphic-file filename="stmp483879f3_online.jpg" format="JPEG" version="ej"/></graphic><caption id="stmp483879fc3" label="Figure 3"><p indent="no">Area SF: (a) input height map; (b) two-quadrant ASF; and, (c) alternate view of two-quadrant ASF.</p></caption></figure></p>
+<p>The ASF has some advantages when compared to other area representations. For example, the ASF provides better visualization of the surface characteristics than the area ACF because the ACF is strongly dependent on the mean plane and is not intuitive. Furthermore, there are no approximations in the ASF calculation for any arbitrary aperture shape; that is, extra processing is not needed, unlike the area PSD calculation where additional processing such as zero padding, windowing, low-order terms removal and choice of sub-apertures for irregular apertures is needed.</p>
+<p>Another important characteristic about ASFs is that they are not an orthogonal representation of the spatial content of a surface. The ASF of the sum of two surface components (e.g. form and waviness) is not the sum of their ASFs. This must be addressed when extending the dynamic range of an ASF by combining data from more than one instrument [<cite linkend="stmp483879bib11">11</cite>]. Another consequence is that the ASF at any separation depends on the ASF values at other separations. So, for example, the ASF values are large for small separations if a surface has significant form error, whether or not the surface is smooth.</p>
+</sec-level2>
+</sec-level1>
+<sec-level1 id="stmp483879s3" label="3">
+
+<heading>Sampling strategy of the SF calculation</heading>
+<p indent="no">For large numbers of points within the aperture, computational time increases rapidly, so sampling is required.</p>
+<sec-level2 id="stmp483879s3-1" label="3.1">
+
+<heading>Linear SF</heading>
+<sec-level3 id="stmp483879s3-1-1" label="3.1.1">
+
+<heading>Paired sampling.</heading>
+<p indent="no">Paired sampling is easy to compute. As shown is figure <figref linkend="stmp483879fig4">4</figref>(a), the first step is to randomly pick two points within the aperture, compute the distance between these two points for the value of the separation <italic>&#964;</italic> and calculate the squared height difference [<cite linkend="stmp483879bib12">12</cite>]. This process is repeated the number of times required to provide acceptable convergence of the computed linear SF. The SF is computed by binning that data as a function of <italic>&#964;</italic> and calculating the average of the squared height differences for each separation <italic>&#964;</italic>.</p>
+<p><figure id="stmp483879fig4" position="float"><graphic><graphic-file filename="stmp483879f4_pr.eps" format="EPS" version="print"/><graphic-file filename="stmp483879f4_online.jpg" format="JPEG" version="ej"/></graphic><caption id="stmp483879fc4" label="Figure 4"><p indent="no">Sampling strategies: (a) paired sampling; (b) pure sampling; and (c) sliding sampling.</p></caption></figure></p>
+</sec-level3>
+<sec-level3 id="stmp483879s3-1-2" label="3.1.2">
+
+<heading>Pure sampling.</heading>
+<p indent="no">Here the process is to randomly pick <italic>N</italic> points (choosing <italic>N</italic> for adequate convergence) within the aperture, calculate the height differences over all pairs of points, bin separations according to the required resolution, average the height differences along with the corresponding separation <italic>&#964;</italic> and finally plot the linear SF. Figure <figref linkend="stmp483879fig4">4</figref>(b) shows an example with <italic>N</italic> = 5.</p>
+</sec-level3>
+<sec-level3 id="stmp483879s3-1-3" label="3.1.3">
+
+<heading>Sliding sampling.</heading>
+<p indent="no">The sliding sampling we developed [<cite linkend="stmp483879bib09">9</cite>] is shown in figure <figref linkend="stmp483879fig4">4</figref>(c). Here, the process is to duplicate the height map, randomly offset it with the separation vector <bold>v</bold>, pick points in the overlap region, calculate the squared height difference between the two maps at these points, repeat for different vectors <bold>v</bold>, bin the magnitudes of the vectors according to the required resolution of separations and finally average the squared height differences with related separation to obtain the linear SF.</p>
+</sec-level3>
+<sec-level3 id="stmp483879s3-1-4" label="3.1.4">
+
+<heading>Comparison.</heading>
+<p indent="no">In order to investigate the accuracy and speed of the sampling strategies, these three methods were respectively applied to the same height data (figure <figref linkend="stmp483879fig2">2</figref>). For a single calculation of the SF, the computational time of each sampling method was set to be identical. Then, the SFs were calculated 100 times for each sampling method. Figure <figref linkend="stmp483879fig5">5</figref>(a) shows the difference between the true value given by the full-data calculation and the mean value of 100 sampled SFs. Most of the differences of paired sampling and sliding sampling are limited to ±2 × 10<sup>&#8722;3</sup>&#8201;<italic>&#956;</italic>m<sup>2</sup> (the range of the true SF values is from 0 to 0.607 <italic>&#956;</italic>m<sup>2</sup>), while the differences of pure sampling are greater; that is, paired sampling and sliding sampling are more accurate than pure sampling. Moreover, as figure <figref linkend="stmp483879fig5">5</figref>(b) shows, the sliding sampling has the lowest standard deviation of 100 calculations.</p>
+<p><figure id="stmp483879fig5" position="float"><graphic><graphic-file filename="stmp483879f5_pr.eps" format="EPS" version="print"/><graphic-file filename="stmp483879f5_online.jpg" format="JPEG" version="ej"/></graphic><caption id="stmp483879fc5" label="Figure 5"><p indent="no">Comparison of sampling strategies: (a) difference between the true value and the mean value of 100 sampled SFs; and (b) standard deviation of each sampling strategy.</p></caption></figure></p>
+<p>In brief, the sliding sampling has the highest accuracy at the same computational time. In other words, sliding sampling is the fastest method to achieve the same accuracy when compared to the other two sampling methods. The reason is that all the points in the overlap region are related to only one separation when sliding the duplicated map, so it is unnecessary to calculate each separation of the point pairs. Calculation using all points with the sliding method is faster than paired and pure sampling when the number of sampled points is large. Under the same condition, the sliding calculation with all points can be faster than the sliding sampling calculation because the selection of random points takes increasingly more time as the sampling rate is increased. Consequently, there is a threshold point at which it is faster to calculate all points than to sample.</p>
+</sec-level3>
+</sec-level2>
+<sec-level2 id="stmp483879s3-2" label="3.2">
+
+<heading>Area structure function</heading>
+<p indent="no">As with the linear SF, sliding sampling is used for the ASF calculation with reasonable accuracy and speed. During the sliding of the duplicated height map, the direction and magnitude gives the ASF, which is defined at all separation (<italic>&#964;</italic><sub><italic>x</italic></sub>,<italic>&#964;</italic><sub><italic>y</italic></sub>).</p>
+</sec-level2>
+</sec-level1>
+<sec-level1 id="stmp483879s4" label="4">
+
+<heading>SF of combinations of Zernikes</heading>
+<p indent="no">Zernike polynomials are commonly used to characterize and visualize surface errors [<cite linkend="stmp483879bib13">13</cite>] over circular apertures on optical surfaces, and they are also used for the specification and tolerancing for many optics. They are a sequence of polynomials that are orthogonal over the interior of the unit disc [<cite linkend="stmp483879bib14">14</cite>], which can be expressed as 
+<display-eqn eqnnum="3" id="stmp483879eqn3"><?TeX \begin{equation} Z_n^m (\rho ,\theta ) = R_n^m (\rho )\cos (m\theta ), \end{equation}?>  <eqn-graphic filename="stmp483879eqn3.gif" format="GIF"/></display-eqn>
+<display-eqn eqnnum="4" id="stmp483879eqn4"><?TeX \begin{equation} Z_n^{ - m} (\rho ,\theta ) = R_n^m (\rho )\sin (m\theta ), \end{equation}?>  <eqn-graphic filename="stmp483879eqn4.gif" format="GIF"/></display-eqn>
+for the sine&#8211;cosine pairs of non-rotationally symmetric terms and for the rotationally symmetric terms 
+<display-eqn eqnnum="5" id="stmp483879eqn5"><?TeX \begin{equation} Z_n^0 (\rho ,\theta ) = R_n^0 (\rho ), \end{equation}?>  <eqn-graphic filename="stmp483879eqn5.gif" format="GIF"/></display-eqn>
+where <italic>n</italic> and <italic>m</italic> are non-negative integers (<italic>n </italic> &#8722; <italic> m </italic> &#10878;  0 and even). The index <italic>n</italic> is the radial degree or the order of the polynomial because it indicates the highest power of <italic>&#961;</italic> in the polynomial [<cite linkend="stmp483879bib15">15</cite>] while <italic>m</italic> is related the azimuthal frequency. <italic>&#961;</italic> is the radial distance (0 &#10877; <italic>&#961;</italic> &#10877; 1) and <italic>&#952;</italic> is the azimuthal angle between 0 and 2<italic>&#960;</italic> radians.</p>
+<p>It is useful to explore the total SF for a surface described by Zernike polynomials. Note, for example, that the Thirty Meter Telescope (TMT) [<cite linkend="stmp483879bib07">7</cite>] optical specification uses a SF but allows for removal of specified amounts of power, coma and astigmatism, etc (which are defined as combinations of Zernikes). Burge <italic>et al</italic> have investigated this topic [<cite linkend="stmp483879bib16">16</cite>] (<webref url="http://www.loft.optics.arizona.edu/">www.loft.optics.arizona.edu/</webref>), and their analysis is updated here and extended to the ASF.</p>
+<p>Assuming a surface is comprised of two different Zernike polynomials 
+<display-eqn eqnnum="6" id="stmp483879eqn6"><?TeX \begin{equation} {\kern 1pt} Z(P) = Z_1 (P) + Z_2 (P), \end{equation}?>  <eqn-graphic filename="stmp483879eqn6.gif" format="GIF"/></display-eqn>
+then, the linear SF is 
+<display-eqn eqnnum="7" id="stmp483879eqn7"><?TeX \begin{eqnarray} {\kern 1pt} S(\tau ) & = & E\left\{ {\left[ {Z(P + \tau ) - Z(P)} \right]^2 } \right\} \nonumber\\ & = & E\left\{ {[Z_1 (P + \tau ) - Z_1 (P)]^2 } \right\}\nonumber\\ && + E\left\{ {[Z_2 (P + \tau ) - Z_2 (P)]^2 } \right\}\nonumber\\ &&{\rm{ + }}2E\left\{ {[Z_1 (P + \tau ) - Z_1 (P)][Z_2 (P + \tau ) - Z_2 (P)]} \right\} \nonumber\\ & = & S_1 (\tau ) + S_2 (\tau ) + 2E\left\{ {Z_1 (P)Z_2 (P)} \right\} \nonumber\\&&+ 2E\left\{ {Z_1 (P + \tau )Z_2 (P + \tau )} \right\} - 2E\left\{ {Z_1 (P)Z_2 (P + \tau )} \right\}\nonumber\\&& - 2E\left\{ {Z_1 (P + \tau )Z_2 (P)} \right\}, \end{eqnarray}?> <eqn-graphic filename="stmp483879eqn7.gif" format="GIF"/></display-eqn>
+where <italic>E</italic>{} indicates an expectation and <inline-eqn><?TeX ${\kern 1pt} Z(P + \tau )$ ?><inline-graphic filename="stmp483879ieqn2.gif" format="GIF"/></inline-eqn> is the surface height at a distance <italic>&#964;</italic> from the position <italic>P</italic>.</p>
+<p>Because of the orthogonality of the Zernike polynomials (i.e. the integral of the product of two different Zernike polynomials is equal to zero) it is clear that 
+<display-eqn eqnnum="8" id="stmp483879eqn8"><?TeX \begin{equation} E\left\{ {Z_1 (P)Z_2 (P)} \right\} = E\left\{ {Z_1 (P + \tau )Z_2 (P + \tau )} \right\} = 0. \end{equation}?>  <eqn-graphic filename="stmp483879eqn8.gif" format="GIF"/></display-eqn>
+For <inline-eqn><?TeX $E\left\{ {Z_1 (P)Z_2 (P + \tau )} \right\}$ ?><inline-graphic filename="stmp483879ieqn3.gif" format="GIF"/></inline-eqn> and <inline-eqn><?TeX $E\left\{ {Z_1 (P + \tau )Z_2 (P)} \right\}$ ?><inline-graphic filename="stmp483879ieqn4.gif" format="GIF"/></inline-eqn>, the radial part is not equal to zero. However, since the angular part is the integral of two trigonometric functions (sine or cosine function) from 0 to<inline-eqn><?TeX ${\kern 1pt} 2\pi$ ?><inline-graphic filename="stmp483879ieqn5.gif" format="GIF"/></inline-eqn>, it is equal to zero when the related Zernike azimuthal frequencies <italic>m</italic><sub>1</sub> and <italic>m</italic><sub>2</sub> are different.</p>
+<p>Thus, the product of the radial part and angular part is equal to zero when <inline-eqn><?TeX $m_1 \ne m_2$ ?><inline-graphic filename="stmp483879ieqn6.gif" format="GIF"/></inline-eqn>. In other words, the term <inline-eqn><?TeX $E\left\{ {Z_1 (P)Z_2 (P + \tau )} \right\}$ ?><inline-graphic filename="stmp483879ieqn7.gif" format="GIF"/></inline-eqn> and <inline-eqn><?TeX $E\left\{ {Z_1 (P + \tau )Z_2 (P)} \right\}$ ?><inline-graphic filename="stmp483879ieqn8.gif" format="GIF"/></inline-eqn> are equal to zero when <inline-eqn><?TeX $m_1 \ne m_2$ ?><inline-graphic filename="stmp483879ieqn9.gif" format="GIF"/></inline-eqn>. In this case, the total linear SF is the sum of the individual linear SFs of the Zernike polynomials with different azimuthal frequencies 
+<display-eqn eqnnum="9" id="stmp483879eqn9"><?TeX \begin{equation} {\kern 1pt} S(\tau ) = S_1 (\tau ) + S_2 (\tau ). \end{equation}?>  <eqn-graphic filename="stmp483879eqn9.gif" format="GIF"/></display-eqn>
+If the Zernike polynomials are scaled by some factor, for example, <inline-eqn><?TeX ${\kern 1pt} Z_{{\rm{total}}} (P) = cZ(P)$ ?><inline-graphic filename="stmp483879ieqn10.gif" format="GIF"/></inline-eqn>, then the SF can be described as 
+<display-eqn eqnnum="10" id="stmp483879eqn10"><?TeX \begin{equation} {\kern 1pt} S_{{\rm{total}}} (\tau ) = E\left\{ {\left[ {cZ(P + \tau ) - cZ(P)} \right]^2 } \right\} = c^2 S(\tau ). \end{equation}?>  <eqn-graphic filename="stmp483879eqn10.gif" format="GIF"/></display-eqn>
+In conclusion, if the total Zernike surface is 
+<display-eqn eqnnum="11" id="stmp483879eqn11"><?TeX \begin{equation} {\kern 1pt} Z(P) = c_1 Z_1 (P) + c_2 Z_2 (P) + c_3 Z_3 (P){\rm{ + }} \cdots {\rm{,}} \end{equation}?>  <eqn-graphic filename="stmp483879eqn11.gif" format="GIF"/></display-eqn>
+where each Zernike polynomial has a different azimuthal frequency, then the total linear SF is 
+<display-eqn eqnnum="12" id="stmp483879eqn12"><?TeX \begin{equation} {\kern 1pt} S(\tau ) = c_1^2 S_1 (\tau ) + c_2^2 S_2 (\tau ) + c_3^2 S_3 (\tau ) + \cdots . \end{equation}?>  <eqn-graphic filename="stmp483879eqn12.gif" format="GIF"/></display-eqn>
+In contrast to the linear SF, each area SF <inline-eqn><?TeX ${\kern 1pt} {\rm{ASF}}(\tau _x ,\tau _y )$ ?><inline-graphic filename="stmp483879ieqn11.gif" format="GIF"/></inline-eqn> corresponds to only one direction <inline-eqn><?TeX ${\kern 1pt} \theta = \tan ^{ - 1} ( {\frac{{\tau _y }}{{\tau _x }}} )$ ?><inline-graphic filename="stmp483879ieqn12.gif" format="GIF"/></inline-eqn>. Therefore, the integral from 0 to <inline-eqn><?TeX ${\kern 1pt} 2\pi$ ?><inline-graphic filename="stmp483879ieqn13.gif" format="GIF"/></inline-eqn> is not applied, which means the cross terms in equation (<eqnref linkend="stmp483879eqn7">7</eqnref>) cannot be cancelled. In short, even if the Zernike terms have different azimuthal frequencies, the ASF of the total Zernike terms may not equal to the sum of the individual ASFs of the Zernike terms.</p>
+<p>Figure <figref linkend="stmp483879fig6">6</figref> gives a demonstration for the ASF. Figure <figref linkend="stmp483879fig6">6</figref>(a) is the total ASF of combined Zernikes with different azimuthal frequencies (<italic>Z</italic>(2,2) + <italic>Z</italic>(4,4)), and figure <figref linkend="stmp483879fig6">6</figref>(b) is the sum of the two individual ASFs of the two Zernikes. As figure <figref linkend="stmp483879fig6">6</figref>(c) shows, the difference between figure <figref linkend="stmp483879fig6">6</figref>(a) and figure <figref linkend="stmp483879fig6">6</figref>(b) is significant.</p>
+<p><figure id="stmp483879fig6" position="float"><graphic><graphic-file filename="stmp483879f6_pr.eps" format="EPS" version="print"/><graphic-file filename="stmp483879f6_online.jpg" format="JPEG" version="ej"/></graphic><caption id="stmp483879fc6" label="Figure 6"><p indent="no">ASF of the combined Zernikes: (a) total ASF of combined Zernikes; (b) sum of two individual ASFs of the Zernikes; and (c) is the difference between (a) and (b).</p></caption></figure></p>
+<p>However, as figure <figref linkend="stmp483879fig6">6</figref>(c) shows, if we integrate the ASF along the same radius <italic>&#964;</italic><italic>,</italic> then the average SF will be zero. In other words, the deviation of the linear SF for each radius <italic>&#964;</italic> is zero, which is consistent with the result for the total linear SF in equation (<eqnref linkend="stmp483879eqn9">9</eqnref>).</p>
+<p>For a better demonstration, both the total linear SF and sum of the individual linear SFs have been calculated in this case. They are identical and shown in figure <figref linkend="stmp483879fig7">7</figref>(b).</p>
+<p><figure id="stmp483879fig7" position="float"><graphic><graphic-file filename="stmp483879f7_pr.eps" format="EPS" version="print"/><graphic-file filename="stmp483879f7_online.jpg" format="JPEG" version="ej"/></graphic><caption id="stmp483879fc7" label="Figure 7"><p indent="no">Linear SF of the combined Zernikes: (a) combination of Zernikes (<italic>Z</italic>(2,2) + <italic>Z</italic>(4,4)); and (b) total linear SF or sum of the individual linear SFs.</p></caption></figure></p>
+</sec-level1>
+<sec-level1 id="stmp483879s5" label="5">
+
+<heading>Periodic surface errors</heading>
+<p indent="no">In modern precision surface fabrication, a variety of processes can lead to periodic surface errors. For example, in single point diamond turning or small tool polishing, slideway error motions and misalignment, tool wear and vibrations can all generate periodic errors over a broad range of frequencies. The SF of a periodic surface is also periodic, although not exactly so for sampled data. Maxima and minima occur in the SF at harmonics of the periodic length scale. This effect can easily be seen in the SF calculations of a simulated height data that is sinusoidal.</p>
+<sec-level2 id="stmp483879s5-1" label="5.1">
+
+<heading>Sinusoidal profile</heading>
+<p indent="no">Figure <figref linkend="stmp483879fig8">8</figref>(a) shows one-dimensional (1D) simulated height data that is a sinusoidal function with a spatial wavelength of 10&#8201;000 pixels, and figure <figref linkend="stmp483879fig8">8</figref>(b) shows the calculated linear SF.</p>
+<p><figure id="stmp483879fig8" position="float"><graphic><graphic-file filename="stmp483879f8_pr.eps" format="EPS" version="print"/><graphic-file filename="stmp483879f8_online.jpg" format="JPEG" version="ej"/></graphic><caption id="stmp483879fc8" label="Figure 8"><p indent="no">Linear SF for 1D sinusoidal height data: (a) simulated 1D sinusoidal height data; and (b) linear SF of the simulated data.</p></caption></figure></p>
+<p>Because the SF is the average of the squared height differences, the periodic maximum SF values are close to the separation values with the maximum height differences (table <tabref linkend="stmp483879t1">1</tabref>). The maxima are not exactly separated by the spatial length scale because of finite sampling and averaging effects. The periodic minimum SF values are, however, exactly separated by the spatial wavelength because SF values are identically zero when the separation is exactly an integral multiple of the wavelength.</p>
+<p indent="no"><table id="stmp483879t1"><caption id="stmp483879tc1" type="table" label="Table 1"><p indent="no">Parameters of the linear SF in figure <figref linkend="stmp483879fig8">8</figref>.</p></caption><tgroup cols="11"><colspec colnum="1" colname="col1" align="left"/><colspec colnum="2" colname="col2" align="center"/><colspec colnum="3" colname="col3" align="center"/><colspec colnum="4" colname="col4" align="center"/><colspec colnum="5" colname="col5" align="center"/><colspec colnum="6" colname="col6" align="center"/><colspec colnum="7" colname="col7" align="center"/><colspec colnum="8" colname="col8" align="center"/><colspec colnum="9" colname="col9" align="center"/><colspec colnum="10" colname="col10" align="center"/><colspec colnum="11" colname="col11" align="center"/>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<thead>
+<row><entry/><entry>1</entry><entry>2</entry><entry>3</entry><entry>4</entry><entry>5</entry><entry>6</entry><entry>7</entry><entry>8</entry><entry>9</entry><entry>10</entry></row></thead>
+<tbody>
+<row><entry><italic>&#955;</italic>&#8201;(nm)</entry><entry>10&#8201;007</entry><entry>10&#8201;008</entry><entry>10&#8201;010</entry><entry>10&#8201;014</entry><entry>10&#8201;021</entry><entry>10&#8201;032</entry><entry>10&#8201;057</entry><entry>10&#8201;135</entry><entry>10&#8201;662</entry><entry/></row>
+<row><entry><italic>w</italic> (nm)</entry><entry>10&#8201;000</entry><entry>10&#8201;000</entry><entry>10&#8201;000</entry><entry>10&#8201;000</entry><entry>10&#8201;000</entry><entry>10&#8201;000</entry><entry>10&#8201;000</entry><entry>10&#8201;000</entry><entry>10&#8201;000</entry><entry>10&#8201;000</entry></row>
+<row><entry>SF (nm<sup>2</sup>)</entry><entry>2.0006</entry><entry>2.0007</entry><entry>2.0009</entry><entry>2.0012</entry><entry>2.0017</entry><entry>2.0025</entry><entry>2.0041</entry><entry>2.0081</entry><entry>2.0228</entry><entry>2.2321</entry></row>
+</tbody>
+</tgroup></table></p>
+<p>If the spatial wavelength is calculated from the periodic minimum SF values, it is clear that the SF oscillates with the same spatial frequency as the raw data. This can be useful for extracting the average periodic length scale on a surface.</p>
+<p>Since the SF is not an orthogonal representation of the spatial content of a surface, some computational issues should be taken into consideration. For example, in figure <figref linkend="stmp483879fig9">9</figref>, after combining another low-frequency sinusoidal profile (wavelength = 30&#8201;000 pixels, amplitude = 0.2 nm, initial phase = 2/3 <italic>&#960;</italic>) to the sinusoidal profile in figure <figref linkend="stmp483879fig8">8</figref>(a), the SF shows that even the wavelengths calculated from the periodic minimum SF values are not exactly the same. In such cases, the average high-frequency periodic length scale is best calculated by first removing the low frequency component (e.g. form) from the surface height data before calculating the SF.</p>
+<p><figure id="stmp483879fig9" position="float"><graphic><graphic-file filename="stmp483879f9_pr.eps" format="EPS" version="print"/><graphic-file filename="stmp483879f9_online.jpg" format="JPEG" version="ej"/></graphic><caption id="stmp483879fc9" label="Figure 9"><p indent="no">Linear SF for 1D combined sinusoidal height data: (a) 1D combined sinusoidal height data; and (b) linear SF of the height data.</p></caption></figure></p>
+</sec-level2>
+<sec-level2 id="stmp483879s5-2" label="5.2">
+
+<heading>Sinusoidal surface</heading>
+<p indent="no">Figure <figref linkend="stmp483879fig10">10</figref> shows the SFs of a linear sinusoidal surface. Note that the linear SF in figure <figref linkend="stmp483879fig10">10</figref>(b) contains significant noise when the separation is greater than 200 pixels because the number of points available to calculate the average SF value at these large separations decreases. Unlike the profile data, the linear SF maxima values, based on the areal data, gradually decrease because of the averaging in different directions of the surface. In contrast, the ASF in figure <figref linkend="stmp483879fig10">10</figref>(c) is not impacted by this effect because the directional information is not averaged&#8212;the ASF includes spatial frequency data in all directions.</p>
+<p><figure id="stmp483879fig10" position="float"><graphic><graphic-file filename="stmp483879f10_pr.eps" format="EPS" version="print"/><graphic-file filename="stmp483879f10_online.jpg" format="JPEG" version="ej"/></graphic><caption id="stmp483879fc10" label="Figure 10"><p indent="no">SFs for 2D linear sinusoidal height data: (a) simulated 2D linear sinusoidal height data; (b) linear SF of the simulated data; and (c) ASF of the simulated data.</p></caption></figure></p>
+<p>Figure <figref linkend="stmp483879fig11">11</figref> shows the SFs of a simulated radial sinusoidal surface. Similar to figure <figref linkend="stmp483879fig10">10</figref>(b), the maxima SF values also change with the separation values. With a round aperture, the linear SF is only calculated for separations less than 200 pixels, so the noise impact of few points at very large separations seen in figure <figref linkend="stmp483879fig10">10</figref>(b) is not present.</p>
+<p><figure id="stmp483879fig11" position="float"><graphic><graphic-file filename="stmp483879f11_pr.eps" format="EPS" version="print"/><graphic-file filename="stmp483879f11_online.jpg" format="JPEG" version="ej"/></graphic><caption id="stmp483879fc11" label="Figure 11"><p indent="no">SFs for 2D radial sinusoidal height data: (a) simulated 2D radial sinusoidal height data; (b) linear SF of the simulated data; and (c) ASF of the simulated data.</p></caption></figure></p>
+<p>The ripple of the ASF in figure <figref linkend="stmp483879fig11">11</figref>(c) is rotationally invariant; that is, the SF values are constant for values of <italic>&#964;</italic><sub><italic>x</italic></sub> and <italic>&#964;</italic><sub><italic>y</italic></sub> for which <inline-eqn><?TeX $\tau = \sqrt {\tau _x ^2 + \tau _y ^2 }$ ?><inline-graphic filename="stmp483879ieqn14.gif" format="GIF"/></inline-eqn> is constant. Because the linear SF value is based on the corresponding separation in every possible direction, any profile in this ASF from the centre to the edge is identical to the linear SF in figure <figref linkend="stmp483879fig11">11</figref>(b).</p>
+</sec-level2>
+</sec-level1>
+<sec-level1 id="stmp483879s6" label="6">
+
+<heading>Diamond turned aluminium</heading>
+<p indent="no">Figure <figref linkend="stmp483879fig12">12</figref>(a) shows a diamond-turned aluminium flat measured with a Fizeau interferometer. If mid-spatial frequency error is the primary concern, then the SF analysis is best carried out after removing the form error. Following common practice, the residual error map is obtained by fitting to, and removing, the conventional set of 36 Zernike terms, as shown in figure <figref linkend="stmp483879fig12">12</figref>(b). The ASF calculation for the residual error is shown in figure <figref linkend="stmp483879fig12">12</figref>(c). The annuli in the ASF at 10 and 22 mm separation primarily arise from the central high in the residual error map, dropping to the low zone at a radius of about 10 mm, and then the edge that is low again [<cite linkend="stmp483879bib09">9</cite>, <cite linkend="stmp483879bib17">17</cite>, <cite linkend="stmp483879bib18">18</cite>].</p>
+<p><figure id="stmp483879fig12" position="float"><graphic><graphic-file filename="stmp483879f12_pr.eps" format="EPS" version="print"/><graphic-file filename="stmp483879f12_online.jpg" format="JPEG" version="ej"/></graphic><caption id="stmp483879fc12" label="Figure 12"><p indent="no">Analysis for diamond turned aluminum surface: (a) measured surface height map; (b) residual error after removal of 36 Zernikes; (c) ASF calculation of the residual error map; and (d) area PSD of the residual error map.</p></caption></figure></p>
+<p>Note the presence of a high frequency &#8216;ripple&#8217; in the ASF, with a separation repeat length of about 4 mm. Like the sinusoidal example, this indicates a dominant mid-spatial frequency component in the surface at approximately 4 mm. Furthermore, the &#8216;ripple&#8217; is most clearly seen in the region of the ASF plot corresponding to large separation. This can be appreciated from the linear SF analysis shown in figure <figref linkend="stmp483879fig11">11</figref>(b), where the SF peak values are large for large separations. On the other hand, although the SF peak values are also large for small separations in figure <figref linkend="stmp483879fig11">11</figref>(b), these SF peaks are not clear in the ASF in figure <figref linkend="stmp483879fig12">12</figref>(c). This happens because there are also two high spatial frequency periodicities on the surface and these lead to strong annuli peaks in the ASF at small separations. This shadows the high-frequency &#8216;ripple&#8217; that is also in the ASF data at these separations.</p>
+<p>Figure <figref linkend="stmp483879fig12">12</figref>(d) shows an area PSD analysis of the same residual error (figure <figref linkend="stmp483879fig12">12</figref>(b)). The presence of different spatial frequencies on the surface is not as clear compared to the ASF analysis (figure <figref linkend="stmp483879fig12">12</figref>(c)). Moreover, the PSD analysis is sensitive to computational details, such as filtering, windowing and zero padding.</p>
+</sec-level1>
+<sec-level1 id="stmp483879s7" label="7">
+
+<heading>Combination of ASFs</heading>
+<p indent="no">One important characteristic about the ASF is that it can specify precision surfaces over the full range of spatial frequencies of interest. For acceptance testing and other metrology, this implies the combination of data from multiple instruments with different lateral dynamic ranges.</p>
+<p>Before combining information into a single ASF, there are a number of issues to be addressed. For example, figure <figref linkend="stmp483879fig13">13</figref>(b) is the full-aperture of the diamond turned aluminium surface measured with a Fizeau interferometer (representing the low spatial frequency content), and figures <figref linkend="stmp483879fig13">13</figref>(a) and (c) are two sub-apertures measured with a ZeGage coherence scanning interferometer (CSI) from different positions on the surface, representing the high spatial resolution content. The turning marks dominate the high spatial frequency characteristic, so the anisotropy in the two sub-apertures are quite different. In other words, the anisotropic orientation of sub-apertures are position dependent. Therefore, the ASF of the sub-aperture also depends on the measurement position. Figures <figref linkend="stmp483879fig14">14</figref>(a) and (b) are the ASFs of the sub-apertures in figures <figref linkend="stmp483879fig13">13</figref>(a) and (c), respectively. It is clear that there is a significant difference between these two ASFs. Consequently, these two ASFs cannot be directly combined into an ASF of the full aperture.</p>
+<p><figure id="stmp483879fig13" position="float"><graphic><graphic-file filename="stmp483879f13_pr.eps" format="EPS" version="print"/><graphic-file filename="stmp483879f13_online.jpg" format="JPEG" version="ej"/></graphic><caption id="stmp483879fc13" label="Figure 13"><p indent="no">Diamond turned aluminum measured with different instruments: (a) a sub-aperture measurement with CSI (20 ×  objective); (b) full-aperture measurement with Fizeau interferometer; and (c) another sub-aperture measurement with CSI (20 ×  objective).</p></caption></figure></p>
+<p><figure id="stmp483879fig14" position="float"><graphic><graphic-file filename="stmp483879f14_pr.eps" format="EPS" version="print"/><graphic-file filename="stmp483879f14_online.jpg" format="JPEG" version="ej"/></graphic><caption id="stmp483879fc14" label="Figure 14"><p indent="no">ASFs of the sub-apertures: (a) ASF of the sub-aperture in figure <figref linkend="stmp483879fig13">13</figref>(a); and (b) ASF of the other sub-aperture in figure <figref linkend="stmp483879fig13">13</figref>(c).</p></caption></figure></p>
+<p>The exact ASF in the high resolution limit could be calculated from a dataset that covered the full aperture of the part and included all of the high resolution information, regardless of the anisotropy characteristics. The anisotropy of the surface as a whole would be properly represented by the full ASF. Of course, acquisition of such a dataset is not practical&#8212;a complete set of overlapping high-resolution measurements, stitched together, would be very difficult and time-consuming. Thus, the ASF must be calculated from a finite sampling of sub-aperture measurements.</p>
+<p>We can see how to do this by first imagining we have sub-aperture measurements over the entire surface that are all properly stitched together. Careful consideration of equation (<eqnref linkend="stmp483879eqn2">2</eqnref>) shows that the average of all sub-aperture ASFs is equivalent to the ASF of the full aperture high-resolution surface map (in the small separation limit). However, this is true provided the sub-aperture measurements are properly stitched. This means that the location of each sub-aperture measurement is known, and that the tip and tilt of each is adjusted to the correct global value (tip/tilt is an alignment error and, therefore, unknown for a sub-aperture measurement). The proper slope to add can be estimated from the large-area measurement with knowledge of the global coordinates of each sub-aperture measurement [<cite linkend="stmp483879bib19">19</cite>, <cite linkend="stmp483879bib20">20</cite>].</p>
+<p>A finite sampling of sub-aperture measurements approximates the correct ASF, and converges to the exact ASF in the limit the surface is fully sampled. The convergence rate depends on the degree of anisotropy variation over the surface. The ASF will converge more slowly for a diamond turned surface compared to a stationary surface. Moreover, the effect of the instrument transfer function (ITF) must be considered when combining information from multiple instruments. The ITF shows the length-scale range over which the data is valid for each instrument [<cite linkend="stmp483879bib11">11</cite>].</p>
+</sec-level1>
+<sec-level1 id="stmp483879s8" label="8">
+
+<heading>Conclusions</heading>
+<p indent="no">The sliding sampling calculation for the SF is faster and more accurate than the conventional sampling strategies. Moreover, the ASF provides an alternative way of representing periodic errors compared to the PSD. Additionally, our investigation shows that the SF of a surface described by a number of Zernikes is the sum of the SFs of the individual Zernikes under certain conditions. In summary, the ASF provides a means to characterize the surfaces of any arbitrary aperture over all spatial content while retaining anisotropic information.</p>
+</sec-level1>
+<acknowledgment><heading>Acknowledgments</heading><p indent="no">The authors acknowledge the support of the Centre for Precision Metrology (CPM) at UNC Charlotte and the CPM Affiliates for funding this research.</p></acknowledgment></body>
+<back>
+<references>
+<heading>References</heading>
+<reference-list type="numeric">
+<book-ref id="stmp483879bib01" num="1">
+<authors>
+<au>
+<second-name>Thomas</second-name>
+<first-names>T R</first-names>
+</au>
+</authors>
+<year>1999</year>
+<book-title>Rough Surfaces</book-title>
+<publication>
+<place>London</place>
+<publisher>Imperial College Press</publisher>
+</publication>
+<pages>pp 199&#8211;268</pages>
+</book-ref>
+<book-ref id="stmp483879bib02" num="2">
+<authors>
+<au>
+<second-name>Whitehouse</second-name>
+<first-names>D J</first-names>
+</au>
+</authors>
+<year>2010</year>
+<book-title>Handbook of Surface and Nanometrology</book-title>
+<publication>
+<place>New York</place>
+<publisher>CRC</publisher>
+</publication>
+<pages>pp 629&#8211;826</pages>
+</book-ref>
+<journal-ref id="stmp483879bib03" num="3">
+<authors>
+<au>
+<second-name>Harvey</second-name>
+<first-names>J E</first-names>
+</au>
+<au>
+<second-name>Kotha</second-name>
+<first-names>A</first-names>
+</au>
+</authors>
+<year>1995</year>
+<art-title>Scattering effects from residual optical fabrication errors</art-title>
+<jnl-title>Proc. SPIE</jnl-title>
+<volume>2576</volume>
+<pages>155&#8211;74</pages>
+</journal-ref>
+<misc-ref id="stmp483879bib04" num="4">
+<misc-text>ISO 10110&#8211;8 2002 Optics and optical instruments: preparation of drawings for optical elements and systems: part 8. Surface texture</misc-text>
+</misc-ref>
+<misc-ref id="stmp483879bib05" num="5">
+<authors>
+<au>
+<second-name>Whitehouse</second-name>
+<first-names>D J</first-names>
+</au>
+</authors>
+<year>1971</year>
+<art-title>The properties of random surfaces of significance in their contact</art-title>
+<pages>p 45</pages>
+<thesis>PhD Thesis</thesis>
+<source>University of Leicester</source>
+</misc-ref>
+<journal-ref id="stmp483879bib06" num="6">
+<authors>
+<au>
+<second-name>Sayles</second-name>
+<first-names>R S</first-names>
+</au>
+<au>
+<second-name>Thomas</second-name>
+<first-names>T R</first-names>
+</au>
+</authors>
+<year>1977</year>
+<art-title>The spatial representation of surface roughness by means of the structure function: a practical alternative to correlation</art-title>
+<jnl-title>Wear</jnl-title>
+<volume>42</volume>
+<pages>263&#8211;76</pages>
+<crossref>
+<cr_doi>http://dx.doi.org/10.1016/0043-1648(77)90057-6</cr_doi>
+</crossref>
+</journal-ref>
+<misc-ref id="stmp483879bib07" num="7">
+<authors>
+<au>
+<second-name>Anon</second-name>
+<first-names></first-names>
+</au>
+</authors>
+<year>2008</year>
+<misc-text>Specification for finished 1.44-meter primary mirror segments <italic>TMT. OPT. SPE. 07. 002. CCR03</italic></misc-text>
+</misc-ref>
+<journal-ref id="stmp483879bib08" num="8">
+<authors>
+<au>
+<second-name>Rosen</second-name>
+<first-names>B G</first-names>
+</au>
+<au>
+<second-name>Thomas</second-name>
+<first-names>T R</first-names>
+</au>
+</authors>
+<year>2009</year>
+<art-title>Surfaces generated by abrasive finishing processes as self-affine fractals</art-title>
+<jnl-title>Int. J. Surf. Sci. Eng.</jnl-title>
+<volume>3</volume>
+<pages>275&#8211;85</pages>
+<crossref>
+<cr_doi>http://dx.doi.org/10.1504/IJSURFSE.2009.027416</cr_doi>
+</crossref>
+</journal-ref>
+<journal-ref id="stmp483879bib09" num="9">
+<authors>
+<au>
+<second-name>He</second-name>
+<first-names>L</first-names>
+</au>
+<au>
+<second-name>Evans</second-name>
+<first-names>C J</first-names>
+</au>
+<au>
+<second-name>Davies</second-name>
+<first-names>A</first-names>
+</au>
+</authors>
+<year>2012</year>
+<art-title>Two-quadrant area structure function analysis for optical surface characterization</art-title>
+<jnl-title>Opt. Express</jnl-title>
+<volume>20</volume>
+<pages>23275&#8211;80</pages>
+<crossref>
+<cr_doi>http://dx.doi.org/10.1364/OE.20.023275</cr_doi>
+</crossref>
+</journal-ref>
+<journal-ref id="stmp483879bib10" num="10">
+<authors>
+<au>
+<second-name>He</second-name>
+<first-names>L</first-names>
+</au>
+<au>
+<second-name>Davies</second-name>
+<first-names>A</first-names>
+</au>
+<au>
+<second-name>Evans</second-name>
+<first-names>C J</first-names>
+</au>
+</authors>
+<year>2012</year>
+<art-title>Comparison of the area structure function to alternate approaches for optical surface characterization</art-title>
+<jnl-title>Proc. SPIE</jnl-title>
+<volume>8493</volume>
+<art-number>84930C</art-number>
+</journal-ref>
+<journal-ref id="stmp483879bib11" num="11">
+<authors>
+<au>
+<second-name>He</second-name>
+<first-names>L</first-names>
+</au>
+<au>
+<second-name>Evans</second-name>
+<first-names>C J</first-names>
+</au>
+<au>
+<second-name>Davies</second-name>
+<first-names>A</first-names>
+</au>
+</authors>
+<year>2013</year>
+<art-title>Optical surface characterization with the area structure function</art-title>
+<jnl-title>CIRP Ann.&#8212;Manuf. Technol.</jnl-title>
+<volume>62</volume>
+<pages>539&#8211;42</pages>
+<crossref>
+<cr_doi>http://dx.doi.org/10.1016/j.cirp.2013.03.103</cr_doi>
+</crossref>
+</journal-ref>
+<journal-ref id="stmp483879bib12" num="12">
+<authors>
+<au>
+<second-name>Parks</second-name>
+<first-names>R E</first-names>
+</au>
+</authors>
+<year>2008</year>
+<art-title>Specifications: figure and finish are not enough</art-title>
+<jnl-title>Proc. SPIE</jnl-title>
+<volume>7071</volume>
+<art-number>70710B</art-number>
+</journal-ref>
+<journal-ref id="stmp483879bib13" num="13">
+<authors>
+<au>
+<second-name>Evans</second-name>
+<first-names>C J</first-names>
+</au>
+<au>
+<second-name>Parks</second-name>
+<first-names>R E</first-names>
+</au>
+<au>
+<second-name>Sullivan</second-name>
+<first-names>P J</first-names>
+</au>
+<au>
+<second-name>Taylor</second-name>
+<first-names>J S</first-names>
+</au>
+</authors>
+<year>1995</year>
+<art-title>Visualization of surface figure by the use of Zernike polynomials</art-title>
+<jnl-title>Appl. Opt.</jnl-title>
+<volume>34</volume>
+<pages>7815&#8211;9</pages>
+<crossref>
+<cr_doi>http://dx.doi.org/10.1364/AO.34.007815</cr_doi>
+</crossref>
+</journal-ref>
+<book-ref id="stmp483879bib14" num="14">
+<authors>
+<au>
+<second-name>Born</second-name>
+<first-names>M</first-names>
+</au>
+<au>
+<second-name>Wolf</second-name>
+<first-names>E</first-names>
+</au>
+</authors>
+<year>1999</year>
+<book-title>Principles of Optics: Electromagnetic Theory of Propagation, Interference and Diffraction of Light</book-title>
+<edition>7th edn</edition>
+<publication>
+<place>New York</place>
+<publisher>Cambridge University Press</publisher>
+</publication>
+<pages>pp 905&#8211;10</pages>
+</book-ref>
+<book-ref id="stmp483879bib15" num="15">
+<authors>
+<au>
+<second-name>Malacara</second-name>
+<first-names>D</first-names>
+</au>
+</authors>
+<year>2007</year>
+<book-title>Optical Shop Testing</book-title>
+<edition>3rd edn</edition>
+<publication>
+<place>Hoboken, NJ</place>
+<publisher>Wiley</publisher>
+</publication>
+<pages>pp 516&#8211;21</pages>
+</book-ref>
+<journal-ref id="stmp483879bib16" num="16">
+<authors>
+<au>
+<second-name>Hvisc</second-name>
+<first-names>A M</first-names>
+</au>
+<au>
+<second-name>Burge</second-name>
+<first-names>J H</first-names>
+</au>
+</authors>
+<year>2007</year>
+<art-title>Structure function analysis of mirror fabrication and support errors</art-title>
+<jnl-title>Proc. SPIE</jnl-title>
+<volume>6671</volume>
+<art-number>66710A</art-number>
+</journal-ref>
+<book-ref id="stmp483879bib17" num="17">
+<authors>
+<au>
+<second-name>He</second-name>
+<first-names>L</first-names>
+</au>
+<au>
+<second-name>Evans</second-name>
+<first-names>C J</first-names>
+</au>
+<au>
+<second-name>Davies</second-name>
+<first-names>A</first-names>
+</au>
+</authors>
+<year>2012</year>
+<art-title>Characterizing optical surfaces using the area structure function</art-title>
+<book-title>Imaging and Applied Optics Technical Papers</book-title>
+<publication>
+<place>Washington, DC</place>
+<publisher>Optical Society of America</publisher>
+</publication>
+<misc-text>(<italic>Optical Society of America Technical Digest</italic> OTu1D.6)</misc-text>
+</book-ref>
+<conf-ref id="stmp483879bib18" num="18">
+<authors>
+<au>
+<second-name>He</second-name>
+<first-names>L</first-names>
+</au>
+<au>
+<second-name>Evans</second-name>
+<first-names>C J</first-names>
+</au>
+<au>
+<second-name>Davies</second-name>
+<first-names>A</first-names>
+</au>
+</authors>
+<year>2013</year>
+<art-title>Surface characterization with the area structure function</art-title>
+<conf-title>Proc. 14th Int. Conf. on Metrology and Properties of Engineering Surfaces</conf-title>
+<conf-place>Taipei, Taiwan, 17&#8211;21 June</conf-place>
+<pages>pp 346&#8211;53</pages>
+</conf-ref>
+<book-ref id="stmp483879bib19" num="19">
+<authors>
+<au>
+<second-name>Davies</second-name>
+<first-names>A D</first-names>
+</au>
+<au>
+<second-name>He</second-name>
+<first-names>L</first-names>
+</au>
+<au>
+<second-name>Evans</second-name>
+<first-names>C J</first-names>
+</au>
+</authors>
+<year>2013</year>
+<art-title>Mid-spatial frequency specification and characterization for freeform surfaces</art-title>
+<book-title>Renewable Energy and the Environment</book-title>
+<publication>
+<place>Washington, DC</place>
+<publisher>Optical Society of America</publisher>
+</publication>
+<misc-text>(<italic>Optical Society of America Technical Digest</italic> FW2B.1)</misc-text>
+</book-ref>
+<journal-ref id="stmp483879bib20" num="20">
+<authors>
+<au>
+<second-name>He</second-name>
+<first-names>L</first-names>
+</au>
+<au>
+<second-name>Evans</second-name>
+<first-names>C J</first-names>
+</au>
+<au>
+<second-name>Davies</second-name>
+<first-names>A</first-names>
+</au>
+</authors>
+<year>2012</year>
+<art-title>Single and multiple-instrument surface characterization with the area structure function</art-title>
+<jnl-title>Proc. ASPE</jnl-title>
+<volume>54</volume>
+<pages>488&#8211;91</pages>
+</journal-ref>
+</reference-list>
+</references>
+</back>
+</article>
