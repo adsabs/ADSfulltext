@@ -340,7 +340,34 @@ class TestCheckIfExtracted(test_base.TestUnit):
         self.assertTrue(first_doc_false['UPDATE'],
                         'DIFFERING_FULL_TEXT')
         self.assertTrue(len(payload_false['PDF']) != 0)
-            
+
+    def test_filename_cleanup(self):
+        """check code that deals with multiple files for bibcode"""
+
+        file = '/foo/bar.pdf'
+        clean = checker.filename_cleanup(file)
+        self.assertEqual(file, clean)
+
+        file = '/foo/ba,r.pdf'
+        clean = checker.filename_cleanup(file)
+        self.assertEqual(file, clean)
+
+        file = ''
+        clean = checker.filename_cleanup(file)
+        self.assertEqual(file, clean)
+
+        file = None
+        clean = checker.filename_cleanup(file)
+        self.assertEqual(file, clean)
+
+        file = '/foo/bar.pdf,/foo/baz.pdf'
+        clean = checker.filename_cleanup(file)
+        self.assertEqual('/foo/bar.pdf', clean)
+
+        file = '/foo/bar.pdf,/foo/baz.pdf,/foo/quux.pdf'
+        clean = checker.filename_cleanup(file)
+        self.assertEqual('/foo/bar.pdf', clean)
+
 
 if __name__ == '__main__':
     unittest.main()

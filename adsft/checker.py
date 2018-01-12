@@ -225,6 +225,8 @@ def check_if_extract(message_list, extract_path):
             logger.debug('No existing meta file')
             update = 'NOT_EXTRACTED_BEFORE'
 
+        # clobber muliple filenames, replace with first
+        message['ft_source'] = filename_cleanup(message['ft_source'])
         if os.path.exists(message['ft_source']):
             ft_source_size = os.stat(message['ft_source']).st_size # bytes
             if ft_source_size == 0:
@@ -268,3 +270,10 @@ def check_if_extract(message_list, extract_path):
 
     return {'Standard': publish_list_of_standard_dictionaries,
             'PDF': publish_list_of_pdf_dictionaries}
+
+def filename_cleanup(filename):
+    """if multiple filenames, return only first"""
+    clean = filename
+    if clean and ',/' in clean:
+        clean = clean[:clean.find(',/')]
+    return clean
