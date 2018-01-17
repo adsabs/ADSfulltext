@@ -270,3 +270,31 @@ class TextCleaner(object):
             self.trimwords()
 
         return self.text
+
+def get_filenames(file_string):
+    """convert passed string containing one or more files to an array of files 
+
+    file_string could be a sigle file, a simple comma separated list of files
+    or it could include a comman in either the filename or the pathname
+    we can't use a comma as a delimeter
+    instead, since all paths are absolute, we use the first two directory names
+    in the absolution path as a delimter
+    example simple input:
+    /proj/ads/fulltext/sources/A+A/backdata/2003/17/aah3724/aah3724.right.html,/proj/ads/fulltext/sources/A+A/backdata/2003/17/aah3724/tableE.1.html
+    example input with comman in filename:
+    /proj/ads/fulltext/sources/downloads/cache/POS/pos.sissa.it//archive/conferences/075/001/BHs,%20GR%20and%20Strings_001.pdf
+    """
+    if file_string[0] != '/':
+        raise ValueError('expected absolute pathname to start with / character: {}'.format(file_string))
+    second_slash_index = file_string.index('/', 1)
+    third_slash_index = file_string.index('/', second_slash_index+1)
+    prefix = file_string[:third_slash_index+1]
+    
+    # split input string over prefix delimeter, add prefix back to string
+    files = [prefix+f for f in file_string.split(prefix) if f]
+    # remove trailing commas, they are actual delimiters
+    for i in range(0, len(files)):
+        if files[i][-1] == ',':
+            files[i] = files[i][:-1]
+
+    return files

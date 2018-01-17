@@ -74,6 +74,23 @@ class TestXMLExtractor(test_base.TestUnit):
 
         self.assertEqual(article_number, '483879')
 
+    def test_multi_file(self):
+        """
+        some entries in fulltext/all.links specify multiple files 
+
+        typically the first has text from the article while the rest have the text from tables
+
+        :return: no return
+        """
+        self.dict_item = {'ft_source': self.test_multi_file,
+                          'file_format': 'xml',
+                          'provider': 'MNRAS',
+                          'bibcode': 'test'}
+
+        content = extraction.extract_content([self.dict_item])
+        # does the fulltext contain two copies of the file's contents
+        self.assertEqual(2, content[0]['fulltext'].count('Entry 1'))
+
 
     def test_that_we_can_extract_using_settings_template(self):
         """
