@@ -904,7 +904,11 @@ def extract_content(input_list, **kwargs):
 
                     for item in parsed_content:
                         if item in dict_item:
-                            dict_item[item] += parsed_content[item]
+                            # values can be strings or, for dataset, a list
+                            if isinstance(dict_item[item], str):
+                                dict_item[item] += ' ' + parsed_content[item]
+                            else:
+                                dict_item[item] += parsed_content[item]
                         else:
                             dict_item[item] = parsed_content[item]
 
