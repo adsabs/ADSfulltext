@@ -24,7 +24,7 @@ import os
 import requests
 from adsputils import overrides
 from adsputils import setup_logging
-from adsft.utils import TextCleaner
+from adsft.utils import TextCleaner, get_filenames
 from adsft import reader
 import re
 import traceback
@@ -885,7 +885,6 @@ def extract_content(input_list, **kwargs):
                         and dict_item['provider'] == 'Elsevier':
 
                     extension = "elsevier"
-
                 ExtractorClass = EXTRACTOR_FACTORY[extension]
 
             except KeyError:
@@ -896,11 +895,23 @@ def extract_content(input_list, **kwargs):
             try:
                 dict_item['grobid_service'] = kwargs.get('grobid_service', None)
                 dict_item['extract_pdf_script'] = kwargs.get('extract_pdf_script', None)
-                extractor = ExtractorClass(dict_item)
-                parsed_content = extractor.extract_multi_content()
+                # get one or more files from ft_source and process
+                files = get_filenames(dict_item['ft_source'])
+                for f in files:
+                    dict_item['ft_source'] = f
+                    extractor = ExtractorClass(dict_item)
+                    parsed_content = extractor.extract_multi_content()
 
-                for item in parsed_content:
-                    dict_item[item] = parsed_content[item]
+                    for item in parsed_content:
+                        if item in dict_item:
+                            # values can be strings or, for dataset, a list
+                            if isinstance(dict_item[item], str):
+                                dict_item[item] += ' ' + parsed_content[item]
+                            else:
+                                dict_item[item] += parsed_content[item]
+                        else:
+                            dict_item[item] = parsed_content[item]
+
                 del dict_item['grobid_service']
                 del dict_item['extract_pdf_script']
 

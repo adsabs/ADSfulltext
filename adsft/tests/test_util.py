@@ -66,5 +66,29 @@ class TestFileStreamInput(test_base.TestUnit):
             r = utils.TextCleaner(x).run(translate=False, decode=True, normalise=True, trim=True)
             self.assertEqual(r, u'a b')
 
+    def test_get_filenames(self):
+        """test code that breaks up file name strings"""
+
+        file_string = '/proj/ads/foo'
+        files = utils.get_filenames(file_string)
+        self.assertEqual([file_string], files)
+
+        file_string = '/proj/ads/foo,/proj/ads/bar'
+        files = utils.get_filenames(file_string)
+        self.assertEqual(['/proj/ads/foo', '/proj/ads/bar'], files)
+
+        file_string = '/proj/ads/foo,/proj/ads/,,/bar'
+        files = utils.get_filenames(file_string)
+        self.assertEqual(['/proj/ads/foo', '/proj/ads/,,/bar'], files)
+
+        file_string = '/proj/ads/foo,/proj/ads/ba,r'
+        files = utils.get_filenames(file_string)
+        self.assertEqual(['/proj/ads/foo', '/proj/ads/ba,r'], files)
+
+        file_string = '/proj/ads/foo,/proj/ads/ba,r,/proj/ads/baz/,,/qu,ux'
+        files = utils.get_filenames(file_string)
+        self.assertEqual(['/proj/ads/foo', '/proj/ads/ba,r', '/proj/ads/baz/,,/qu,ux'], files)
+
+
 if __name__ == '__main__':
     unittest.main()

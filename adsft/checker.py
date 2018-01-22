@@ -27,6 +27,7 @@ from stat import ST_MTIME
 from datetime import datetime
 from dateutil.parser import parse
 from adsputils import setup_logging
+from adsft.utils import get_filenames
 
 logger = setup_logging(__name__)
 
@@ -225,10 +226,10 @@ def check_if_extract(message_list, extract_path):
             logger.debug('No existing meta file')
             update = 'NOT_EXTRACTED_BEFORE'
 
-        # clobber muliple filenames, replace with first
-        message['ft_source'] = filename_cleanup(message['ft_source'])
-        if os.path.exists(message['ft_source']):
-            ft_source_size = os.stat(message['ft_source']).st_size # bytes
+        # only check the first filename
+        ft = get_filenames(message['ft_source'])[0]
+        if os.path.exists(ft):
+            ft_source_size = os.stat(ft).st_size # bytes
             if ft_source_size == 0:
                 update = 'IGNORE_ZERO_BYTE_FT_SOURCE'
                 logger.error("Bibcode '%s' is linked to a zero byte size file '%s'", message['bibcode'], message['ft_source'])
@@ -246,8 +247,8 @@ def check_if_extract(message_list, extract_path):
             message['index_date'] = datetime.utcnow().isoformat() + 'Z'
             logger.debug('Adding timestamp: %s', message['index_date'])
 
-            format_ = os.path.splitext(message['ft_source'])[-1].replace('.', '').lower()
-            if not format_ and 'http://' in message['ft_source']:
+            format_ = os.path.splitext(ft)[-1].replace('.', '').lower()
+            if not format_ and 'http://' in ft:
                 format_ = 'http'
             message['file_format'] = format_
 
@@ -271,9 +272,3 @@ def check_if_extract(message_list, extract_path):
     return {'Standard': publish_list_of_standard_dictionaries,
             'PDF': publish_list_of_pdf_dictionaries}
 
-def filename_cleanup(filename):
-    """if multiple filenames, return only first"""
-    clean = filename
-    if clean and ',/' in clean:
-        clean = clean[:clean.find(',/')]
-    return clean
