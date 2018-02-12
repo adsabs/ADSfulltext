@@ -57,10 +57,25 @@ class TestXMLExtractor(test_base.TestUnit):
 
         self.assertEqual(journal_title, 'JOURNAL TITLE')
 
+    def test_that_we_correctly_remove_inline_fomulas_from_the_xml_content(self):
+        """
+        Tests the parse_xml method. Checks that the parsed content allows access
+        to the XML marked-up content, and that the content extracted matches
+        what is expected.
+
+        :return: no return
+        """
+
+        full_text_content = self.extractor.open_xml()
+        content = self.extractor.parse_xml()
+        journal_title = content.xpath('//body//sec//p')[0].text_content()
+
+        self.assertEqual(journal_title, 'INTRODUCTION GOES HERE')
+
 
     def test_iso_8859_1_xml(self):
         """
-        Test that we properly read iso 8859 formatted file. 
+        Test that we properly read iso 8859 formatted file.
         Since we are not reading the default file we must recreate the extractor object.
 
         :return: no return
@@ -76,7 +91,7 @@ class TestXMLExtractor(test_base.TestUnit):
 
     def test_multi_file(self):
         """
-        some entries in fulltext/all.links specify multiple files 
+        some entries in fulltext/all.links specify multiple files
 
         typically the first has text from the article while the rest have the text from tables
 
@@ -618,7 +633,7 @@ class TestOCRandTXTExtractor(test_base.TestUnit):
             'Tab\t CarriageReturn  New line\n Random Escape characters:   '
 
         new_instring = instring.translate(self.TC.ASCII_translation_map)
-        
+
         self.assertEqual(new_instring, expected_out_string)
 
     def test_Unicode_translation_map_works(self):

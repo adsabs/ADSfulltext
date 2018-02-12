@@ -97,7 +97,7 @@
    </front>
     <body>
       <sec id="s1"><label>I.</label><title>INTRODUCTION</title>
-         <p>INTRODUCTION GOES HERE</p>
+          <p>INTRODUCTION <inline-formula>this should be removed</inline-formula>GOES HERE</p>
       </sec>
 
         <data>
