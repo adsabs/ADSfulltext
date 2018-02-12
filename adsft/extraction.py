@@ -378,9 +378,9 @@ class StandardExtractorXML(object):
 
         Removes some text that has no relevance for XML files, such as HTML tags, LaTeX entities
 
-        Note that soupparser.fromstring is called by both open_xml and parse_xml.  
+        Note that soupparser.fromstring is called by both open_xml and parse_xml.
         open_xml uses soupparser.fromstring because the html and LaTex cleanup needs a string, not a parse tree
-        
+
         :return: semi-parsed XML content
         """
         raw_xml = None
@@ -412,6 +412,38 @@ class StandardExtractorXML(object):
 
         return raw_xml
 
+    def _remove_keeping_tail(self, element):
+        """
+        Safe the tail text and then delete the element. For instance, the element
+        corresponding to the tag inline-formula for this case:
+
+        <p>Head <inline-formula>formula</inline-formula> tail <italic>end</italic>.</p>
+
+        will contain not only the tags but also the tail text until the next tag:
+
+        '<inline-formula>formula</inline-formula> tail'
+
+        To avoid losing the tail when removing the element, that text has to be
+        copied to the previous or parent node.
+        """
+        self._preserve_tail_before_delete(element)
+        element.getparent().remove(element)
+
+    def _preserve_tail_before_delete(self, node):
+        if node.tail: # preserve the tail
+            previous = node.getprevious()
+            if previous is not None: # if there is a previous sibling it will get the tail
+                if previous.tail is None:
+                    previous.tail = node.tail
+                else:
+                    previous.tail = previous.tail + node.tail
+            else: # The parent get the tail as text
+                parent = node.getparent()
+                if parent.text is None:
+                    parent.text = node.tail
+                else:
+                    parent.text = parent.text + node.tail
+
     def parse_xml(self):
         """
         Parses the encoded string read from the opened XML file. Removes inline formula from each XML node.
@@ -423,7 +455,7 @@ class StandardExtractorXML(object):
 
         # strip out the latex stuff (for now)
         for e in parsed_content.xpath('//inline-formula'):
-            e.getparent().remove(e)
+            self._remove_keeping_tail(e)
 
         self.parsed_xml = parsed_content
         return parsed_content
