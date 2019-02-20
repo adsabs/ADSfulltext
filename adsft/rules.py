@@ -3,7 +3,8 @@ META_CONTENT = {
         'fulltext': {
             'xpath': ['//body',
                       '//section[@type="body"]',
-                      '//journalarticle-body'
+                      '//journalarticle-body',
+                      '//bdy'
                       ],
             'type': 'string',
             'info': '',
