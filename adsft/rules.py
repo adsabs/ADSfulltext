@@ -4,7 +4,8 @@ META_CONTENT = {
             'xpath': ['//body',
                       '//section[@type="body"]',
                       '//journalarticle-body',
-                      '//bdy'
+                      '//bdy',
+                      '//app-group'
                       ],
             'type': 'string',
             'info': '',
@@ -42,6 +43,7 @@ META_CONTENT = {
         'fulltext': {
             'xpath': ['//body',
                       '//raw-text',
+                      '//appendices',
                       ],
             'type': 'string',
             'info': '',
