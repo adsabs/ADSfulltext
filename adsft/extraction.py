@@ -480,8 +480,10 @@ class StandardExtractorXML(object):
         else:
             translate = False
 
-        if self.parsed_xml.xpath(static_xpath):
-            text_content = self.parsed_xml.xpath(static_xpath)[0].text_content()
+        s = self.parsed_xml.xpath(static_xpath)
+
+        if s:
+            text_content = s[0].text_content()
         old = text_content
         text_content = TextCleaner(text=text_content).run(
             decode=decode,
@@ -594,7 +596,8 @@ class StandardExtractorXML(object):
                     )
 
                     if text_content:
-                        # ensure content is not repeated due to nested xpaths
+                        # this is to deal with situations where the appendix is found inside of the body tags
+                        # or when multiple xpaths return the same result which happens in some cases for the acknowledgments
                         for s in all_text_content:
                             if text_content in s:
                                 unique = False
@@ -630,12 +633,10 @@ class StandardExtractorXML(object):
                                  )
                     raise Exception(traceback.format_exc())
 
-                if META_CONTENT[self.meta_name][content_name]['type'] == 'string':
-                    meta_out[content_name] = "\n".join(all_text_content)
-                elif len(all_text_content) > 0:
-                    meta_out[content_name] = all_text_content[0]
-                else:
-                    meta_out[content_name] = all_text_content
+            if META_CONTENT[self.meta_name][content_name]['type'] == 'string':
+                meta_out[content_name] = "\n".join(all_text_content)
+            elif len(all_text_content) > 0:
+                meta_out[content_name] = all_text_content[0]
 
         return meta_out
 

@@ -1,3 +1,6 @@
+'''The xpath order is very important here because we are appending all of the results
+for each xpath, rather than taking the first one that returns something other than null.
+If the order is changed specifically for app-group we will have to modify our unique test.'''
 META_CONTENT = {
     'xml': {
         'fulltext': {
