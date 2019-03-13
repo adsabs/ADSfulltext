@@ -79,7 +79,7 @@ class TestWorkers(unittest.TestCase):
                 self.assertTrue(task_write_text.called)
                 actual = task_write_text.call_args[0][0]
 
-                self.assertEqual(u'\nI.INTRODUCTION\nINTRODUCTION GOES HERE\n\n\nManual Entry\n\n', actual['fulltext'])
+                self.assertEqual(u'\nI.INTRODUCTION\nINTRODUCTION GOES HERE\n\n\nManual Entry\n\n\n\n\nAPPENDIX: APPENDIX TITLE GOES HERE\nAPPENDIX CONTENT\n\n', actual['fulltext'])
                 self.assertEqual(u'\nAcknowledgments\nWE ACKNOWLEDGE.', actual['acknowledgements'])
                 self.assertEqual([u'ADS/Sa.CXO#Obs/11458'], actual['dataset'])
                 self.assertTrue(task_output_results.called)

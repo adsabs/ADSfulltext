@@ -133,7 +133,7 @@ class TestFullRangeFormatExtraction(test_base.TestGeneric):
                 expected_fulltext_content = (
                         u"Introduction\n\nTHIS IS AN INTERESTING TITLE\n",
                         u"Introduction\n\nTHIS IS AN INTERESTING TITLE\n",
-                        u"\nI.INTRODUCTION\nINTRODUCTION GOES HERE\n\n\nManual Entry\n\n",
+                        u"\nI.INTRODUCTION\nINTRODUCTION GOES HERE\n\n\nManual Entry\n\n\n\n\nAPPENDIX: APPENDIX TITLE GOES HERE\nAPPENDIX CONTENT\n\n",
                         '\n\napplication/xml\nJOURNAL TITLE\nCREATOR\n\n\nSUBJECT\n\nDESCRIPTION\nJOURNAL\nNAME\nCOPYRIGHT\nPUBLISHER\n9999-9999\nVOLUME\nDAY MONTH YEAR\n1999-99-99\n999-999\n999\n999\n99.9999/9.99999.9999.99.999\nhttp://dx.doi.org/99.9999/9.99999.9999.99.999\ndoi:99.9999/9.99999.9999.99.999\n\n\nJournals\nS300.1\n\n\n\nJOURNAL\n999999\n99999-9999(99)99999-9\n99.9999/9.99999.9999.99.999\nCOPYRIGHT\n\n\n\nFig.1\n\n\n CONTENT\n \n\n\n\n\n\nTITLE\n\n\nGIVEN NAME\nSURNAME\n\na\n\n\n#x204e;\n\nEMAIL@EMAIL.COM\n\na\nAFFILIATION\n#x204e;\nAUTHOR\n\n\n\n\n\n\nAbstract\nABSTRACT\n\n\n\nHighlights\n\nHIGHLIGHTS\n\n\nKeywords\n\nKEYWORD\n\n\n\n\n1\nIntroduction\nJOURNAL CONTENT\n\n\n\nAcknowledgments\nTHANK YOU\n\n\nAppendix A\nAPPENDIX TITLE\nAPPENDIX\n\n\n\n\n\nReferences\n\nAUTHOR et al., 1999\n\n\n\n\nGIVEN NAME\nSURNAME\n\n\n\nTITLE\n\n\n\n\n\n\nTITLE\n \n\nVOLUME\n\nYEAR\n\n\n99\n99\n\n\n\n\n\n\n\n\n\n',
 
                         u"No Title AA 999, 999-999 (1999)\n DOI: 99.9999/9999-9999:99999999\n\n TITLE AUTHOR AFFILIATION Received 99 MONTH 1999 / Accepted 99 MONTH 1999 Abstract ABSTRACT\n\n Key words: KEYWORD\n \n INTRODUCTION\n\n SECTION Table 1: TABLE TABLE (1) \n COPYRIGHT\n ",

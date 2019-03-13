@@ -468,6 +468,8 @@ class StandardExtractorXML(object):
         :return:
         """
 
+        text_content = ''
+
         if 'decode' in kwargs:
             decode = kwargs['decode']
         else:
@@ -478,7 +480,10 @@ class StandardExtractorXML(object):
         else:
             translate = False
 
-        text_content = self.parsed_xml.xpath(static_xpath)[0].text_content()
+        s = self.parsed_xml.xpath(static_xpath)
+
+        if s:
+            text_content = s[0].text_content()
         old = text_content
         text_content = TextCleaner(text=text_content).run(
             decode=decode,
@@ -560,6 +565,9 @@ class StandardExtractorXML(object):
         for content_name in META_CONTENT[self.meta_name]:
             logger.debug('Trying meta content: {0}'.format(content_name))
 
+            all_text_content = []
+            unique = True
+
             for static_xpath \
                     in META_CONTENT[self.meta_name][content_name]['xpath']:
 
@@ -587,14 +595,21 @@ class StandardExtractorXML(object):
                         translate=translate,
                     )
 
-
                     if text_content:
-                        meta_out[content_name] = text_content
+                        # this is to deal with situations where the appendix is found inside of the body tags
+                        # or when multiple xpaths return the same result which happens in some cases for the acknowledgments
+                        for s in all_text_content:
+                            if text_content in s:
+                                unique = False
+
+                        if unique:
+                            all_text_content.append(text_content)
+                        else:
+                            continue
                     else:
                         continue
 
                     logger.debug('Successful.')
-                    break
 
                 except IndexError:
                     logger.debug('Index error for: {0}'.format(self.dict_item[
@@ -617,6 +632,11 @@ class StandardExtractorXML(object):
                                          )
                                  )
                     raise Exception(traceback.format_exc())
+
+            if META_CONTENT[self.meta_name][content_name]['type'] == 'string':
+                meta_out[content_name] = "\n".join(all_text_content)
+            elif len(all_text_content) > 0:
+                meta_out[content_name] = all_text_content[0]
 
         return meta_out
 
