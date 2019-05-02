@@ -72,7 +72,7 @@ class StandardExtractorBasicText(object):
         self.raw_text = raw_text
         return self.raw_text
 
-    def parse_text(self, translate=False, decode=False, normalise=True):
+    def parse_text(self, translate=False, decode=False, normalise=True, trim=True):
         """
         Cleans the text:
           1. Translates: removes escape characters if ASCII or unicode
@@ -89,7 +89,8 @@ class StandardExtractorBasicText(object):
         raw_text = self.raw_text
         raw_text = TextCleaner(text=raw_text).run(translate=translate,
                                                   decode=decode,
-                                                  normalise=True)
+                                                  normalise=normalise,
+                                                  trim=trim)
 
         self.parsed_text = raw_text
         return self.parsed_text
@@ -342,7 +343,8 @@ class StandardExtractorHTML(object):
         string_of_all_html = TextCleaner(text=string_of_all_html).run(
             translate=translate,
             decode=decode,
-            normalise=True)
+            normalise=True,
+            trim=False)
 
         meta_out = {'fulltext': string_of_all_html}
 
@@ -488,7 +490,8 @@ class StandardExtractorXML(object):
         text_content = TextCleaner(text=text_content).run(
             decode=decode,
             translate=translate,
-            normalise=True)
+            normalise=True,
+            trim=False)
 
         return text_content
 
@@ -531,7 +534,8 @@ class StandardExtractorXML(object):
                 text_content = TextCleaner(text=text_content).run(
                     decode=decode,
                     translate=translate,
-                    normalise=True)
+                    normalise=True,
+                    trim=False)
 
                 data_inner.append(text_content)
             except KeyError:
@@ -812,7 +816,8 @@ class StandardExtractorHTTP(StandardExtractorBasicText):
         self.parsed_http = TextCleaner(text=self.parsed_http).run(
             translate=translate,
             decode=decode,
-            normalise=True)
+            normalise=True,
+            trim=False)
         meta_out = {}
         meta_out['fulltext'] = self.parsed_http
         return meta_out
@@ -835,7 +840,8 @@ class PDFExtractor(object):
             raise Exception(stderr)
         fulltext = TextCleaner(text=stdout).run(translate=translate,
                                           decode=decode,
-                                          normalise=True)
+                                          normalise=True,
+                                          trim=True)
         return  {
                     'fulltext': fulltext,
                 }
@@ -875,7 +881,8 @@ class GrobidPDFExtractor(object):
             logger.debug("Grobid service not defined")
         grobid_xml = TextCleaner(text=grobid_xml).run(translate=translate,
                                           decode=decode,
-                                          normalise=True)
+                                          normalise=True,
+                                          trim=False)
 
         return  {
                     'fulltext': grobid_xml,

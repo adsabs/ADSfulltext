@@ -243,10 +243,7 @@ class TextCleaner(object):
         :param maxlength: maximum length of words to keep
         :return: no return
         """
-        self.text = re.sub(r'\S{'+str(maxlength)+r',}\b', ' ', self.text)
-        # Substitute multiple spaces with just one space:
-        self.text = re.sub('  +', ' ', self.text)
-
+        self.text = " ".join([word for word in self.text.split() if len(word) < 100])
 
     def run(self, translate=True, decode=True, normalise=True, trim=True):
         """
@@ -272,7 +269,7 @@ class TextCleaner(object):
         return self.text
 
 def get_filenames(file_string):
-    """convert passed string containing one or more files to an array of files 
+    """convert passed string containing one or more files to an array of files
 
     file_string could be a sigle file, a simple comma separated list of files
     or it could include a comman in either the filename or the pathname
@@ -289,7 +286,7 @@ def get_filenames(file_string):
     second_slash_index = file_string.index('/', 1)
     third_slash_index = file_string.index('/', second_slash_index+1)
     prefix = file_string[:third_slash_index+1]
-    
+
     # split input string over prefix delimeter, add prefix back to string
     files = [prefix+f for f in file_string.split(prefix) if f]
     # remove trailing commas, they are actual delimiters
