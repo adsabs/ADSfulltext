@@ -344,7 +344,7 @@ class StandardExtractorHTML(object):
             translate=translate,
             decode=decode,
             normalise=True,
-            trim=False)
+            trim=True)
 
         meta_out = {'fulltext': string_of_all_html}
 
@@ -491,7 +491,7 @@ class StandardExtractorXML(object):
             decode=decode,
             translate=translate,
             normalise=True,
-            trim=False)
+            trim=True)
 
         return text_content
 
@@ -535,7 +535,7 @@ class StandardExtractorXML(object):
                     decode=decode,
                     translate=translate,
                     normalise=True,
-                    trim=False)
+                    trim=True)
 
                 data_inner.append(text_content)
             except KeyError:
@@ -817,7 +817,7 @@ class StandardExtractorHTTP(StandardExtractorBasicText):
             translate=translate,
             decode=decode,
             normalise=True,
-            trim=False)
+            trim=True)
         meta_out = {}
         meta_out['fulltext'] = self.parsed_http
         return meta_out
@@ -882,7 +882,7 @@ class GrobidPDFExtractor(object):
         grobid_xml = TextCleaner(text=grobid_xml).run(translate=translate,
                                           decode=decode,
                                           normalise=True,
-                                          trim=False)
+                                          trim=True)
 
         return  {
                     'fulltext': grobid_xml,
