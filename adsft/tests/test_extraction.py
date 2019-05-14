@@ -286,7 +286,7 @@ class TestTEIXMLExtractor(test_base.TestUnit):
         """
 
         """
-        ack = u"\nAcknowledgements. The usefulness of a bibliographic service is only as good as the quality and quantity of the data it contains . The ADS project has been lucky in benefitting from the skills and dedication of several people who have significantly contributed to the creation and management of the underlying datasets. In particular, we would like to acknowledge the work of Elizabeth Bohlen, Donna Thompson, Markus Demleitner, and Joyce Watson. Funding for this project has been provided by NASA under grant NCC5-189.\n"
+        ack = u"Acknowledgements. The usefulness of a bibliographic service is only as good as the quality and quantity of the data it contains . The ADS project has been lucky in benefitting from the skills and dedication of several people who have significantly contributed to the creation and management of the underlying datasets. In particular, we would like to acknowledge the work of Elizabeth Bohlen, Donna Thompson, Markus Demleitner, and Joyce Watson. Funding for this project has been provided by NASA under grant NCC5-189."
 
         full_text_content = self.extractor.open_xml()
         parsed_xml = self.extractor.parse_xml()
@@ -593,7 +593,7 @@ class TestOCRandTXTExtractor(test_base.TestUnit):
             = 'Tab\t CarriageReturn\r New line\n Random Escape characters:' \
               + chr(1) + chr(4) + chr(8)
 
-        expected_out_string = 'Tab\t CarriageReturn New line\n Random Escape characters: '
+        expected_out_string = 'Tab CarriageReturn New line Random Escape characters:'
 
         new_instring = self.extractor.parse_text(translate=True, decode=True)
 
@@ -611,7 +611,7 @@ class TestOCRandTXTExtractor(test_base.TestUnit):
             u'Tab\t CarriageReturn New line\n Random Escape characters:' \
             + u'\u0000'
 
-        expected_out_string = u'Tab\t CarriageReturn New line\n Random Escape characters:'
+        expected_out_string = u'Tab CarriageReturn New line Random Escape characters:'
 
         new_instring = self.extractor.parse_text(translate=True, decode=True)
 

@@ -79,8 +79,8 @@ class TestWorkers(unittest.TestCase):
                 self.assertTrue(task_write_text.called)
                 actual = task_write_text.call_args[0][0]
 
-                self.assertEqual(u'\nI.INTRODUCTION\nINTRODUCTION GOES HERE\n\n\nManual Entry\n\n\n\n\nAPPENDIX: APPENDIX TITLE GOES HERE\nAPPENDIX CONTENT\n\n', actual['fulltext'])
-                self.assertEqual(u'\nAcknowledgments\nWE ACKNOWLEDGE.', actual['acknowledgements'])
+                self.assertEqual(u'I.INTRODUCTION INTRODUCTION GOES HERE Manual Entry\nAPPENDIX: APPENDIX TITLE GOES HERE APPENDIX CONTENT', actual['fulltext'])
+                self.assertEqual(u'Acknowledgments WE ACKNOWLEDGE.', actual['acknowledgements'])
                 self.assertEqual([u'ADS/Sa.CXO#Obs/11458'], actual['dataset'])
                 self.assertTrue(task_output_results.called)
 
@@ -105,7 +105,7 @@ class TestWorkers(unittest.TestCase):
                 self.assertTrue(task_write_text.called)
                 actual = task_write_text.call_args[0][0]
                 #self.assertEqual(u'Introduction\nTHIS IS AN INTERESTING TITLE\n', actual['fulltext']) # PDFBox
-                self.assertEqual(u'Introduction\nTHIS IS AN INTERESTING TITLE\n\n\x0c', actual['fulltext']) # pdftotext
+                self.assertEqual(u'Introduction THIS IS AN INTERESTING TITLE', actual['fulltext']) # pdftotext
                 if self.grobid_service is not None:
                     self.assertEqual(expected_grobid_fulltext, actual['grobid_fulltext'])
                 self.assertTrue(task_output_results.called)
