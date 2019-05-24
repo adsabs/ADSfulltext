@@ -861,9 +861,9 @@ class GrobidPDFExtractor(object):
         grobid_xml = ""
         if self.grobid_service is not None:
             try:
-                with open(ft_source, 'r'):
+                with open(self.ft_source, 'r') as f:
                     logger.debug("Contacting grobid service: %s", self.grobid_service)
-                    response = requests.post(url=self.grobid_service, files={'input': ft_source}, timeout=self.timeout)
+                    response = requests.post(url=self.grobid_service, files={'input': f}, timeout=self.timeout)
             except IOError, error:
                 logger.exception("Error opening file %s: %s", self.ft_source, error)
             except requests.exceptions.Timeout:
