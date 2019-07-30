@@ -81,7 +81,7 @@ class TestWorkers(unittest.TestCase):
 
                 self.assertEqual(u'I.INTRODUCTION INTRODUCTION GOES HERE Manual Entry\nAPPENDIX: APPENDIX TITLE GOES HERE APPENDIX CONTENT', actual['fulltext'])
                 self.assertEqual(u'Acknowledgments WE ACKNOWLEDGE.', actual['acknowledgements'])
-                self.assertEqual([u'ADS/Sa.CXO#Obs/11458'], actual['dataset'])
+                self.assertEqual([u'ADS/Sa.CXO#Obs/11458 Manual Entry'], actual['dataset'])
                 self.assertTrue(task_output_results.called)
 
 
