@@ -464,10 +464,10 @@ class StandardExtractorXML(object):
         for b in parsed_xml.find_all("body"):
             b.replaceWithChildren()
 
-        self.parsed_xml = parsed_content
-        return parsed_content
+        self.parsed_xml = parsed_xml
+        return parsed_xml
 
-    def extract_string(self, static_xpath, **kwargs):
+    def extract_string(self, xml_path, **kwargs):
         """
         Extracts the first matching string requested from the given xpath
         :param static_xpath: XPATH to be searched
@@ -510,7 +510,7 @@ class StandardExtractorXML(object):
 
         return text_content
 
-    def extract_list(self, static_xpath, **kwargs):
+    def extract_list(self, xml_path, **kwargs):
         """
         Extracts the first matching string requested from the given xpath, but
         then returns the list of content. This function also extracts the href
@@ -593,7 +593,7 @@ class StandardExtractorXML(object):
             unique = True
 
             for static_xpath \
-                    in META_CONTENT[self.meta_name][content_name]['xpath']:
+                    in META_CONTENT[self.meta_name][content_name]['tag']:
 
                 logger.debug(META_CONTENT[self.meta_name][content_name])
                 logger.debug('Trying xpath: {0}'.format(static_xpath))
@@ -716,7 +716,7 @@ class StandardElsevierExtractorXML(StandardExtractorXML):
 
         except:
             logger.debug('Parsing EXML in non-standard way')
-            self.parsed_xml = document_fromstring(self.raw_xml)
+            #self.parsed_xml = document_fromstring(self.raw_xml)
 
         return self.parsed_xml
 
