@@ -469,8 +469,8 @@ class StandardExtractorXML(object):
 
     def extract_string(self, xml_path, **kwargs):
         """
-        Extracts the first matching string requested from the given xpath
-        :param static_xpath: XPATH to be searched
+        Extracts the first matching string requested from the given tag/attribute
+        :param xml_path: tag and/or attribute to be searched
         :param kwargs: decode and translate
         :return:
         """
@@ -512,12 +512,12 @@ class StandardExtractorXML(object):
 
     def extract_list(self, xml_path, **kwargs):
         """
-        Extracts the first matching string requested from the given xpath, but
+        Extracts the first matching string requested from the given tag and/or attribute, but
         then returns the list of content. This function also extracts the href
         within the span rather than the list of strings. When a list of strings
         is required, then that function can be added to the data factory.
 
-        :param static_xpath: XPATH to be searched
+        :param xml_path: tag and/or attribute to be searched
         :param kwargs: "info" name of the content wanted from the span,
         "decode", and "translate.
         :return:
@@ -571,7 +571,7 @@ class StandardExtractorXML(object):
         """
         Extracts full text content from the XML article specified. It also
         extracts any content specified in settings.py. It expects that the user
-        gives the XPATH and the meta-data name to use for the component wished
+        gives the tag and/or attribute and the meta-data name to use for the component wished
         to be extracted.
 
         :param translate: boolean, should it translate the text (see utils.py)
@@ -592,11 +592,11 @@ class StandardExtractorXML(object):
             all_text_content = []
             unique = True
 
-            for static_xpath \
+            for xml_path \
                     in META_CONTENT[self.meta_name][content_name]['tag']:
 
                 logger.debug(META_CONTENT[self.meta_name][content_name])
-                logger.debug('Trying xpath: {0}'.format(static_xpath))
+                logger.debug('Trying to find tag/attribute: {0}'.format(xml_path))
                 try:
                     # logger.debug(self.parsed_xml.text_content())
                     # This returns a unicode-like type
@@ -613,7 +613,7 @@ class StandardExtractorXML(object):
                     extractor_type = self.data_factory[extractor_required]
 
                     text_content = extractor_type(
-                        static_xpath,
+                        xml_path,
                         info=extractor_info,
                         decode=decode,
                         translate=translate,
@@ -621,7 +621,7 @@ class StandardExtractorXML(object):
 
                     if text_content:
                         # this is to deal with situations where the appendix is found inside of the body tags
-                        # or when multiple xpaths return the same result which happens in some cases for the acknowledgments
+                        # or when multiple tags/attributes return the same result which happens in some cases for the acknowledgments
                         for s in all_text_content:
                             if text_content in s:
                                 unique = False
@@ -646,8 +646,8 @@ class StandardExtractorXML(object):
                         META_CONTENT[self.meta_name][content_name]
                     ))
                     raise KeyError(
-                        'You gave a malformed xpath to HTMLElementTree: {0}'
-                        .format(static_xpath))
+                        'You gave a malformed tag/attribute to HTMLElementTree: {0}'
+                        .format(xml_path))
 
                 except Exception:
                     logger.error('Unknown error for: {0} [{1}]'
@@ -683,7 +683,7 @@ class StandardElsevierExtractorXML(StandardExtractorXML):
     Class for extracting text from an Elsevier XML file. This is used instead of
     the standard class, as Elsevier can use name spaces within their XML files,
     which can break the standard extraction using BeautifulSoup. It also means
-    XPATHs have to be formatted differently to handle extraction.
+    tags/attributes have to be formatted differently to handle extraction.
     Output is encoded in UTF-8.
     """
 
@@ -700,9 +700,7 @@ class StandardElsevierExtractorXML(StandardExtractorXML):
 
     def parse_xml(self):
         """
-        Parses the XML file using BeautifulSoup, using the super class. A quick
-        check if normal XPATH extraction works is carried out. If this fails, it
-        uses an alternative method to extract the content.
+        Parses the XML file using BeautifulSoup, using the super class.
 
         :return: opened and parsed XML content
         """
