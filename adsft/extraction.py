@@ -21,6 +21,8 @@ __license__ = 'GPLv3'
 import sys
 import os
 
+from bs4 import BeautifulSoup
+from bs4 import UnicodeDammit
 import requests
 from adsputils import overrides
 from adsputils import setup_logging
@@ -393,17 +395,14 @@ class StandardExtractorXML(object):
             with open(self.file_input, 'rb') as fp:
                 raw_xml = fp.read()
 
-            # use soupparser to properly encode file contents
-            #  it could be utf-8, iso-8859, etc.
-            parsed_content = soupparser.fromstring(raw_xml)
-            # convert to string for ease of clean-up, convert html and LaTeX entities
-            raw_xml = tostring(parsed_content)
-            raw_xml = re.sub('(<!-- body|endbody -->)', '', raw_xml)
-            raw_xml = edef.convertentities(raw_xml)
-            raw_xml = re.sub('<\?CDATA.+?\?>', '', raw_xml)
+            encoding = UnicodeDammit(raw_xml).original_encoding
 
-            logger.debug('reading')
-            logger.debug('Opened file, trying to massage the input.')
+            raw_xml = raw_xml.decode(encoding, "ignore")
+
+            raw_xml = edef.convertentities(raw_xml)
+
+            raw_xml = re.sub('<body>', '<ads-body>', raw_xml)
+            raw_xml = re.sub('</body>', '</ads-body>', raw_xml)
 
             logger.debug('XML file opened successfully')
             self.raw_xml = raw_xml
@@ -453,11 +452,17 @@ class StandardExtractorXML(object):
         :return: parsed XML file
         """
 
-        parsed_content = soupparser.fromstring(self.raw_xml)
+        parsed_xml = BeautifulSoup(self.raw_xml, 'html5lib')
 
-        # strip out the latex stuff (for now)
-        for e in parsed_content.xpath('//inline-formula'):
-            self._remove_keeping_tail(e)
+        for item in parsed_xml.find_all(["table",
+                                            "graphic",
+                                            "disp-formula",
+                                            "inline-formula",
+                                            "tex-math"]):
+            item.decompose()
+
+        for b in parsed_xml.find_all("body"):
+            b.replaceWithChildren()
 
         self.parsed_xml = parsed_content
         return parsed_content
@@ -482,10 +487,20 @@ class StandardExtractorXML(object):
         else:
             translate = False
 
-        s = self.parsed_xml.xpath(static_xpath)
+        xml_path = xml_path.split()
+        tag = xml_path[0]
+
+        if len(xml_path) == 1:
+            s = self.parsed_xml.find_all(tag)
+        elif tag == "None":
+            attr = xml_path[1]
+            s = self.parsed_xml.find_all(attr)
+        else:
+            attr, attr_val = xml_path[1].split(':')
+            s = self.parsed_xml.find_all(tag, {attr:attr_val})
 
         if s:
-            text_content = s[0].text_content()
+            text_content = s[0].get_text()
         old = text_content
         text_content = TextCleaner(text=text_content).run(
             decode=decode,
@@ -526,11 +541,16 @@ class StandardExtractorXML(object):
                          ' returning an empty list')
             return data_inner
 
-        text_content = self.parsed_xml.xpath(static_xpath)
+        tag, attribute = xml_path.split()
+        attr, attr_val = attribute.split(':')
+
+        text_content = self.parsed_xml.find_all(tag, {attr:attr_val})
 
         for span in text_content:
             try:
-                text_content = span.attrib.get(span_content)
+                href = span[span_content] or " "
+                text = span.get_text() or " "
+                text_content = href + " " + text
                 text_content = TextCleaner(text=text_content).run(
                     decode=decode,
                     translate=translate,
@@ -691,7 +711,7 @@ class StandardElsevierExtractorXML(StandardExtractorXML):
             self.parsed_xml = super(StandardElsevierExtractorXML,
                                     self).parse_xml()
             logger.debug('Checking soupparser handled itself correctly')
-            check = self.parsed_xml.xpath('//body')[0].text_content()
+            check = self.parsed_xml.find_all('ja:body')[0].get_text()
             # this may be better? //named-content[@content-type="dataset"]
 
         except:

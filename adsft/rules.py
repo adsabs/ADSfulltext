@@ -4,66 +4,64 @@ If the order is changed specifically for app-group we will have to modify our un
 META_CONTENT = {
     'xml': {
         'fulltext': {
-            'xpath': ['//body',
-                      '//section[@type="body"]',
-                      '//journalarticle-body',
-                      '//bdy',
-                      '//app-group'
-                      ],
+            'tag': ['ads-body',
+                      'section',
+                      'journalarticle-body type:body',
+                      'bdy',
+                      'app-group'
+            ],
             'type': 'string',
             'info': '',
             },
         'acknowledgements': {
-            'xpath': ['//ack',
-                      '//section[@type="acknowledgments"]',
-                      '//subsection[@type="acknowledgement" '
-                      'or @type="acknowledgment"]'
-                      ],
+            'tag': ['ack',
+                      'section type:acknowledgments',
+                      'subsection type:acknowledgement',
+                      'None type="acknowledgement"'
+            ],
             'type': 'string',
             'info': '',
             },
         'dataset': {
-            'xpath': ['//named-content[@content-type="dataset"]'],
+            'tag': ['named-content content-type:dataset'],
             'type': 'list',
             'info': 'xlink:href',
         }
     },
     'teixml': {
         'fulltext': {
-            'xpath': ['//body',
-                      ],
+            'tag': ['body'],
             'type': 'string',
             'info': '',
             },
         'acknowledgements': {
-            'xpath': ['//div[@type="acknowledgement"]',
-                      ],
+            'tag': ['div type:acknowledgement'],
             'type': 'string',
             'info': '',
             },
     },
     'xmlelsevier': {
         'fulltext': {
-            'xpath': ['//body',
-                      '//raw-text',
-                      '//appendices',
-                      ],
+            'tag': ['ads-body',
+                        'body',
+                        'ja:body',
+                        'ja:raw-text',
+                        'ce:appendices'
+            ],
             'type': 'string',
             'info': '',
             },
         'acknowledgements': {
-            'xpath': ['//acknowledgment',
-                      '//ack',
-                      '//section[@type="acknowledgments"]',
-                      '//subsection[@type="acknowledgement" '
-                      'or @type="acknowledgment"]',
-                      '//*[local-name()="acknowledgment"]'
-                      ],
+            'tag': ['ce:acknowledgment',
+                      'ce:ack',
+                      'section type:acknowledgments',
+                      'subsection type:acknowledgement'
+            ],
             'type': 'string',
             'info': '',
             },
         'dataset': {
-            'xpath': ['//named-content[@content-type="dataset"]'],
+            'tag': ['named-content content-type:dataset'],
             'type': 'list',
             'info': 'xlink:href',
         }
