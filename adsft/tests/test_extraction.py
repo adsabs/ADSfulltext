@@ -53,7 +53,7 @@ class TestXMLExtractor(test_base.TestUnit):
 
         full_text_content = self.extractor.open_xml()
         content = self.extractor.parse_xml()
-        journal_title = content.xpath('//journal-title')[0].text_content()
+        journal_title = content.find_all('journal-title')[0].get_text()
 
         self.assertEqual(journal_title, 'JOURNAL TITLE')
 
@@ -68,7 +68,7 @@ class TestXMLExtractor(test_base.TestUnit):
 
         full_text_content = self.extractor.open_xml()
         content = self.extractor.parse_xml()
-        journal_title = content.xpath('//body//sec//p')[0].text_content()
+        journal_title = content.find('ads-body').find('sec').find_all('p')[0].get_text()
 
         self.assertEqual(journal_title, 'INTRODUCTION GOES HERE')
 
@@ -85,7 +85,7 @@ class TestXMLExtractor(test_base.TestUnit):
         self.extractor = extraction.EXTRACTOR_FACTORY['xml'](self.dict_item)
         full_text_content = self.extractor.open_xml()
         content = self.extractor.parse_xml()
-        article_number = content.xpath('//article-number')[0].text_content()
+        article_number = content.find_all('article-number')[0].get_text()
 
         self.assertEqual(article_number, '483879')
 
@@ -247,7 +247,7 @@ class TestTEIXMLExtractor(test_base.TestUnit):
 
         full_text_content = self.extractor.open_xml()
         content = self.extractor.parse_xml()
-        journal_title = content.xpath('//title')[0].text_content()
+        journal_title = content.find_all('title')[0].get_text()
 
         self.assertEqual(journal_title, 'ASTRONOMY AND ASTROPHYSICS The NASA Astrophysics Data System: Architecture')
 
@@ -344,7 +344,7 @@ class TestXMLElsevierExtractor(test_base.TestUnit):
         full_text_content = self.extractor.open_xml()
         content = self.extractor.parse_xml()
         journal_title = \
-            content.xpath('//*[local-name()=\'title\']')[0].text_content()
+            content.find_all('dct:title')[0].get_text()
         self.assertIn('JOURNAL TITLE', journal_title)
 
     def test_that_we_can_extract_using_settings_template(self):
