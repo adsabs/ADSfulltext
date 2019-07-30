@@ -715,8 +715,7 @@ class StandardElsevierExtractorXML(StandardExtractorXML):
             # this may be better? //named-content[@content-type="dataset"]
 
         except:
-            logger.debug('Parsing EXML in non-standard way')
-            #self.parsed_xml = document_fromstring(self.raw_xml)
+            logger.debug('Unable to parse Elseiver XML file')
 
         return self.parsed_xml
 
