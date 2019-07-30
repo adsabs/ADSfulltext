@@ -120,7 +120,7 @@ class TestExtraAcknowledgment(test_base.TestGeneric):
                 with open(fulltext_path, 'r') as fulltext_file:
                     fulltext_content = fulltext_file.read()
                 self.assertEqual(fulltext_content,
-                                 'application/xml JOURNAL TITLE CREATOR SUBJECT DESCRIPTION JOURNAL NAME COPYRIGHT PUBLISHER 9999-9999 VOLUME DAY MONTH YEAR 1999-99-99 999-999 999 999 99.9999/9.99999.9999.99.999 http://dx.doi.org/99.9999/9.99999.9999.99.999 doi:99.9999/9.99999.9999.99.999 Journals S300.1 JOURNAL 999999 99999-9999(99)99999-9 99.9999/9.99999.9999.99.999 COPYRIGHT Fig.1 CONTENT TITLE GIVEN NAME SURNAME a #x204e; EMAIL@EMAIL.COM a AFFILIATION #x204e; AUTHOR Abstract ABSTRACT Highlights HIGHLIGHTS Keywords KEYWORD 1 Introduction JOURNAL CONTENT Acknowledgments THANK YOU Appendix A APPENDIX TITLE APPENDIX References AUTHOR et al., 1999 GIVEN NAME SURNAME TITLE TITLE VOLUME YEAR 99 99')
+                                 '1 Introduction JOURNAL CONTENT Acknowledgments THANK YOU Appendix A APPENDIX TITLE APPENDIX')
 
             acknowledgments_path = os.path.join(path, 'acknowledgements.txt')
             self.assertTrue(
