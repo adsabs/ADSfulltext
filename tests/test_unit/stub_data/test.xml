@@ -99,6 +99,9 @@
       <sec id="s1"><label>I.</label><title>INTRODUCTION</title>
           <p>INTRODUCTION <inline-formula>this should be removed</inline-formula>GOES HERE</p>
       </sec>
+      <sec id="s1"><label>I.</label><title>SECTION I</title>
+         <p>THIS SECTION TESTS HTML ENTITIES LIKE &angst; &amp; &gt;.</p>
+      </sec>
 
         <data>
             <named-content content-type="dataset" xlink:href="ADS/Sa.CXO#Obs/11458">Manual Entry 1</named-content>
