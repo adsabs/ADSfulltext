@@ -391,10 +391,14 @@ class StandardExtractorXML(object):
             with open(self.file_input, 'rb') as fp:
                 raw_xml = fp.read()
 
+            # detect the encoding of the xml file (Latin-1, UTF-8, etc.)
             encoding = UnicodeDammit(raw_xml).originalEncoding
 
+            # this encoding is then used to decode bytecode into unicode
             raw_xml = raw_xml.decode(encoding, "ignore")
 
+            # converting the html entities needs be given a string in unicode,
+            # otherwise you'll be mixing bytecode with unicode
             raw_xml = edef.convertentities(raw_xml)
 
             logger.debug('reading')
