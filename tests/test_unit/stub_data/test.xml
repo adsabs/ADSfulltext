@@ -99,8 +99,14 @@
       <sec id="s1"><label>I.</label><title>INTRODUCTION</title>
           <p>INTRODUCTION <inline-formula>this should be removed</inline-formula>GOES HERE</p>
       </sec>
-      <sec id="s1"><label>I.</label><title>SECTION I</title>
+      <sec id="s2"><label>II.</label><title>SECTION II</title>
          <p>THIS SECTION TESTS HTML ENTITIES LIKE &angst; &amp; &gt;.</p>
+      </sec>
+      <sec id="s3"><label>III.</label><title>SECTION III</title>
+         <p>THIS SECTION TESTS THAT THE <inline-formula>formula</inline-formula>TAIL <italic>IS PRESERVED</italic>.</p>
+      </sec>
+      <sec id="s4"><label>IV.</label><title>SECTION IV</title>
+         <p>THIS SECTION TESTS <!-- THIS SHOULD BE REMOVED -->THAT COMMENTS ARE REMOVED.</p>
       </sec>
 
         <data>

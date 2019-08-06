@@ -214,6 +214,33 @@ class TestXMLExtractor(test_base.TestUnit):
 
         self.assertEqual(section, u'THIS SECTION TESTS HTML ENTITIES LIKE \u212b  >.')
 
+    def test_that_the_tail_is_preserved(self):
+        """
+        Tests that when a tag is removed any trailing text is preserved by appending
+        it to the previous or parent element.
+
+        :return: no return
+        """
+
+        full_text_content = self.extractor.open_xml()
+        content = self.extractor.parse_xml()
+        section = content.xpath('//body//sec//p')[2].text_content()
+
+        self.assertEqual(section, u'THIS SECTION TESTS THAT THE TAIL IS PRESERVED.')
+
+    def test_that_comments_are_ignored(self):
+        """
+        Tests that parsing the xml file ignores any comments like <!-- example comment -->.
+
+        :return: no return
+        """
+
+        full_text_content = self.extractor.open_xml()
+        content = self.extractor.parse_xml()
+        section = content.xpath('//body//sec//p')[3].text_content()
+
+        self.assertEqual(section, u'THIS SECTION TESTS THAT COMMENTS ARE REMOVED.')
+
 
 class TestTEIXMLExtractor(test_base.TestUnit):
     """
