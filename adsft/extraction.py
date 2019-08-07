@@ -21,6 +21,7 @@ __license__ = 'GPLv3'
 import sys
 import os
 
+from BeautifulSoup import UnicodeDammit
 import requests
 from adsputils import overrides
 from adsputils import setup_logging
@@ -376,14 +377,11 @@ class StandardExtractorXML(object):
 
     def open_xml(self):
         """
-        Opens the XML file and reads raw string, uses soupparse to encode.
+        Opens the XML file and reads raw string, uses UnicodeDammit to encode.
 
         Removes some text that has no relevance for XML files, such as HTML tags, LaTeX entities
 
-        Note that soupparser.fromstring is called by both open_xml and parse_xml.
-        open_xml uses soupparser.fromstring because the html and LaTex cleanup needs a string, not a parse tree
-
-        :return: semi-parsed XML content
+        :return: XML string with converted HTML entities
         """
         raw_xml = None
 
@@ -393,14 +391,15 @@ class StandardExtractorXML(object):
             with open(self.file_input, 'rb') as fp:
                 raw_xml = fp.read()
 
-            # use soupparser to properly encode file contents
-            #  it could be utf-8, iso-8859, etc.
-            parsed_content = soupparser.fromstring(raw_xml)
-            # convert to string for ease of clean-up, convert html and LaTeX entities
-            raw_xml = tostring(parsed_content)
-            raw_xml = re.sub('(<!-- body|endbody -->)', '', raw_xml)
+            # detect the encoding of the xml file (Latin-1, UTF-8, etc.)
+            encoding = UnicodeDammit(raw_xml).originalEncoding
+
+            # this encoding is then used to decode bytecode into unicode
+            raw_xml = raw_xml.decode(encoding, "ignore")
+
+            # converting the html entities needs be given a string in unicode,
+            # otherwise you'll be mixing bytecode with unicode
             raw_xml = edef.convertentities(raw_xml)
-            raw_xml = re.sub('<\?CDATA.+?\?>', '', raw_xml)
 
             logger.debug('reading')
             logger.debug('Opened file, trying to massage the input.')
@@ -414,38 +413,6 @@ class StandardExtractorXML(object):
 
         return raw_xml
 
-    def _remove_keeping_tail(self, element):
-        """
-        Safe the tail text and then delete the element. For instance, the element
-        corresponding to the tag inline-formula for this case:
-
-        <p>Head <inline-formula>formula</inline-formula> tail <italic>end</italic>.</p>
-
-        will contain not only the tags but also the tail text until the next tag:
-
-        '<inline-formula>formula</inline-formula> tail'
-
-        To avoid losing the tail when removing the element, that text has to be
-        copied to the previous or parent node.
-        """
-        self._preserve_tail_before_delete(element)
-        element.getparent().remove(element)
-
-    def _preserve_tail_before_delete(self, node):
-        if node.tail: # preserve the tail
-            previous = node.getprevious()
-            if previous is not None: # if there is a previous sibling it will get the tail
-                if previous.tail is None:
-                    previous.tail = node.tail
-                else:
-                    previous.tail = previous.tail + node.tail
-            else: # The parent get the tail as text
-                parent = node.getparent()
-                if parent.text is None:
-                    parent.text = node.tail
-                else:
-                    parent.text = parent.text + node.tail
-
     def parse_xml(self):
         """
         Parses the encoded string read from the opened XML file. Removes inline formula from each XML node.
@@ -455,9 +422,9 @@ class StandardExtractorXML(object):
 
         parsed_content = soupparser.fromstring(self.raw_xml)
 
-        # strip out the latex stuff (for now)
-        for e in parsed_content.xpath('//inline-formula'):
-            self._remove_keeping_tail(e)
+        # remove tables, formulas and figures
+        for e in parsed_content.xpath("//table | //graphic | //disp-formula | ////inline-formula | //formula | //tex-math | //processing-instruction('CDATA')"):
+            e.drop_tree()
 
         self.parsed_xml = parsed_content
         return parsed_content

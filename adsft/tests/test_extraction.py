@@ -130,7 +130,7 @@ class TestXMLExtractor(test_base.TestUnit):
         :return: no return
         """
 
-        file_path = '{0}/{1}'.format(self.app.conf['FULLTEXT_EXTRACT_PATH'],
+        file_path = u'{0}/{1}'.format(self.app.conf['FULLTEXT_EXTRACT_PATH'],
                                      self.test_stub_xml)
         pay_load = [self.dict_item]
 
@@ -184,7 +184,7 @@ class TestXMLExtractor(test_base.TestUnit):
         expected_full_text = 'INTRODUCTION'
         self.assertTrue(
             expected_full_text in full_text,
-            'Full text is wrong: {0} [expected: {1}, data: {2}]'
+            u'Full text is wrong: {0} [expected: {1}, data: {2}]'
             .format(full_text,
                     expected_full_text,
                     full_text)
@@ -194,11 +194,68 @@ class TestXMLExtractor(test_base.TestUnit):
         expected_dataset = 2
         self.assertTrue(
             data_set_length == expected_dataset,
-            'Number of datasets is wrong: {0} [expected: {1}, data: {2}]'
+            u'Number of datasets is wrong: {0} [expected: {1}, data: {2}]'
             .format(data_set_length,
                     expected_dataset,
                     data_set)
         )
+
+    def test_that_we_can_parse_html_entity_correctly(self):
+        """
+        Tests the parse_xml method. Checks that the HTML entities are parsed
+        without errors caused by escaped ambersands.
+
+        :return: no return
+        """
+
+        full_text_content = self.extractor.open_xml()
+        content = self.extractor.parse_xml()
+        section = content.xpath('//body//sec//p')[1].text_content()
+
+        self.assertEqual(section, u'THIS SECTION TESTS HTML ENTITIES LIKE \u212b  >.')
+
+    def test_that_the_tail_is_preserved(self):
+        """
+        Tests that when a tag is removed any trailing text is preserved by appending
+        it to the previous or parent element.
+
+        :return: no return
+        """
+
+        full_text_content = self.extractor.open_xml()
+        content = self.extractor.parse_xml()
+        section = content.xpath('//body//sec//p')[2].text_content()
+
+        self.assertEqual(section, u'THIS SECTION TESTS THAT THE TAIL IS PRESERVED.')
+
+    def test_that_comments_are_ignored(self):
+        """
+        Tests that parsing the xml file ignores any comments like <!-- example comment -->.
+
+        :return: no return
+        """
+
+        full_text_content = self.extractor.open_xml()
+        content = self.extractor.parse_xml()
+        section = content.xpath('//body//sec//p')[3].text_content()
+
+        self.assertEqual(section, u'THIS SECTION TESTS THAT COMMENTS ARE REMOVED.')
+
+    def test_that_cdata_is_removed(self):
+        """
+        Tests that parsing the xml file either removes CDATA tags like in the case of
+        <?CDATA some data?> where it is in the form of a "processing instruction" or ignores
+        the cdata content when in this <![CDATA] some data]]> form, which BeautifulSoup
+        calls a "declaration".
+
+        :return: no return
+        """
+
+        full_text_content = self.extractor.open_xml()
+        content = self.extractor.parse_xml()
+        section = content.xpath('//body//sec//p')[4].text_content()
+
+        self.assertEqual(section, u'THIS SECTION TESTS THAT CDATA IS REMOVED.')
 
 
 class TestTEIXMLExtractor(test_base.TestUnit):
@@ -420,7 +477,7 @@ class TestXMLElsevierExtractor(test_base.TestUnit):
         expected_dataset = 2
         self.assertTrue(
             data_set_length == expected_dataset,
-            'Number of datasets is wrong: {0} [expected: {1}, data: {2}]'
+            u'Number of datasets is wrong: {0} [expected: {1}, data: {2}]'
             .format(data_set_length,
                     expected_dataset,
                     data_set)
@@ -444,7 +501,7 @@ class TestHTMLExtractor(test_base.TestUnit):
 
         super(TestHTMLExtractor, self).setUp()
         self.dict_item = {
-            'ft_source': '{0},{1}'.format(self.test_stub_html,
+            'ft_source': u'{0},{1}'.format(self.test_stub_html,
                                            self.test_stub_html_table),
             'bibcode': 'TEST'
         }
@@ -509,7 +566,7 @@ class TestHTMLExtractor(test_base.TestUnit):
         self.assertIn(
             'ONLY IN TABLE',
             content['fulltext'],
-            'Table is not in the fulltext: {0}'.format(content['fulltext'])
+            u'Table is not in the fulltext: {0}'.format(content['fulltext'])
         )
 
 
@@ -720,7 +777,7 @@ class TestHTTPExtractor(test_base.TestUnit):
         self.assertEqual(
             response,
             self.body_content,
-            'Expected response: {0}\n but got: {1}'
+            u'Expected response: {0}\n but got: {1}'
                 .format(self.body_content, response)
         )
 
