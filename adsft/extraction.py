@@ -423,7 +423,7 @@ class StandardExtractorXML(object):
         parsed_content = soupparser.fromstring(self.raw_xml)
 
         # remove tables, formulas and figures
-        for e in parsed_content.xpath('//table | //graphic | //disp-formula | ////inline-formula | //formula | //tex-math | //processing-instruction()'):
+        for e in parsed_content.xpath("//table | //graphic | //disp-formula | ////inline-formula | //formula | //tex-math | //processing-instruction('CDATA')"):
             e.drop_tree()
 
         self.parsed_xml = parsed_content
