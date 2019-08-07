@@ -241,6 +241,22 @@ class TestXMLExtractor(test_base.TestUnit):
 
         self.assertEqual(section, u'THIS SECTION TESTS THAT COMMENTS ARE REMOVED.')
 
+    def test_that_cdata_is_removed(self):
+        """
+        Tests that parsing the xml file either removes CDATA tags like in the case of
+        <?CDATA some data?> where it is in the form of a "processing instruction" or ignores
+        the cdata content when in this <![CDATA] some data]]> form, which BeautifulSoup
+        calls a "declaration".
+
+        :return: no return
+        """
+
+        full_text_content = self.extractor.open_xml()
+        content = self.extractor.parse_xml()
+        section = content.xpath('//body//sec//p')[4].text_content()
+
+        self.assertEqual(section, u'THIS SECTION TESTS THAT CDATA IS REMOVED.')
+
 
 class TestTEIXMLExtractor(test_base.TestUnit):
     """

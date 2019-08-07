@@ -108,6 +108,9 @@
       <sec id="s4"><label>IV.</label><title>SECTION IV</title>
          <p>THIS SECTION TESTS <!-- THIS SHOULD BE REMOVED -->THAT COMMENTS ARE REMOVED.</p>
       </sec>
+      <sec id="s5"><label>V.</label><title>SECTION V</title>
+         <p><?CDATA THIS SHOULD BE REMOVED ?>THIS SECTION TESTS <![CDATA] [THIS SHOULD ALSO BE REMOVED]]>THAT CDATA IS REMOVED.</p>
+      </sec>
 
         <data>
             <named-content content-type="dataset" xlink:href="ADS/Sa.CXO#Obs/11458">Manual Entry 1</named-content>
