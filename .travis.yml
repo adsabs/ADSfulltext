@@ -34,4 +34,4 @@ script:
  - mvn test -DdryRun=true -DcoverallsFile=java_coverage.json jacoco:report coveralls:report
 after_success:
  - coverage combine
- - coveralls --merge=java_coverage.json
+ #- coveralls --merge=java_coverage.json
