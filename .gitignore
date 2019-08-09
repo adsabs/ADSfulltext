@@ -15,7 +15,8 @@ fulltext*.links
 do_not_commit/
 .idea/
 target/*
-.coverage*
+.coverage
+.coverage.*
 /bin/
 .cache/
 .vscode/
