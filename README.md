@@ -29,9 +29,26 @@ The main file for this pipeline is `extraction.py`. This file takes a message (i
 
 would use the Elsevier XML parser because XML files from that publisher need to be extracted using different methods than regular XML files. In this case Elsevier requires the use of `lxml.html.document_fromstring()` instead of `lxml.html.soupparser.fromstring()`.
 
-#### XML Files
+#### XML Files  
 
-We utilize the lxml.html library to extract content from our XML files.
+We utilize the lxml.html.soupparser library to extract content from our XML files, which is an lxml interface to the BeautifulSoup HTML parser. By default when using BeautifulSoup3 (which is the version we currently use) this library uses the lxml.html parser. This parser is fast but more importantly lenient enough for our data as a lot of our XML files are not valid XML. You can find a breakdown of the different types of parsers [here](https://www.crummy.com/software/BeautifulSoup/bs4/doc/#installing-a-parser).
+
+Functions:
+- `open_xml()`
+  - This function is used to open/read an XML file and store its content as a string. To not lose data we decode this string using the encoding detected by UnicodeDammit. This is important to do before the next step as our string before decoding is in bytecode and the next step inserts unicode - mixing these two will cause nothing but problems. The next step converts HTML entities into unicode, for example `&angst;` -> &angst;. We do this even though soupparser has HTML entity conversion capabilties because our list is much more exhaustive and as of right now there is no functionality built in to pass a customized HTML entity map/dictionary as a parameter to this parser. Our dictionary of HTML entities can be found in `entitydefs.py`.
+- `parse_xml()`
+ - Here we pass the string returned by `open_xml()` to soupparser's `fromstring()` function. We then remove some tags to get rid of potential garbage/nonsense strings using the xpath function which lxml has made available to us.   
+- `extract_string()`
+ - Here we use the xpath function to get all matches for a specific tag, and return text for the first one found.
+- `extract_list()`
+ - This function is similar to `extract_string()` but it returns a list and is only used for datasets.
+- `extract_multi_content()`
+ - This is basically the main function for this class. It loops through the xpaths found in `rules.py` and collects the content for each one using `extract_string()` and `extract_list()`. It returns a dictionary containing fulltext, acknowledgments, and optionally dataset(s).
+
+
+In the past we have used regular expressions, `string.replace()` and `re.sub()` to fix issues that should really be fixed inside the parser. For example, parsers may try to wrap our XML files with html and body tags to attempt to reconcile the invalid/broken HTML. This is actually normal behavior of a lenient parser, but in our case it results in content for the entire file being returned for the fulltext instead of just the content inside the body. We could replace the body tag before parsing with a different name and just extract the string from that tag instead, but this is more of a workaround than a solution. Sometimes this is the only way as it's also not a good idea to edit the lxml/BeautifulSoup code as this can cause a lot of complications down the line, but if it can be avoided I highly recommend not using regular expressions and string replacements to fix these types of issues. I defer to this humorous [stackoverflow answer](https://stackoverflow.com/questions/1732348/regex-match-open-tags-except-xhtml-self-contained-tags/1732454#1732454) to deter you.
+
+Eventually we will need to upgrade to BeautifulSoup4 as python3 is not compatible with BeautifulSoup3.  
 
 #### PDF Files
 
