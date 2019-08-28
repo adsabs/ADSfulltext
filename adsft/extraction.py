@@ -9,6 +9,8 @@ Java pipeline.
 Credits: repository adsabs/adsdata by Jay Luke
 """
 
+BS4=False
+
 __author__ = 'J. Elliott'
 __maintainer__ = ''
 __copyright__ = 'Copyright 2015'
@@ -21,7 +23,8 @@ __license__ = 'GPLv3'
 import sys
 import os
 
-from BeautifulSoup import UnicodeDammit
+#from BeautifulSoup import UnicodeDammit
+from bs4 import BeautifulSoup, UnicodeDammit
 import requests
 from adsputils import overrides
 from adsputils import setup_logging
@@ -33,7 +36,10 @@ import unicodedata
 from lxml.html import soupparser, document_fromstring, fromstring
 from lxml.etree import tostring
 from adsft import entitydefs as edef
-from adsft.rules import META_CONTENT
+if BS4:
+    from adsft.rules import META_CONTENT
+else:
+    from adsft.rules_xpath import META_CONTENT as META_CONTENT
 from requests.exceptions import HTTPError
 from subprocess import Popen, PIPE, STDOUT
 
@@ -392,7 +398,7 @@ class StandardExtractorXML(object):
                 raw_xml = fp.read()
 
             # detect the encoding of the xml file (Latin-1, UTF-8, etc.)
-            encoding = UnicodeDammit(raw_xml).originalEncoding
+            encoding = UnicodeDammit(raw_xml).original_encoding
 
             # this encoding is then used to decode bytecode into unicode
             raw_xml = raw_xml.decode(encoding, "ignore")
@@ -420,14 +426,29 @@ class StandardExtractorXML(object):
         :return: parsed XML file
         """
 
-        parsed_content = soupparser.fromstring(self.raw_xml)
+        #parsed_content = soupparser.fromstring(self.raw_xml)
 
-        # remove tables, formulas and figures
-        for e in parsed_content.xpath("//table | //graphic | //disp-formula | ////inline-formula | //formula | //tex-math | //processing-instruction('CDATA')"):
-            e.drop_tree()
+        ## remove tables, formulas and figures
+        #for e in parsed_content.xpath("//table | //graphic | //disp-formula | ////inline-formula | //formula | //tex-math | //processing-instruction('CDATA')"):
+            #e.drop_tree()
 
-        self.parsed_xml = parsed_content
-        return parsed_content
+        if BS4:
+            parsed_xml = BeautifulSoup(self.raw_xml, 'lxml-xml')
+
+            # remove tables, formulas and figures
+            for item in parsed_xml.select("table, graphic, disp-formula, inline-formula, formula, tex-math"):
+                item.decompose()
+        else:
+            from lxml import etree
+            parser = etree.XMLParser(strip_cdata=True, ns_clean=True, recover=True, remove_blank_text=True, remove_comments=False, remove_pis=False, resolve_entities=True)
+            parsed_xml = etree.XML(self.raw_xml.encode('utf-8'), parser)
+            # remove tables, formulas and figures
+            for e in parsed_xml.xpath("//table | //graphic | //disp-formula | ////inline-formula | //formula | //tex-math | //processing-instruction('CDATA')"):
+                e.getparent().remove(e)
+
+
+        self.parsed_xml = parsed_xml
+        return parsed_xml
 
     def extract_string(self, static_xpath, **kwargs):
         """
@@ -449,10 +470,18 @@ class StandardExtractorXML(object):
         else:
             translate = False
 
-        s = self.parsed_xml.xpath(static_xpath)
+        if BS4:
+            s = self.parsed_xml.select(static_xpath)
+        else:
+            s = self.parsed_xml.xpath(static_xpath)
 
         if s:
-            text_content = s[0].text_content()
+            if BS4:
+                text_content = s[0].get_text()
+            else:
+                text_content = ' '.join(s[0].itertext())
+                #text_content = s[0].text
+                #text_content = s[0].text_content()
         old = text_content
         text_content = TextCleaner(text=text_content).run(
             decode=decode,
@@ -493,7 +522,10 @@ class StandardExtractorXML(object):
                          ' returning an empty list')
             return data_inner
 
-        text_content = self.parsed_xml.xpath(static_xpath)
+        if BS4:
+            text_content = self.parsed_xml.select(static_xpath)
+        else:
+            text_content = self.parsed_xml.xpath(static_xpath)
 
         for span in text_content:
             try:

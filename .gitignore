@@ -25,3 +25,4 @@ java_coverage.json
 venv
 local_config.py
 logs
+python/*
