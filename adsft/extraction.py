@@ -37,9 +37,9 @@ from lxml.html import soupparser, document_fromstring, fromstring
 from lxml.etree import tostring
 from adsft import entitydefs as edef
 if BS4:
-    from adsft.rules import META_CONTENT
+    from adsft.rules_select import META_CONTENT
 else:
-    from adsft.rules_xpath import META_CONTENT as META_CONTENT
+    from adsft.rules import META_CONTENT
 from requests.exceptions import HTTPError
 from subprocess import Popen, PIPE, STDOUT
 
@@ -403,6 +403,16 @@ class StandardExtractorXML(object):
             # this encoding is then used to decode bytecode into unicode
             raw_xml = raw_xml.decode(encoding, "ignore")
 
+            if not BS4:
+                ## A CDATA is coded like this: <![CDATA[<b>Your Code Goes Here</b>]]>
+                ## A comment is coded like this: <!--  My comment goes here. and it can span multiple lines -->
+                ## A processing instruction is coded like this: <?ignore .... what ever I want here, including <!-- comments --> ...  ?>
+                ##
+                ## lxml does not provide a way to find CDATA and remove their content
+                ## Source: https://stackoverflow.com/a/44561547
+                ## RegEx Source: https://stackoverflow.com/questions/4616554/what-is-the-regex-expression-for-cdata
+                raw_xml = re.sub('<!\[CDATA\[.*?\]\]>', '', raw_xml)
+
             # converting the html entities needs be given a string in unicode,
             # otherwise you'll be mixing bytecode with unicode
             raw_xml = edef.convertentities(raw_xml)
@@ -418,6 +428,34 @@ class StandardExtractorXML(object):
             raise Exception(err)
 
         return raw_xml
+
+    def _remove_keeping_tail(self, element):
+        """
+        Safe the tail text and then delete the element. For instance, the element
+        corresponding to the tag inline-formula for this case:
+        <p>Head <inline-formula>formula</inline-formula> tail <italic>end</italic>.</p>
+        will contain not only the tags but also the tail text until the next tag:
+        '<inline-formula>formula</inline-formula> tail'
+        To avoid losing the tail when removing the element, that text has to be
+        copied to the previous or parent node.
+        """
+        self._preserve_tail_before_delete(element)
+        element.getparent().remove(element)
+
+    def _preserve_tail_before_delete(self, node):
+        if node.tail: # preserve the tail
+            previous = node.getprevious()
+            if previous is not None: # if there is a previous sibling it will get the tail
+                if previous.tail is None:
+                    previous.tail = node.tail
+                else:
+                    previous.tail = previous.tail + node.tail
+            else: # The parent get the tail as text
+                parent = node.getparent()
+                if parent.text is None:
+                    parent.text = node.tail
+                else:
+                    parent.text = parent.text + node.tail
 
     def parse_xml(self):
         """
@@ -440,12 +478,34 @@ class StandardExtractorXML(object):
                 item.decompose()
         else:
             from lxml import etree
-            parser = etree.XMLParser(strip_cdata=True, ns_clean=True, recover=True, remove_blank_text=True, remove_comments=False, remove_pis=False, resolve_entities=True)
-            parsed_xml = etree.XML(self.raw_xml.encode('utf-8'), parser)
+            parser = etree.XMLParser(strip_cdata=True, ns_clean=True, recover=True, remove_blank_text=True, remove_comments=True, remove_pis=True, resolve_entities=True)
+            parsed_xml = etree.XML(self.raw_xml.encode('utf-8'), parser=parser)
             # remove tables, formulas and figures
             for e in parsed_xml.xpath("//table | //graphic | //disp-formula | ////inline-formula | //formula | //tex-math | //processing-instruction('CDATA')"):
-                e.getparent().remove(e)
+                self._remove_keeping_tail(e)
+                #e.clear(keep_tail=True)
+                #e.getparent().remove(e)
 
+        if not BS4:
+            if parsed_xml.nsmap:
+                from lxml import objectify
+                # Remove namespaces from tags such as:
+                #   <Element {http://www.tei-c.org/ns/1.0}TEI at 0x7f1fbb3702d8>
+                #   <Element {http://www.tei-c.org/ns/1.0}fileDesc at 0x7f1fb828d9e0>,
+                #   <Element {http://www.tei-c.org/ns/1.0}profileDesc at 0x7f1fb828db90>
+                # Source: https://stackoverflow.com/a/18160164
+                for elem in parsed_xml.getiterator():
+                    if not hasattr(elem.tag, 'find'): continue  # (1)
+                    i = elem.tag.find('}')
+                    if i >= 0:
+                        elem.tag = elem.tag[i+1:]
+                    for key in elem.attrib.iterkeys():
+                        i = key.find('}')
+                        if i >= 0:
+                            new_key = key[i+1:]
+                            elem.attrib[new_key] = elem.attrib.pop(key)
+                # Get rid of 'py:pytype' and/or 'xsi:type' information and remove unused namespace declarations
+                objectify.deannotate(parsed_xml, cleanup_namespaces=True)
 
         self.parsed_xml = parsed_xml
         return parsed_xml
