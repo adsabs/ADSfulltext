@@ -16,4 +16,4 @@ m = {
 
 output = StandardExtractorXML(m).extract_multi_content()
 
-print(output['fulltext'].encode('utf-8'))
+print(output['fulltext'])
