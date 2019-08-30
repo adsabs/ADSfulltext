@@ -25,7 +25,7 @@ META_CONTENT = {
         'dataset': {
             'xpath': ['//named-content[@content-type="dataset"]'],
             'type': 'list',
-            'info': 'xlink:href',
+            'info': 'href',
         }
     },
     'teixml': {
@@ -65,7 +65,7 @@ META_CONTENT = {
         'dataset': {
             'xpath': ['//named-content[@content-type="dataset"]'],
             'type': 'list',
-            'info': 'xlink:href',
+            'info': 'href',
         }
     },
     'html': {

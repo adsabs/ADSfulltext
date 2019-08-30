@@ -53,7 +53,7 @@ class TestXMLExtractor(test_base.TestUnit):
 
         full_text_content = self.extractor.open_xml()
         content = self.extractor.parse_xml()
-        journal_title = content.xpath('//journal-title')[0].text_content()
+        journal_title = "".join(content.xpath('//journal-title')[0].itertext())
 
         self.assertEqual(journal_title, 'JOURNAL TITLE')
 
@@ -68,7 +68,7 @@ class TestXMLExtractor(test_base.TestUnit):
 
         full_text_content = self.extractor.open_xml()
         content = self.extractor.parse_xml()
-        journal_title = content.xpath('//body//sec//p')[0].text_content()
+        journal_title = "".join(content.xpath('//body//sec//p')[0].itertext())
 
         self.assertEqual(journal_title, 'INTRODUCTION GOES HERE')
 
@@ -85,7 +85,7 @@ class TestXMLExtractor(test_base.TestUnit):
         self.extractor = extraction.EXTRACTOR_FACTORY['xml'](self.dict_item)
         full_text_content = self.extractor.open_xml()
         content = self.extractor.parse_xml()
-        article_number = content.xpath('//article-number')[0].text_content()
+        article_number = "".join(content.xpath('//article-number')[0].itertext())
 
         self.assertEqual(article_number, '483879')
 
@@ -210,7 +210,7 @@ class TestXMLExtractor(test_base.TestUnit):
 
         full_text_content = self.extractor.open_xml()
         content = self.extractor.parse_xml()
-        section = content.xpath('//body//sec//p')[1].text_content()
+        section = "".join(content.xpath('//body//sec//p')[1].itertext())
 
         self.assertEqual(section, u'THIS SECTION TESTS HTML ENTITIES LIKE \u212b  >.')
 
@@ -224,7 +224,7 @@ class TestXMLExtractor(test_base.TestUnit):
 
         full_text_content = self.extractor.open_xml()
         content = self.extractor.parse_xml()
-        section = content.xpath('//body//sec//p')[2].text_content()
+        section = "".join(content.xpath('//body//sec//p')[2].itertext())
 
         self.assertEqual(section, u'THIS SECTION TESTS THAT THE TAIL IS PRESERVED.')
 
@@ -237,7 +237,7 @@ class TestXMLExtractor(test_base.TestUnit):
 
         full_text_content = self.extractor.open_xml()
         content = self.extractor.parse_xml()
-        section = content.xpath('//body//sec//p')[3].text_content()
+        section = "".join(content.xpath('//body//sec//p')[3].itertext())
 
         self.assertEqual(section, u'THIS SECTION TESTS THAT COMMENTS ARE REMOVED.')
 
@@ -253,7 +253,7 @@ class TestXMLExtractor(test_base.TestUnit):
 
         full_text_content = self.extractor.open_xml()
         content = self.extractor.parse_xml()
-        section = content.xpath('//body//sec//p')[4].text_content()
+        section = "".join(content.xpath('//body//sec//p')[4].itertext())
 
         self.assertEqual(section, u'THIS SECTION TESTS THAT CDATA IS REMOVED.')
 
@@ -304,7 +304,7 @@ class TestTEIXMLExtractor(test_base.TestUnit):
 
         full_text_content = self.extractor.open_xml()
         content = self.extractor.parse_xml()
-        journal_title = content.xpath('//title')[0].text_content()
+        journal_title = "".join(content.xpath('//title')[0].itertext())
 
         self.assertEqual(journal_title, 'ASTRONOMY AND ASTROPHYSICS The NASA Astrophysics Data System: Architecture')
 
@@ -401,7 +401,7 @@ class TestXMLElsevierExtractor(test_base.TestUnit):
         full_text_content = self.extractor.open_xml()
         content = self.extractor.parse_xml()
         journal_title = \
-            content.xpath('//*[local-name()=\'title\']')[0].text_content()
+            "".join(content.xpath('//*[local-name()=\'title\']')[0].itertext())
         self.assertIn('JOURNAL TITLE', journal_title)
 
     def test_that_we_can_extract_using_settings_template(self):
