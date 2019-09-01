@@ -232,6 +232,20 @@ class TextCleaner(object):
         :return: no return
         """
 
+        # Convert non-ASCII characters to closest ASCII equivalent
+        #
+        # In unicode, several characters can be expressed in different ways:
+        # For instance, the character U+00C7 (latin capital letter c with cedilla)
+        # can also be expressed as the sequence U+0043 (latin capital letter c) U+0327 (combining cedilla)
+        #
+        # For each character, there are two normal forms:
+        # NFD (normal form D): translates each character into its decomposed form (aka canonical decomposition)
+        # NFC (normal form C): applies a canonical decomposition, then composes pre-combined characters again
+        #
+        # In Unicode, certain characters are supported which normally would be unified with other characters
+        # (e.g., non-breaking space '\xa0' with space ' ', Roman numeral one and latin capital letter I)
+        # NFKD: apply the compatibility decomposition (i.e. replace all compatibility characters with their equivalents)
+        # NFKC: applies the compatibility decomposition, followed by the canonical composition
         self.text = unicodedata.normalize('NFKC', unicode(self.text))
 
     def trimwords(self, maxlength=100):
