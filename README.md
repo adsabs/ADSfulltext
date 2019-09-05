@@ -6,6 +6,14 @@
 Article full text extraction pipeline. Set of workers that check the filesystem and convert
 binary files into text.
 
+## Dependencies
+
+In GNU/Linux (Debian based) we need the following packages in order to be able to compile the lxml package specified in the requirements:
+
+```
+apt install libxml2-dev libxslt1-dev
+```
+
 ## Purpose
 
 To extract text from the source files of our articles, which may be in any of the listed formats:

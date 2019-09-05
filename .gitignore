@@ -25,3 +25,5 @@ java_coverage.json
 venv
 local_config.py
 logs
+python/*
+tests/test_unit/stub_data/te/st/?/

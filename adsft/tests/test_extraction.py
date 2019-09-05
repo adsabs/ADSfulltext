@@ -52,10 +52,11 @@ class TestXMLExtractor(test_base.TestUnit):
         """
 
         full_text_content = self.extractor.open_xml()
-        content = self.extractor.parse_xml()
-        journal_title = content.xpath('//journal-title')[0].text_content()
+        for parser_name in ("html5lib", "html.parser", "lxml-html", "direct-lxml-html", "lxml-xml", "direct-lxml-xml",):
+            self.extractor.parse_xml(preferred_parser_names=(parser_name,))
+            journal_title = self.extractor.extract_string('//journal-title')
 
-        self.assertEqual(journal_title, 'JOURNAL TITLE')
+            self.assertEqual(journal_title, 'JOURNAL TITLE')
 
     def test_that_we_correctly_remove_inline_fomulas_from_the_xml_content(self):
         """
@@ -67,10 +68,11 @@ class TestXMLExtractor(test_base.TestUnit):
         """
 
         full_text_content = self.extractor.open_xml()
-        content = self.extractor.parse_xml()
-        journal_title = content.xpath('//body//sec//p')[0].text_content()
+        for parser_name in ("html5lib", "html.parser", "lxml-html", "direct-lxml-html", "lxml-xml", "direct-lxml-xml",):
+            self.extractor.parse_xml(preferred_parser_names=(parser_name,))
+            section = self.extractor.extract_string('//body//sec[@id="s1"]//p')
 
-        self.assertEqual(journal_title, 'INTRODUCTION GOES HERE')
+            self.assertEqual(section, 'INTRODUCTION GOES HERE')
 
 
     def test_iso_8859_1_xml(self):
@@ -84,10 +86,11 @@ class TestXMLExtractor(test_base.TestUnit):
         self.dict_item['ft_source'] = self.test_stub_iso8859
         self.extractor = extraction.EXTRACTOR_FACTORY['xml'](self.dict_item)
         full_text_content = self.extractor.open_xml()
-        content = self.extractor.parse_xml()
-        article_number = content.xpath('//article-number')[0].text_content()
+        for parser_name in ("html5lib", "html.parser", "lxml-html", "direct-lxml-html", "lxml-xml", "direct-lxml-xml",):
+            self.extractor.parse_xml(preferred_parser_names=(parser_name,))
+            article_number = self.extractor.extract_string('//article-number')
 
-        self.assertEqual(article_number, '483879')
+            self.assertEqual(article_number, '483879')
 
     def test_multi_file(self):
         """
@@ -117,10 +120,10 @@ class TestXMLExtractor(test_base.TestUnit):
         """
 
         full_text_content = self.extractor.open_xml()
-        parsed_xml = self.extractor.parse_xml()
-        content = self.extractor.extract_multi_content()
+        for parser_name in ("html5lib", "html.parser", "lxml-html", "direct-lxml-html", "lxml-xml", "direct-lxml-xml",):
+            content = self.extractor.extract_multi_content(preferred_parser_names=(parser_name,))
 
-        self.assertEqual(rules.META_CONTENT['xml'].keys(), content.keys())
+            self.assertEqual(rules.META_CONTENT['xml'].keys(), content.keys())
 
     def test_that_we_can_extract_all_content_from_payload_input(self):
         """
@@ -170,35 +173,35 @@ class TestXMLExtractor(test_base.TestUnit):
 
         self.dict_item['bibcode'] = 'test'
         full_text_content = self.extractor.open_xml()
-        parsed_xml = self.extractor.parse_xml()
-        content = self.extractor.extract_multi_content()
+        for parser_name in ("html5lib", "html.parser", "lxml-html", "direct-lxml-html", "lxml-xml", "direct-lxml-xml",):
+            content = self.extractor.extract_multi_content(preferred_parser_names=(parser_name,))
 
-        full_text = content['fulltext']
-        acknowledgements = content['acknowledgements']
-        data_set = content['dataset']
-        data_set_length = len(data_set)
+            full_text = content['fulltext']
+            acknowledgements = content['acknowledgements']
+            data_set = content['dataset']
+            data_set_length = len(data_set)
 
-        self.assertIs(unicode, type(acknowledgements))
+            self.assertIs(unicode, type(acknowledgements))
 
-        self.assertIs(unicode, type(full_text))
-        expected_full_text = 'INTRODUCTION'
-        self.assertTrue(
-            expected_full_text in full_text,
-            u'Full text is wrong: {0} [expected: {1}, data: {2}]'
-            .format(full_text,
-                    expected_full_text,
-                    full_text)
-        )
+            self.assertIs(unicode, type(full_text))
+            expected_full_text = 'INTRODUCTION'
+            self.assertTrue(
+                expected_full_text in full_text,
+                u'Full text is wrong: {0} [expected: {1}, data: {2}]'
+                .format(full_text,
+                        expected_full_text,
+                        full_text)
+            )
 
-        self.assertIs(list, type(data_set))
-        expected_dataset = 2
-        self.assertTrue(
-            data_set_length == expected_dataset,
-            u'Number of datasets is wrong: {0} [expected: {1}, data: {2}]'
-            .format(data_set_length,
-                    expected_dataset,
-                    data_set)
-        )
+            self.assertIs(list, type(data_set))
+            expected_dataset = 2
+            self.assertTrue(
+                data_set_length == expected_dataset,
+                u'Number of datasets is wrong: {0} [expected: {1}, data: {2}]'
+                .format(data_set_length,
+                        expected_dataset,
+                        data_set)
+            )
 
     def test_that_we_can_parse_html_entity_correctly(self):
         """
@@ -209,10 +212,12 @@ class TestXMLExtractor(test_base.TestUnit):
         """
 
         full_text_content = self.extractor.open_xml()
-        content = self.extractor.parse_xml()
-        section = content.xpath('//body//sec//p')[1].text_content()
+        #for parser_name in ("html5lib", "html.parser", "lxml-html", "direct-lxml-html", "lxml-xml", "direct-lxml-xml",):
+        for parser_name in ("html5lib", ):
+            self.extractor.parse_xml(preferred_parser_names=(parser_name,))
+            section = self.extractor.extract_string('//body//sec[@id="s2"]//p')
 
-        self.assertEqual(section, u'THIS SECTION TESTS HTML ENTITIES LIKE \u212b  >.')
+            self.assertEqual(section, u'THIS SECTION TESTS HTML ENTITIES LIKE \xc5 >.')
 
     def test_that_the_tail_is_preserved(self):
         """
@@ -223,10 +228,11 @@ class TestXMLExtractor(test_base.TestUnit):
         """
 
         full_text_content = self.extractor.open_xml()
-        content = self.extractor.parse_xml()
-        section = content.xpath('//body//sec//p')[2].text_content()
+        for parser_name in ("html5lib", "html.parser", "lxml-html", "direct-lxml-html", "lxml-xml", "direct-lxml-xml",):
+            self.extractor.parse_xml(preferred_parser_names=(parser_name,))
+            section = self.extractor.extract_string('//body//sec[@id="s3"]//p')
 
-        self.assertEqual(section, u'THIS SECTION TESTS THAT THE TAIL IS PRESERVED.')
+            self.assertEqual(section, u'THIS SECTION TESTS THAT THE TAIL IS PRESERVED .')
 
     def test_that_comments_are_ignored(self):
         """
@@ -236,10 +242,11 @@ class TestXMLExtractor(test_base.TestUnit):
         """
 
         full_text_content = self.extractor.open_xml()
-        content = self.extractor.parse_xml()
-        section = content.xpath('//body//sec//p')[3].text_content()
+        for parser_name in ("html5lib", "html.parser", "lxml-html", "direct-lxml-html", "lxml-xml", "direct-lxml-xml",):
+            self.extractor.parse_xml(preferred_parser_names=(parser_name,))
+            section = self.extractor.extract_string('//body//sec[@id="s4"]//p')
 
-        self.assertEqual(section, u'THIS SECTION TESTS THAT COMMENTS ARE REMOVED.')
+            self.assertEqual(section, u'THIS SECTION TESTS THAT COMMENTS ARE REMOVED.')
 
     def test_that_cdata_is_removed(self):
         """
@@ -252,10 +259,11 @@ class TestXMLExtractor(test_base.TestUnit):
         """
 
         full_text_content = self.extractor.open_xml()
-        content = self.extractor.parse_xml()
-        section = content.xpath('//body//sec//p')[4].text_content()
+        for parser_name in ("html5lib", "html.parser", "lxml-html", "direct-lxml-html", "lxml-xml", "direct-lxml-xml",):
+            self.extractor.parse_xml(preferred_parser_names=(parser_name,))
+            section = self.extractor.extract_string('//body//sec[@id="s5"]//p')
 
-        self.assertEqual(section, u'THIS SECTION TESTS THAT CDATA IS REMOVED.')
+            self.assertEqual(section, u'THIS SECTION TESTS THAT CDATA IS REMOVED.')
 
 
 class TestTEIXMLExtractor(test_base.TestUnit):
@@ -303,10 +311,11 @@ class TestTEIXMLExtractor(test_base.TestUnit):
         """
 
         full_text_content = self.extractor.open_xml()
-        content = self.extractor.parse_xml()
-        journal_title = content.xpath('//title')[0].text_content()
+        for parser_name in ("html5lib", "html.parser", "lxml-html", "direct-lxml-html", "lxml-xml", "direct-lxml-xml",):
+            self.extractor.parse_xml(preferred_parser_names=(parser_name,))
+            journal_title = self.extractor.extract_string('//title')
 
-        self.assertEqual(journal_title, 'ASTRONOMY AND ASTROPHYSICS The NASA Astrophysics Data System: Architecture')
+            self.assertEqual(journal_title, 'ASTRONOMY AND ASTROPHYSICS The NASA Astrophysics Data System: Architecture')
 
     def test_that_we_can_extract_using_settings_template(self):
         """
@@ -318,10 +327,10 @@ class TestTEIXMLExtractor(test_base.TestUnit):
         """
 
         full_text_content = self.extractor.open_xml()
-        parsed_xml = self.extractor.parse_xml()
-        content = self.extractor.extract_multi_content()
+        for parser_name in ("html5lib", "html.parser", "lxml-html", "direct-lxml-html", "lxml-xml", "direct-lxml-xml",):
+            content = self.extractor.extract_multi_content(preferred_parser_names=(parser_name,))
 
-        self.assertEqual(rules.META_CONTENT['teixml'].keys(), content.keys())
+            self.assertEqual(rules.META_CONTENT['teixml'].keys(), content.keys())
 
     def test_that_we_can_extract_all_content_from_payload_input(self):
         """
@@ -346,10 +355,10 @@ class TestTEIXMLExtractor(test_base.TestUnit):
         ack = u"Acknowledgements. The usefulness of a bibliographic service is only as good as the quality and quantity of the data it contains . The ADS project has been lucky in benefitting from the skills and dedication of several people who have significantly contributed to the creation and management of the underlying datasets. In particular, we would like to acknowledge the work of Elizabeth Bohlen, Donna Thompson, Markus Demleitner, and Joyce Watson. Funding for this project has been provided by NASA under grant NCC5-189."
 
         full_text_content = self.extractor.open_xml()
-        parsed_xml = self.extractor.parse_xml()
-        content = self.extractor.extract_multi_content()
+        for parser_name in ("html5lib", "html.parser", "lxml-html", "direct-lxml-html", "lxml-xml", "direct-lxml-xml",):
+            content = self.extractor.extract_multi_content(preferred_parser_names=(parser_name,))
 
-        self.assertEqual(content['acknowledgements'], ack)
+            self.assertEqual(content['acknowledgements'], ack)
 
 
 
@@ -399,10 +408,10 @@ class TestXMLElsevierExtractor(test_base.TestUnit):
         """
 
         full_text_content = self.extractor.open_xml()
-        content = self.extractor.parse_xml()
-        journal_title = \
-            content.xpath('//*[local-name()=\'title\']')[0].text_content()
-        self.assertIn('JOURNAL TITLE', journal_title)
+        for parser_name in ("html5lib", "html.parser", "lxml-html", "direct-lxml-html", "lxml-xml", "direct-lxml-xml",):
+            self.extractor.parse_xml(preferred_parser_names=(parser_name,))
+            journal_title = self.extractor.extract_string('//*[local-name()=\'title\']')
+            self.assertIn('JOURNAL TITLE', journal_title)
 
     def test_that_we_can_extract_using_settings_template(self):
         """
@@ -414,14 +423,14 @@ class TestXMLElsevierExtractor(test_base.TestUnit):
         """
 
         full_text_content = self.extractor.open_xml()
-        parsed_xml = self.extractor.parse_xml()
-        content = self.extractor.extract_multi_content()
+        for parser_name in ("html5lib", "html.parser", "lxml-html", "direct-lxml-html", "lxml-xml", "direct-lxml-xml",):
+            content = self.extractor.extract_multi_content(preferred_parser_names=(parser_name,))
 
-        self.assertItemsEqual(['fulltext', 'acknowledgements', 'dataset'],
-                              content.keys(),
-                              content.keys())
+            self.assertItemsEqual(['fulltext', 'acknowledgements', 'dataset'],
+                                  content.keys(),
+                                  content.keys())
 
-        self.assertIn('JOURNAL CONTENT', content['fulltext'])
+            self.assertIn('JOURNAL CONTENT', content['fulltext'])
 
     def test_that_the_correct_extraction_is_used_for_the_datatype(self):
         """
@@ -453,35 +462,35 @@ class TestXMLElsevierExtractor(test_base.TestUnit):
 
         self.dict_item['bibcode'] = 'test'
         full_text_content = self.extractor.open_xml()
-        parsed_xml = self.extractor.parse_xml()
-        content = self.extractor.extract_multi_content()
+        for parser_name in ("html5lib", "html.parser", "lxml-html", "direct-lxml-html", "lxml-xml", "direct-lxml-xml",):
+            content = self.extractor.extract_multi_content(preferred_parser_names=(parser_name,))
 
-        full_text = content['fulltext']
-        acknowledgements = content['acknowledgements']
-        data_set = content['dataset']
-        data_set_length = len(data_set)
+            full_text = content['fulltext']
+            acknowledgements = content['acknowledgements']
+            data_set = content['dataset']
+            data_set_length = len(data_set)
 
-        self.assertIs(unicode, type(acknowledgements))
+            self.assertIs(unicode, type(acknowledgements))
 
-        self.assertIs(unicode, type(full_text))
-        expected_full_text = 'CONTENT'
-        self.assertTrue(
-            expected_full_text in full_text,
-            u'Full text is wrong: {0} [expected: {1}, data: {2}]'
-            .format(full_text,
-                    expected_full_text,
-                    full_text)
-        )
+            self.assertIs(unicode, type(full_text))
+            expected_full_text = 'CONTENT'
+            self.assertTrue(
+                expected_full_text in full_text,
+                u'Full text is wrong: {0} [expected: {1}, data: {2}]'
+                .format(full_text,
+                        expected_full_text,
+                        full_text)
+            )
 
-        self.assertIs(list, type(data_set))
-        expected_dataset = 2
-        self.assertTrue(
-            data_set_length == expected_dataset,
-            u'Number of datasets is wrong: {0} [expected: {1}, data: {2}]'
-            .format(data_set_length,
-                    expected_dataset,
-                    data_set)
-        )
+            self.assertIs(list, type(data_set))
+            expected_dataset = 2
+            self.assertTrue(
+                data_set_length == expected_dataset,
+                u'Number of datasets is wrong: {0} [expected: {1}, data: {2}]'
+                .format(data_set_length,
+                        expected_dataset,
+                        data_set)
+            )
 
 
 class TestHTMLExtractor(test_base.TestUnit):

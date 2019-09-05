@@ -9,6 +9,7 @@ Java pipeline.
 Credits: repository adsabs/adsdata by Jay Luke
 """
 
+
 __author__ = 'J. Elliott'
 __maintainer__ = ''
 __copyright__ = 'Copyright 2015'
@@ -20,8 +21,15 @@ __license__ = 'GPLv3'
 
 import sys
 import os
+import random
+import string
 
-from BeautifulSoup import UnicodeDammit
+from bs4 import UnicodeDammit
+import lxml
+import lxml.html
+import lxml.etree
+import lxml.objectify
+import lxml.html.soupparser
 import requests
 from adsputils import overrides
 from adsputils import setup_logging
@@ -30,8 +38,6 @@ from adsft import reader
 import re
 import traceback
 import unicodedata
-from lxml.html import soupparser, document_fromstring, fromstring
-from lxml.etree import tostring
 from adsft import entitydefs as edef
 from adsft.rules import META_CONTENT
 from requests.exceptions import HTTPError
@@ -176,10 +182,10 @@ class StandardExtractorHTML(object):
         """
 
         if not in_html:
-            parsed_html = document_fromstring(self.raw_html)
+            parsed_html = lxml.html.document_fromstring(self.raw_html)
             self.parsed_html = parsed_html
         else:
-            parsed_html = document_fromstring(in_html)
+            parsed_html = lxml.html.document_fromstring(in_html)
 
         logger.debug('Parsed HTML. {0}'.format(parsed_html))
 
@@ -335,11 +341,11 @@ class StandardExtractorHTML(object):
         except Exception:
             pass
 
-        string_of_all_html = " ".join(
+        string_of_all_html = u" ".join(map(unicode.strip, map(unicode,
             [individual_element_tree_node for individual_element_tree_node
              in self.parsed_html.itertext()
              if individual_element_tree_node
-             and not individual_element_tree_node.isspace()])
+             and not individual_element_tree_node.isspace()])))
 
         string_of_all_html = TextCleaner(text=string_of_all_html).run(
             translate=translate,
@@ -392,7 +398,7 @@ class StandardExtractorXML(object):
                 raw_xml = fp.read()
 
             # detect the encoding of the xml file (Latin-1, UTF-8, etc.)
-            encoding = UnicodeDammit(raw_xml).originalEncoding
+            encoding = UnicodeDammit(raw_xml).original_encoding
 
             # this encoding is then used to decode bytecode into unicode
             raw_xml = raw_xml.decode(encoding, "ignore")
@@ -413,21 +419,267 @@ class StandardExtractorXML(object):
 
         return raw_xml
 
-    def parse_xml(self):
+    def _remove_keeping_tail(self, element):
         """
-        Parses the encoded string read from the opened XML file. Removes inline formula from each XML node.
+        Safe the tail text and then delete the element. For instance, the element
+        corresponding to the tag inline-formula for this case:
+        <p>Head <inline-formula>formula</inline-formula> tail <italic>end</italic>.</p>
+        will contain not only the tags but also the tail text until the next tag:
+        '<inline-formula>formula</inline-formula> tail'
+        To avoid losing the tail when removing the element, that text has to be
+        copied to the previous or parent node.
+        """
+        self._preserve_tail_before_delete(element)
+        element.getparent().remove(element)
+
+    def _preserve_tail_before_delete(self, node):
+        if node.tail: # preserve the tail
+            previous = node.getprevious()
+            if previous is not None: # if there is a previous sibling it will get the tail
+                if previous.tail is None:
+                    previous.tail = node.tail
+                else:
+                    previous.tail = previous.tail + node.tail
+            else: # The parent get the tail as text
+                parent = node.getparent()
+                if parent.text is None:
+                    parent.text = node.tail
+                else:
+                    parent.text = parent.text + node.tail
+
+    def _remove_special_elements(self, raw_xml, parser_name):
+        """
+        Remove character data (CDATA), comments and processing instructions
+        using regex as needed for the target parser
+        """
+        if parser_name in ("lxml-xml", ):
+            # These parsers will use the encoding specified in the content, we need to
+            # replace encoding by UTF-8 since we already decoded the original file content
+            raw_xml = re.sub('(<\?[^>]+encoding=")(?:[^"]*)("\?>)', '\g<1>UTF-8\g<2>', raw_xml)
+        if parser_name in ("lxml-xml", "lxml-html", "html.parser", "html5lib"):
+            # - A comment is coded like this: <!--  My comment goes here. and it can span multiple lines -->
+            #   RegEx Source: https://stackoverflow.com/a/4616640/6940788
+            raw_xml = re.sub('<!--[\s\S\n]*?-->', '', raw_xml) # Comments
+        # - A CDATA is coded like this: <![CDATA[<b>Your Code Goes Here</b>]]>
+        #   RegEx Source: https://superuser.com/a/1153242
+        raw_xml = re.sub('<!\[CDATA\[.*?\]\]>', '', raw_xml) # CDATA
+        # Notes:
+        #   - no parser provides a reliable way to find CDATA and remove their content
+        #     Source: https://stackoverflow.com/a/44561547
+        if parser_name in ("lxml-html", "html.parser", "html5lib"):
+            # - A processing instruction is coded like this: <?ignore .... what ever I want here, including <!-- comments --> ...  ?>
+            #   RegEx Source: https://stackoverflow.com/a/29418829/6940788
+            raw_xml = re.sub('<\?[^>]+\?>', '', raw_xml) # Processing instructions
+        return raw_xml
+
+    def _save_body_tag(self, raw_xml):
+        # These parsers expect the document to be formatted:
+        #   <html>
+        #    <head></head>
+        #    <body></body>
+        #   </html>
+        # If it is not the case, any body tag in a different position
+        # is removed and they create the html and body tags surrounding
+        # the whole content, thus we need to replace any body tag with
+        # a random tag and we will recover it later on
+        random_body_tag = None
+        if "<body>" in raw_xml and "</body>" in raw_xml:
+            counter = 10
+            while counter > 0:
+                random_body_tag = ''.join(random.choice(string.ascii_lowercase) for i in range(32))
+                if random_body_tag not in raw_xml:
+                    break
+                counter -= 1
+            if counter == 0:
+                logger.error("Impossible to find a random body tag that does not exist in the file already after 10 attempts")
+            else:
+                raw_xml = raw_xml.replace("<body>", "<{}>".format(random_body_tag))
+                raw_xml = raw_xml.replace("</body>", "</{}>".format(random_body_tag))
+        return raw_xml, random_body_tag
+
+    def _restore_body_tag(self, parsed_xml, random_body_tag):
+        # Remove the html and body elements created by certain parsers
+        # (due to the XML file not being a HTML one)
+        html_body = parsed_xml.find("body")
+        html_body.tag = "root"
+        parsed_xml = html_body
+        if random_body_tag:
+            # Find the original body tag (if any) and rename it
+            for e in parsed_xml.xpath("//{}".format(random_body_tag)):
+                e.tag = "body"
+        return parsed_xml
+
+    def _remove_namespaces(self, parsed_xml):
+        # Some parsers detect namespaces and expand the namespace prefixes
+        # into their namespace:
+        #
+        #   nsmap = {   'mml':      'http://www.w3.org/1998/Math/MathML',
+        #               'xlink':    'http://www.w3.org/1999/xlink',
+        #               'xsi':      'http://www.w3.org/2001/XMLSchema-instance'}
+        #
+        # We want to remove namespaces from tags (e.g., "{http://www.tei-c.org/ns/1.0}TEI")
+        # and attributes (e.g., "{http://www.w3.org/1999/xlink}href")
+        #
+        # Remove namespaces:
+        for elem in parsed_xml.getiterator():
+            # Attributes
+            for key in elem.attrib.iterkeys():
+                if not hasattr(key, 'find') or key[0] != '{':
+                    continue
+                i = key.find('}')
+                if i > 0:
+                    new_key = key[i+1:]
+                    elem.attrib[new_key] = elem.attrib.pop(key)
+            # Tag
+            if not hasattr(elem.tag, 'find') or elem.tag[0] != '{':
+                continue
+            i = elem.tag.find('}')
+            if i > 0:
+                elem.tag = elem.tag[i+1:]
+        # Get rid of 'py:pytype' and/or 'xsi:type' information and remove unused namespace declarations
+        lxml.objectify.deannotate(parsed_xml, cleanup_namespaces=True)
+        # Source: https://stackoverflow.com/a/18160164
+        return parsed_xml
+
+    def _remove_namespace_prefixes(self, parsed_xml):
+        # Some parsers do not detect namespaces and the namespace prefixes
+        # remain untouched in tags (e.g. <'ja:body'>) or attributes
+        # (e.g., 'xlink:href')
+        #
+        # Remove prefixes:
+        for elem in parsed_xml.getiterator():
+            # Attributes
+            for key in elem.attrib.iterkeys():
+                if not hasattr(key, 'find'):
+                    continue
+                i = key.find(':')
+                if i > 0:
+                    new_key = key[i+1:]
+                    elem.attrib[new_key] = elem.attrib.pop(key)
+            # Tag
+            if not hasattr(elem.tag, 'find'):
+                continue
+            i = elem.tag.find(':')
+            if i > 0:
+                elem.tag = elem.tag[i+1:]
+        return parsed_xml
+
+    def parse_xml(self, preferred_parser_names = ("html5lib", "html.parser", "lxml-html", "direct-lxml-html", "lxml-xml", "direct-lxml-xml",)):
+        """
+        Parses the encoded string read from the opened XML file.
+        Tries multiple parsers (sorted by order of preference), it stops trying
+        the next parser the moment some fulltext is extracted.
+        Removes tables, graphics, formulas, tex-math and CDATA.
+        """
+
+        for parser_name in preferred_parser_names:
+            parsed_xml = self._parse_xml(parser_name)
+            logger.debug("Checking if the parser '{}' succeeded".format(parser_name))
+            success = False
+            for xpath in META_CONTENT[self.meta_name].get('fulltext', {}).get('xpath', []):
+                fulltext = None
+                fulltext_elements = parsed_xml.xpath(xpath)
+                if len(fulltext_elements) > 0:
+                    fulltext = u" ".join(map(unicode.strip, map(unicode, fulltext_elements[0].itertext())))
+                    fulltext = TextCleaner(text=fulltext).run(decode=False, translate=True, normalise=True, trim=True)
+                if not fulltext:
+                    continue
+                else:
+                    logger.debug("The parser '{}' succeeded".format(parser_name))
+                    success = True
+                    break
+
+            if not success:
+                logger.debug("The parser '{}' failed".format(parser_name))
+            else:
+                break
+
+        if not success:
+            logger.warn('Parsing XML in non-standard way')
+            parsed_xml = lxml.html.document_fromstring(self.raw_xml)
+
+        self.parsed_xml = parsed_xml
+        return parsed_xml
+
+    def _parse_xml(self, parser_name):
+        """
+        Parses the encoded string read from the opened XML file.
+        Removes tables, graphics, formulas, tex-math and CDATA.
+
+        Valid parser name options:
+
+            parser_name = "direct-lxml-xml"
+            parser_name = "direct-lxml-html"
+            parser_name = "lxml-xml"
+            parser_name = "lxml-html"
+            parser_name = "html.parser"
+            parser_name = "html5lib"
 
         :return: parsed XML file
         """
+        raw_xml = self.raw_xml
 
-        parsed_content = soupparser.fromstring(self.raw_xml)
+        raw_xml = self._remove_special_elements(raw_xml, parser_name)
+        if parser_name in ("direct-lxml-html", "lxml-html", "html5lib"):
+            raw_xml, random_body_tag = self._save_body_tag(raw_xml)
+        else:
+            random_body_tag = None
+
+        if parser_name in ("lxml-xml", "lxml-html", "html.parser", "html5lib"):
+            # BeautifulSoup4 parsers:
+            # - html.parser
+            #    Advantages: Batteries included, Decent speed, Lenient (as of Python 2.7.3 and 3.2.)
+            #    Disadvantages: Not very lenient (before Python 2.7.3 or 3.2.2)
+            # - lxml-html / lxml-xml
+            #    Advantages: Very fast, Lenient
+            #    Disadvantages: External C dependency
+            # - html5lib
+            #    Advantages: Extremely lenient, Parses pages the same way a web browser does, Creates valid HTML5
+            #    Disadvantages: Very slow, External Python dependency
+            # Source: https://stackoverflow.com/a/45494776/6940788
+            #
+            # Note: lxml package has a soupparser module that relies on BeautifulSoup,
+            # which in turn can be instructed to use lxml-html/xml parser or others
+            #
+            parsed_xml = lxml.html.soupparser.fromstring(raw_xml, features=parser_name)
+        else:
+            # lxml parsers (BeautifulSoup4 not needed) with our custom options:
+            # - XMLParser
+            # - HTMLParser
+            if parser_name == "direct-lxml-xml":
+                parser = lxml.etree.XMLParser(ns_clean=True, recover=True, remove_blank_text=True, remove_comments=True, remove_pis=True, \
+                                         strip_cdata=True, resolve_entities=True, encoding="UTF-8")
+                parsed_xml = lxml.etree.XML(raw_xml.encode('utf-8'), parser=parser)
+            elif parser_name == "direct-lxml-html":
+                parser = lxml.etree.HTMLParser(recover=True, no_network=True, remove_blank_text=True, remove_comments=True, remove_pis=True, \
+                                          strip_cdata=True, default_doctype=False, encoding="UTF-8")
+                parsed_xml = lxml.etree.HTML(raw_xml.encode('utf-8'), parser=parser)
+            else:
+                raise Exception("Unknown parser: {}".format(parser_name))
+
+        if parser_name in ("lxml-html", "html5lib", "direct-lxml-html"):
+            # Remove the html and body elements created by these parsers
+            # and restore the original body tag
+            parsed_xml = self._restore_body_tag(parsed_xml, random_body_tag)
 
         # remove tables, formulas and figures
-        for e in parsed_content.xpath("//table | //graphic | //disp-formula | ////inline-formula | //formula | //tex-math | //processing-instruction('CDATA')"):
-            e.drop_tree()
+        for e in parsed_xml.xpath("//table | //graphic | //disp-formula | ////inline-formula | //formula | //tex-math | //processing-instruction('CDATA')"):
+            self._remove_keeping_tail(e)
 
-        self.parsed_xml = parsed_content
-        return parsed_content
+        if parser_name in ("lxml-xml", "direct-lxml-xml") and parsed_xml.nsmap:
+            # These parsers detect namespaces and expand the namespace prefixes
+            # into their namespace, we need to remove them to make xpath work
+            # without having to specify the namespaces
+            parsed_xml = self._remove_namespaces(parsed_xml)
+
+        if parser_name in ("lxml-html", "html.parser", "html5lib"):
+            # These parsers do not detect namespaces and the namespace prefixes
+            # remain untouched in tags (e.g. <'ja:body'>) or attributes
+            # (e.g., 'xlink:href'), we need to remove them to make xpath work
+            # without having to specify the namespace prefixes
+            parsed_xml = self._remove_namespace_prefixes(parsed_xml)
+
+        return parsed_xml
 
     def extract_string(self, static_xpath, **kwargs):
         """
@@ -452,7 +704,7 @@ class StandardExtractorXML(object):
         s = self.parsed_xml.xpath(static_xpath)
 
         if s:
-            text_content = s[0].text_content()
+            text_content = u" ".join(map(unicode.strip, map(unicode, s[0].itertext())))
         old = text_content
         text_content = TextCleaner(text=text_content).run(
             decode=decode,
@@ -498,6 +750,18 @@ class StandardExtractorXML(object):
         for span in text_content:
             try:
                 text_content = span.attrib.get(span_content)
+                if text_content is None and ":" in span_content:
+                    # Certain parsers will expand the namespace_prefix:name of
+                    # tags/attributes to namespace:name (e.g., {http://www.w3.org/1999/xlink}href)
+                    # while others will keep the prefix (e.g., xlink:href)
+                    # Our processing removes the namespace expansion and the
+                    # prefix (e.g., href), thus, if the attribute name in the ruls
+                    # contains a namespace prefix, we need to remove it:
+                    vspan_content = span_content.split(":")
+                    if len(vspan_content) >= 2:
+                        ns = vspan_content[0]
+                        name = ":".join(vspan_content[1:])
+                        text_content = span.attrib.get(name)
                 text_content = TextCleaner(text=text_content).run(
                     decode=decode,
                     translate=translate,
@@ -514,7 +778,7 @@ class StandardExtractorXML(object):
 
         return data_inner
 
-    def extract_multi_content(self, translate=False, decode=False):
+    def extract_multi_content(self, translate=False, decode=False, preferred_parser_names=("html5lib", "html.parser", "lxml-html", "direct-lxml-html", "lxml-xml", "direct-lxml-xml",)):
         """
         Extracts full text content from the XML article specified. It also
         extracts any content specified in settings.py. It expects that the user
@@ -529,7 +793,7 @@ class StandardExtractorXML(object):
 
         meta_out = {}
         self.open_xml()
-        self.parse_xml()
+        self.parse_xml(preferred_parser_names=preferred_parser_names)
         logger.debug('{0}: Extracting: {0}'.format(self.meta_name,
                                                    self.file_input))
 
@@ -645,45 +909,6 @@ class StandardElsevierExtractorXML(StandardExtractorXML):
         StandardExtractorXML.__init__(self, dict_item)
         self.meta_name = 'xmlelsevier'
 
-    def parse_xml(self):
-        """
-        Parses the XML file using BeautifulSoup, using the super class. A quick
-        check if normal XPATH extraction works is carried out. If this fails, it
-        uses an alternative method to extract the content.
-
-        :return: opened and parsed XML content
-        """
-        try:
-            logger.debug('Parsing EXML with soupparser')
-            self.parsed_xml = super(StandardElsevierExtractorXML,
-                                    self).parse_xml()
-            logger.debug('Checking soupparser handled itself correctly')
-            check = self.parsed_xml.xpath('//body')[0].text_content()
-            # this may be better? //named-content[@content-type="dataset"]
-
-        except:
-            logger.debug('Parsing EXML in non-standard way')
-            self.parsed_xml = document_fromstring(self.raw_xml)
-
-        return self.parsed_xml
-
-    @overrides(StandardExtractorXML)
-    def extract_multi_content(self, translate=False, decode=False):
-        """
-        Opens and extracts the content of the Elseiver article given. Currently,
-        there is no altnerative way to carry out the multi-content extraction,
-        but the override is in place in case something different is needed.
-
-        :param translate: boolean, should it translate the text (see utils.py)
-        :param decode: boolean, should it decode to UTF-8 (see utils.py)
-        :return: updated meta-data containing the full text and other user
-        specified content
-        """
-
-        content = super(StandardElsevierExtractorXML,
-                        self).extract_multi_content(translate=translate,
-                                                    decode=decode)
-        return content
 
 
 class StandardExtractorHTTP(StandardExtractorBasicText):
