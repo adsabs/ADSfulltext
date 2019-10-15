@@ -166,6 +166,7 @@
       <ack>
          <title>Acknowledgments</title>
          <p>WE ACKNOWLEDGE.</p></ack>
+      <p><italic>Facility:</italic> <named-content content-type="facility" xlink:href="FacilityName"><italic>FacilityName</italic></named-content>.</p>
       <app-group>
          <app id="app1">
             <title>APPENDIX: APPENDIX TITLE GOES HERE</title>

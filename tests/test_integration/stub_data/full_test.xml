@@ -147,7 +147,7 @@
       <ack>
          <title>Acknowledgments</title>
          <p>WE ACKNOWLEDGE.</p></ack>
-      <app-group>
+        <app-group>
          <app id="app1">
             <title>APPENDIX: APPENDIX TITLE GOES HERE</title>
             <p>APPENDIX CONTENT</p>
