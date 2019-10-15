@@ -447,6 +447,16 @@ class StandardExtractorXML(object):
                 else:
                     parent.text = parent.text + node.tail
 
+    def _append_tag_outside_parent(self, node):
+        """
+        move tag outside/after the parent tag so it is now a sibling
+        """
+        parent = node.getparent()
+
+        if parent.text is not None:
+            parent.remove(node)
+            parent.addnext(node)
+
     def _remove_special_elements(self, raw_xml, parser_name):
         """
         Remove character data (CDATA), comments and processing instructions
@@ -564,7 +574,7 @@ class StandardExtractorXML(object):
                 elem.tag = elem.tag[i+1:]
         return parsed_xml
 
-    def parse_xml(self, preferred_parser_names = ("html5lib", "html.parser", "lxml-html", "direct-lxml-html", "lxml-xml", "direct-lxml-xml",)):
+    def parse_xml(self, preferred_parser_names = ["lxml-xml", "html.parser", "lxml-html", "direct-lxml-html", "direct-lxml-xml", "html5lib"]):
         """
         Parses the encoded string read from the opened XML file.
         Tries multiple parsers (sorted by order of preference), it stops trying
@@ -662,9 +672,13 @@ class StandardExtractorXML(object):
             # and restore the original body tag
             parsed_xml = self._restore_body_tag(parsed_xml, random_body_tag)
 
-        # remove tables, formulas and figures
-        for e in parsed_xml.xpath("//table | //graphic | //disp-formula | ////inline-formula | //formula | //tex-math | //processing-instruction('CDATA')"):
+        # remove tables, formulas, figures and bibliography
+        for e in parsed_xml.xpath("//table | //graphic | //disp-formula | ////inline-formula | //formula | //tex-math | //processing-instruction('CDATA') | //bibliography"):
             self._remove_keeping_tail(e)
+
+        # move acknowledgments after body (most likely only a minority of documents have this problem)
+        for e in parsed_xml.xpath(" | ".join(META_CONTENT['xml']['acknowledgements']['xpath'])):
+            self._append_tag_outside_parent(e)
 
         if parser_name in ("lxml-xml", "direct-lxml-xml") and parsed_xml.nsmap:
             # These parsers detect namespaces and expand the namespace prefixes
@@ -778,7 +792,7 @@ class StandardExtractorXML(object):
 
         return data_inner
 
-    def extract_multi_content(self, translate=False, decode=False, preferred_parser_names=("html5lib", "html.parser", "lxml-html", "direct-lxml-html", "lxml-xml", "direct-lxml-xml",)):
+    def extract_multi_content(self, translate=False, decode=False, preferred_parser_names=["lxml-xml", "html.parser", "lxml-html", "direct-lxml-html", "direct-lxml-xml", "html5lib"]):
         """
         Extracts full text content from the XML article specified. It also
         extracts any content specified in settings.py. It expects that the user
