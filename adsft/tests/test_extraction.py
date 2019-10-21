@@ -270,6 +270,43 @@ class TestXMLExtractor(test_base.TestUnit):
 
         self.assertEqual(section, u'TABLE I. TEXT a NOTES a TEXT')
 
+    def test_that_we_handle_extractors_that_remove_body_tag(self):
+
+        self.maxDiff = None
+        """
+        parsers: direct-lxml-html, lxml-html, html5lib
+
+        This tests that the above parsers are handled correctly
+        to ensure that the body tag is kept in place, as these parsers
+        will remove body tags if they are not in the format:
+
+        <html>
+        <head></head>
+        <body></body>
+        </html>
+
+         """
+
+        full_text_content = self.extractor.open_xml()
+
+        for parser_name in ["html5lib", "lxml-html", "direct-lxml-html"]:
+            self.extractor.parse_xml(preferred_parser_names=(parser_name,))
+
+            section = self.extractor.extract_string('//body')
+
+            if parser_name == "html5lib":
+                s = u"Manual Entry 1 Manual Entry 2 TABLE I. TEXT a"
+            else:
+                s = u"Manual Entry 1 Manual Entry 2 TABLE I. TEXT a NOTES a TEXT"
+
+            self.assertEqual(section, u"I. INTRODUCTION INTRODUCTION GOES HERE "
+                u"II. SECTION II THIS SECTION TESTS HTML ENTITIES LIKE \xc5 >. "
+                u"III. SECTION III THIS SECTION TESTS THAT THE TAIL IS PRESERVED . "
+                u"IV. SECTION IV THIS SECTION TESTS THAT COMMENTS ARE REMOVED. "
+                u"V. SECTION V THIS SECTION TESTS THAT CDATA IS REMOVED. " + s
+            )
+
+
 
 class TestTEIXMLExtractor(test_base.TestUnit):
     """
