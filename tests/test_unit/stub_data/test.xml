@@ -120,6 +120,43 @@
             <named-content content-type="dataset" xlink:href="ADS/Sa.CXO#Obs/11459">Manual Entry 2</named-content>
         </data>
 
+        <table-wrap id="t1" orientation="portrait" position="float">
+          <label>TABLE I.</label>
+          <caption>
+              <p>TEXT<xref ref-type="table-fn" rid="t1n1"><sup>a</sup></xref></p>
+           </caption>
+           <table border="1">
+              <colgroup span="1">
+                 <col align="left" span="1"/>
+              </colgroup>
+              <thead>
+                 <tr>
+                    <th colspan="1" rowspan="1"><italic>CONTENT</italic></th>
+                    <th align="center" colspan="1" rowspan="1">CONTENT</th>
+                 </tr>
+              </thead>
+              <tbody>
+                 <tr>
+                    <td colspan="1" rowspan="1">1</td>
+                    <td align="center" colspan="1" rowspan="1">CONTENT</td>
+                 </tr>
+              </tbody>
+           </table>
+           <graphic xlink:href="apj523416t3_tb.gif"/>
+           <graphic xlink:href="apj523416t3_lr.gif"><caption><p>1</p></caption></graphic>
+           <graphic xlink:href="apj523416t3a_tb.gif"/>
+           <graphic xlink:href="apj523416t3a_lr.gif"><caption><p>2</p></caption></graphic>
+           <graphic xlink:href="apj523416t3b_tb.gif"/>
+           <graphic xlink:href="apj523416t3b_lr.gif"><caption><p>3</p></caption></graphic>
+           <table-wrap-foot>
+             <p><bold>NOTES</bold></p>
+             <fn id="t1n1">
+               <label><sup>a</sup></label>
+               <p>TEXT</p>
+             </fn>
+           </table-wrap-foot>
+        </table-wrap>
+
    </body>
 
     <back>
@@ -148,8 +185,8 @@
          <graphic orientation="portrait" position="float" xlink:href="f1"/>
       </fig>
 
-      <table-wrap id="t1" orientation="portrait" position="float"><label>TABLE I.</label><caption>
-            <p>TEXT<xref ref-type="table-fn" rid="t1n1"><sup>a</sup></xref></p>
+      <table-wrap id="t2" orientation="portrait" position="float"><label>TABLE II.</label><caption>
+            <p>TEXT<xref ref-type="table-fn" rid="t2n1"><sup>a</sup></xref></p>
          </caption>
          <table border="1">
             <colgroup span="1">
@@ -168,6 +205,6 @@
                </tr>
             </tbody>
          </table>
-         <table-wrap-foot><fn id="t1n1"><label><sup>a</sup></label><p>TEXT</p></fn></table-wrap-foot>
+         <table-wrap-foot><fn id="t2n1"><label><sup>a</sup></label><p>TEXT</p></fn></table-wrap-foot>
       </table-wrap>
    </floats-group></article>
