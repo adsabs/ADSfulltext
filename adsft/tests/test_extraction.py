@@ -305,6 +305,22 @@ class TestXMLExtractor(test_base.TestUnit):
                 u"V. SECTION V THIS SECTION TESTS THAT CDATA IS REMOVED. " + s
             )
 
+    def test_handling_of_parsers_that_detect_namespaces(self):
+
+        full_text_content = self.extractor.open_xml()
+
+        for parser_name in ["lxml-xml", "direct-lxml-xml"]:
+
+            self.extractor.parse_xml(preferred_parser_names=(parser_name,))
+
+            section = self.extractor.extract_string('//body')
+
+            self.assertEqual(section, u"I. INTRODUCTION INTRODUCTION GOES HERE "
+                u"II. SECTION II THIS SECTION TESTS HTML ENTITIES LIKE \xc5 >. "
+                u"III. SECTION III THIS SECTION TESTS THAT THE TAIL IS PRESERVED . "
+                u"IV. SECTION IV THIS SECTION TESTS THAT COMMENTS ARE REMOVED. "
+                u"V. SECTION V THIS SECTION TESTS THAT CDATA IS REMOVED. "
+                u"Manual Entry 1 Manual Entry 2 TABLE I. TEXT a NOTES a TEXT")
 
 
 class TestTEIXMLExtractor(test_base.TestUnit):
