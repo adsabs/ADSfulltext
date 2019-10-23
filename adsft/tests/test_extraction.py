@@ -270,9 +270,8 @@ class TestXMLExtractor(test_base.TestUnit):
 
         self.assertEqual(section, u'TABLE I. TEXT a NOTES a TEXT')
 
-    def test_that_we_handle_extractors_that_remove_body_tag(self):
+    def test_handling_of_parsers_that_remove_body_tag(self):
 
-        self.maxDiff = None
         """
         parsers: direct-lxml-html, lxml-html, html5lib
 
