@@ -162,7 +162,6 @@ def write_content(payload_dictionary):
             try:
                 meta_constant_file_path = os.path.join(bibcode_pair_tree_path,
                                                        meta_key_word) + '.txt'
-                print(meta_constant_file_path)
                 logger.debug('Writing {0} to file at: {1}'.format(
                     meta_key_word, meta_constant_file_path))
                 write_file(meta_constant_file_path, meta_key_word_value,
