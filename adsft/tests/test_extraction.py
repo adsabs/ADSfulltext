@@ -307,6 +307,13 @@ class TestXMLExtractor(test_base.TestUnit):
 
     def test_handling_of_parsers_that_detect_namespaces(self):
 
+        """
+        Tests that namespace in tags of the form namespace:name (e.g. ja:body)
+        are removed to get the tag name as a result (e.g. body)
+
+        :return: no return
+        """
+
         full_text_content = self.extractor.open_xml()
 
         for parser_name in ["lxml-xml", "direct-lxml-xml"]:
@@ -938,7 +945,6 @@ class TestHTTPExtractor(test_base.TestUnit):
         content = self.extractor.extract_multi_content()
 
         self.assertEqual(content['fulltext'], self.body_content)
-
 
 if __name__ == '__main__':
     unittest.main()
