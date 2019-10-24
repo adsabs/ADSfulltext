@@ -102,9 +102,18 @@
 
         <ja:body view="all">
         <ce:sections>
-            <ce:section id="s0005" view="all"><ce:label>1</ce:label>
-                <ce:section-title id="st0020">Introduction</ce:section-title>
-                <ce:para id="p0005" view="all">JOURNAL CONTENT</ce:para>
+            <ce:section id="s1" view="all"><ce:label>I.</ce:label><ce:section-title>INTRODUCTION</ce:section-title>
+                <ce:para>JOURNAL CONTENT <ce:formula>this should be removed</ce:formula>GOES HERE</ce:para>
+            </ce:section>
+            <ce:section id="s2" view="all"><ce:label>II.</ce:label><ce:section-title>SECTION II</ce:section-title>
+               <ce:para>THIS SECTION TESTS HTML ENTITIES LIKE &angst; &amp; &gt;.</ce:para>
+            </ce:section>
+            <ce:section id="s3" view="all"><ce:label>III.</ce:label><ce:section-title>SECTION III</ce:section-title>
+               <ce:para>THIS SECTION TESTS THAT THE <ce:formula>formula</ce:formula>TAIL <ce:italic>IS PRESERVED</ce:italic>.</ce:para>
+            </ce:section>
+            <ce:section id="s4" view="all"><ce:label>IV.</ce:label><ce:section-title>SECTION IV</ce:section-title>
+               <ce:para>THIS SECTION TESTS <!-- THIS SHOULD BE REMOVED -->THAT COMMENTS ARE REMOVED.</ce:para>
+            </ce:section>
             </ce:section>
         </ce:sections>
 

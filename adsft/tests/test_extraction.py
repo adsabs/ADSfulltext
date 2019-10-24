@@ -320,7 +320,8 @@ class TestXMLExtractor(test_base.TestUnit):
                 u"III. SECTION III THIS SECTION TESTS THAT THE TAIL IS PRESERVED . "
                 u"IV. SECTION IV THIS SECTION TESTS THAT COMMENTS ARE REMOVED. "
                 u"V. SECTION V THIS SECTION TESTS THAT CDATA IS REMOVED. "
-                u"Manual Entry 1 Manual Entry 2 TABLE I. TEXT a NOTES a TEXT")
+                u"Manual Entry 1 Manual Entry 2 TABLE I. TEXT a NOTES a TEXT"
+            )
 
 
 class TestTEIXMLExtractor(test_base.TestUnit):
@@ -542,6 +543,48 @@ class TestXMLElsevierExtractor(test_base.TestUnit):
                     expected_dataset,
                     data_set)
         )
+
+    def test_that_we_can_parse_html_entity_correctly(self):
+        """
+        Tests the parse_xml method. Checks that the HTML entities are parsed
+        without errors caused by escaped ambersands.
+
+        :return: no return
+        """
+
+        full_text_content = self.extractor.open_xml()
+        self.extractor.parse_xml()
+        section = self.extractor.extract_string('//body//section[@id="s2"]//para')
+
+        self.assertEqual(section, u'THIS SECTION TESTS HTML ENTITIES LIKE \xc5 >.')
+
+    def test_that_the_tail_is_preserved(self):
+        """
+        Tests that when a tag is removed any trailing text is preserved by appending
+        it to the previous or parent element.
+
+        :return: no return
+        """
+
+        full_text_content = self.extractor.open_xml()
+        self.extractor.parse_xml()
+        section = self.extractor.extract_string('//body//section[@id="s3"]//para')
+
+        self.assertEqual(section, u'THIS SECTION TESTS THAT THE TAIL IS PRESERVED .')
+
+    def test_that_comments_are_ignored(self):
+        """
+        Tests that parsing the xml file ignores any comments like <!-- example comment -->.
+
+        :return: no return
+        """
+
+        full_text_content = self.extractor.open_xml()
+        self.extractor.parse_xml()
+        section = self.extractor.extract_string('//body//section[@id="s4"]//para')
+
+        self.assertEqual(section, u'THIS SECTION TESTS THAT COMMENTS ARE REMOVED.')
+
 
 
 class TestHTMLExtractor(test_base.TestUnit):
