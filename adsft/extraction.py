@@ -574,7 +574,7 @@ class StandardExtractorXML(object):
                 elem.tag = elem.tag[i+1:]
         return parsed_xml
 
-    def parse_xml(self, preferred_parser_names = ["lxml-xml", "html.parser", "lxml-html", "direct-lxml-html", "direct-lxml-xml", "html5lib"]):
+    def parse_xml(self, preferred_parser_names = ("lxml-xml", "html.parser", "lxml-html", "direct-lxml-html", "direct-lxml-xml", "html5lib",)):
         """
         Parses the encoded string read from the opened XML file.
         Tries multiple parsers (sorted by order of preference), it stops trying
@@ -792,7 +792,7 @@ class StandardExtractorXML(object):
 
         return data_inner
 
-    def extract_multi_content(self, translate=False, decode=False, preferred_parser_names=["lxml-xml", "html.parser", "lxml-html", "direct-lxml-html", "direct-lxml-xml", "html5lib"]):
+    def extract_multi_content(self, translate=False, decode=False, preferred_parser_names=("lxml-xml", "html.parser", "lxml-html", "direct-lxml-html", "direct-lxml-xml", "html5lib",)):
         """
         Extracts full text content from the XML article specified. It also
         extracts any content specified in settings.py. It expects that the user
