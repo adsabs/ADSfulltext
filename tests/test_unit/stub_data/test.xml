@@ -156,7 +156,10 @@
              </fn>
            </table-wrap-foot>
         </table-wrap>
-
+        <ack>
+          <title>Acknowledgments</title>
+          <p>WE ACKNOWLEDGE.</p>
+        </ack>
    </body>
 
     <back>

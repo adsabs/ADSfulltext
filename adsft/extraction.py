@@ -453,7 +453,7 @@ class StandardExtractorXML(object):
         """
         parent = node.getparent()
 
-        if parent.text is not None:
+        if parent != None:
             parent.remove(node)
             parent.addnext(node)
 

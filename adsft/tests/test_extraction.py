@@ -28,6 +28,7 @@ class TestXMLExtractor(test_base.TestUnit):
                           'provider': 'MNRAS'}
         self.extractor = extraction.EXTRACTOR_FACTORY['xml'](self.dict_item)
         self.parsers = ("lxml-xml", "html.parser", "lxml-html", "direct-lxml-html", "direct-lxml-xml", "html5lib",)
+        self.maxDiff = None
 
     def test_that_we_can_open_an_xml_file(self):
         """
@@ -141,7 +142,7 @@ class TestXMLExtractor(test_base.TestUnit):
                 content = self.extractor.extract_multi_content(preferred_parser_names=(parser_name,))
                 self.assertEqual(rules.META_CONTENT['xml'].keys(), content.keys())
         else:
-            content = self.extractor.extract_multi_content(preferred_parser_names=(parser_name,))
+            content = self.extractor.extract_multi_content()
             self.assertEqual(rules.META_CONTENT['xml'].keys(), content.keys())
 
     def test_that_we_can_extract_all_content_from_payload_input(self):
@@ -348,11 +349,11 @@ class TestXMLExtractor(test_base.TestUnit):
         if self.parsers:
             for parser_name in self.parsers:
 
+                s = u"TABLE I. TEXT a NOTES a TEXT"
+
                 # we know that html5lib does not extract tables correctly in all cases
                 if parser_name == "html5lib":
                     s = u"TABLE I. TEXT a"
-                else:
-                    s = u"TABLE I. TEXT a NOTES a TEXT"
 
                 self.extractor.parse_xml(preferred_parser_names=(parser_name,))
                 section = self.extractor.extract_string('//body//table-wrap')
@@ -381,13 +382,14 @@ class TestXMLExtractor(test_base.TestUnit):
         full_text_content = self.extractor.open_xml()
 
         for parser_name in ("html5lib", "lxml-html", "direct-lxml-html",):
+
+            s = u"Manual Entry 1 Manual Entry 2 TABLE I. TEXT a NOTES a TEXT"
+
             self.extractor.parse_xml(preferred_parser_names=(parser_name,))
             section = self.extractor.extract_string('//body')
 
             if parser_name == "html5lib":
                 s = u"Manual Entry 1 Manual Entry 2 TABLE I. TEXT a"
-            else:
-                s = u"Manual Entry 1 Manual Entry 2 TABLE I. TEXT a NOTES a TEXT"
 
             self.assertEqual(section, u"I. INTRODUCTION INTRODUCTION GOES HERE "
                 u"II. SECTION II THIS SECTION TESTS HTML ENTITIES LIKE \xc5 >. "
@@ -422,6 +424,51 @@ class TestXMLExtractor(test_base.TestUnit):
                 u"Manual Entry 1 Manual Entry 2 TABLE I. TEXT a NOTES a TEXT"
             )
 
+    def test_that_we_can_extract_acknowledgments_when_inside(self):
+
+        """
+        This checks that acknowledgments within the body tag are removed
+        """
+        full_text_content = self.extractor.open_xml()
+
+        if self.parsers:
+            for parser_name in self.parsers:
+
+                s = u"Manual Entry 1 Manual Entry 2 TABLE I. TEXT a NOTES a TEXT"
+
+                if parser_name == "html5lib":
+                    s = u"Manual Entry 1 Manual Entry 2 TABLE I. TEXT a"
+
+                self.extractor.parse_xml(preferred_parser_names=(parser_name,))
+                section = self.extractor.extract_string('//body')
+
+                self.assertEqual(section, u"I. INTRODUCTION INTRODUCTION GOES HERE "
+                    u"II. SECTION II THIS SECTION TESTS HTML ENTITIES LIKE \xc5 >. "
+                    u"III. SECTION III THIS SECTION TESTS THAT THE TAIL IS PRESERVED . "
+                    u"IV. SECTION IV THIS SECTION TESTS THAT COMMENTS ARE REMOVED. "
+                    u"V. SECTION V THIS SECTION TESTS THAT CDATA IS REMOVED. " + s
+                )
+
+                content = self.extractor.extract_multi_content()
+
+            else:
+
+                self.assertEqual(content['acknowledgements'], u"Acknowledgments WE ACKNOWLEDGE.")
+
+                self.extractor.parse_xml()
+                section = self.extractor.extract_string('//body')
+
+                self.assertEqual(section, u"I. INTRODUCTION INTRODUCTION GOES HERE "
+                    u"II. SECTION II THIS SECTION TESTS HTML ENTITIES LIKE \xc5 >. "
+                    u"III. SECTION III THIS SECTION TESTS THAT THE TAIL IS PRESERVED . "
+                    u"IV. SECTION IV THIS SECTION TESTS THAT COMMENTS ARE REMOVED. "
+                    u"V. SECTION V THIS SECTION TESTS THAT CDATA IS REMOVED. "
+                    u"Manual Entry 1 Manual Entry 2 TABLE I. TEXT a NOTES a TEXT"
+                )
+
+                content = self.extractor.extract_multi_content()
+
+                self.assertEqual(content['acknowledgements'], u"Acknowledgments WE ACKNOWLEDGE.")
 
 class TestTEIXMLExtractor(test_base.TestUnit):
     """
@@ -442,6 +489,7 @@ class TestTEIXMLExtractor(test_base.TestUnit):
                           'provider': 'A&A',
                           'bibcode': 'TEST'}
         self.extractor = extraction.EXTRACTOR_FACTORY['teixml'](self.dict_item)
+        self.parsers = ("lxml-xml", "html.parser", "lxml-html", "direct-lxml-html", "direct-lxml-xml", "html5lib",)
 
 
     def test_that_we_can_open_an_xml_file(self):
@@ -468,10 +516,12 @@ class TestTEIXMLExtractor(test_base.TestUnit):
         """
 
         full_text_content = self.extractor.open_xml()
-        self.extractor.parse_xml()
-        journal_title = self.extractor.extract_string('//title')
 
-        self.assertEqual(journal_title, 'ASTRONOMY AND ASTROPHYSICS The NASA Astrophysics Data System: Architecture')
+        if self.parsers:
+            for parser_name in self.parsers:
+                self.extractor.parse_xml(preferred_parser_names=(parser_name,))
+                journal_title = self.extractor.extract_string('//title')
+                self.assertEqual(journal_title, 'ASTRONOMY AND ASTROPHYSICS The NASA Astrophysics Data System: Architecture')
 
     def test_that_we_can_extract_using_settings_template(self):
         """
