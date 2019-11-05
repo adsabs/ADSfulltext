@@ -424,7 +424,7 @@ class TestXMLExtractor(test_base.TestUnit):
                 u"Manual Entry 1 Manual Entry 2 TABLE I. TEXT a NOTES a TEXT"
             )
 
-    def test_that_we_can_extract_acknowledgments_when_inside(self):
+    def test_that_we_can_extract_acknowledgments_when_inside_body(self):
 
         """
         This checks that acknowledgments within the body tag are removed
