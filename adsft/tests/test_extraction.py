@@ -413,7 +413,7 @@ class TestTEIXMLExtractor(TestXMLExtractorBase):
         for parser_name in self.preferred_parser_names:
             content = self.extractor.extract_multi_content(preferred_parser_names=(parser_name,))
 
-        self.assertEqual(rules.META_CONTENT['teixml'].keys(), content.keys())
+            self.assertEqual(rules.META_CONTENT['teixml'].keys(), content.keys())
 
     def test_that_we_can_extract_all_content_from_payload_input(self):
         """
@@ -441,7 +441,7 @@ class TestTEIXMLExtractor(TestXMLExtractorBase):
         for parser_name in self.preferred_parser_names:
             content = self.extractor.extract_multi_content(preferred_parser_names=(parser_name,))
 
-        self.assertEqual(content['acknowledgements'], ack)
+            self.assertEqual(content['acknowledgements'], ack)
 
 
 
@@ -510,11 +510,11 @@ class TestXMLElsevierExtractor(TestXMLExtractorBase):
         for parser_name in self.preferred_parser_names:
             content = self.extractor.extract_multi_content(preferred_parser_names=(parser_name,))
 
-        self.assertItemsEqual(['fulltext', 'acknowledgements', 'dataset'],
-                              content.keys(),
-                              content.keys())
+            self.assertItemsEqual(['fulltext', 'acknowledgements', 'dataset'],
+                                  content.keys(),
+                                  content.keys())
 
-        self.assertIn('JOURNAL CONTENT', content['fulltext'])
+            self.assertIn('JOURNAL CONTENT', content['fulltext'])
 
     def test_that_the_correct_extraction_is_used_for_the_datatype(self):
         """
