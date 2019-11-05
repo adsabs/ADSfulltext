@@ -28,7 +28,6 @@ class TestXMLExtractor(test_base.TestUnit):
                           'provider': 'MNRAS'}
         self.extractor = extraction.EXTRACTOR_FACTORY['xml'](self.dict_item)
         self.parsers = ("lxml-xml", "html.parser", "lxml-html", "direct-lxml-html", "direct-lxml-xml", "html5lib",)
-        self.maxDiff = None
 
     def test_that_we_can_open_an_xml_file(self):
         """
