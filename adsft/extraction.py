@@ -31,6 +31,7 @@ import lxml.etree
 import lxml.objectify
 import lxml.html.soupparser
 import requests
+from adsputils import load_config
 from adsputils import overrides
 from adsputils import setup_logging
 from adsft.utils import TextCleaner, get_filenames
@@ -380,6 +381,7 @@ class StandardExtractorXML(object):
             'string': self.extract_string,
             'list': self.extract_list,
         }
+        self.preferred_parser_names = load_config().get('PREFERRED_XML_PARSER_NAMES')
 
     def open_xml(self):
         """
@@ -584,13 +586,19 @@ class StandardExtractorXML(object):
                 elem.tag = elem.tag[i+1:]
         return parsed_xml
 
-    def parse_xml(self, preferred_parser_names = ("lxml-xml", "html.parser", "lxml-html", "direct-lxml-html", "direct-lxml-xml", "html5lib",)):
+    def parse_xml(self, preferred_parser_names=None):
         """
         Parses the encoded string read from the opened XML file.
         Tries multiple parsers (sorted by order of preference), it stops trying
         the next parser the moment some fulltext is extracted.
         Removes tables, graphics, formulas, tex-math and CDATA.
         """
+
+        if preferred_parser_names is None or \
+            (isinstance(preferred_parser_names, (list, tuple)) and not isinstance(preferred_parser_names, basestring) and \
+             (len(preferred_parser_names) == 0 or all(item is None for item in preferred_parser_names))):
+            # If None or (None,), use the default from the config file
+            preferred_parser_names = self.preferred_parser_names
 
         for parser_name in preferred_parser_names:
             parsed_xml = self._parse_xml(parser_name)
@@ -803,7 +811,7 @@ class StandardExtractorXML(object):
 
         return data_inner
 
-    def extract_multi_content(self, translate=False, decode=False, preferred_parser_names=("lxml-xml", "html.parser", "lxml-html", "direct-lxml-html", "direct-lxml-xml", "html5lib",)):
+    def extract_multi_content(self, translate=False, decode=False, preferred_parser_names=None):
         """
         Extracts full text content from the XML article specified. It also
         extracts any content specified in settings.py. It expects that the user
@@ -815,6 +823,12 @@ class StandardExtractorXML(object):
         :return: updated meta-data containing the full text and other user
         specified content
         """
+
+        if preferred_parser_names is None or \
+            (isinstance(preferred_parser_names, (list, tuple)) and not isinstance(preferred_parser_names, basestring) and \
+             (len(preferred_parser_names) == 0 or all(item is None for item in preferred_parser_names))):
+            # If None or (None,), use the default from the config file
+            preferred_parser_names = self.preferred_parser_names
 
         meta_out = {}
         self.open_xml()
