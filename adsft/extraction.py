@@ -480,6 +480,16 @@ class StandardExtractorXML(object):
             # - A processing instruction is coded like this: <?ignore .... what ever I want here, including <!-- comments --> ...  ?>
             #   RegEx Source: https://stackoverflow.com/a/29418829/6940788
             raw_xml = re.sub('<\?[^>]+\?>', '', raw_xml) # Processing instructions
+        if parser_name in ("html5lib",):
+            # - Convert self closing xml tags to closing tags
+            #   Source: https://stackoverflow.com/a/14028108
+            # - html5lib will close them itself (unless it is a recognised html
+            #   tag) at a later point in the document, wrapping other content,
+            #   and if it turns out to be a tag that we want to remove
+            #   (i.e., graphics), we will wrongly remove the content that was
+            #   wrapped
+            raw_xml = re.sub('<\s*([^\s>]+)([^>]*)/\s*>', r'<\1\2></\1>', raw_xml) # Self closing tags (e.g., <graphics/>) to closing tabs (e.g., <graphics></graphics>)
+
         return raw_xml
 
     def _save_body_tag(self, raw_xml):
