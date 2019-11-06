@@ -682,14 +682,6 @@ class StandardExtractorXML(object):
             # and restore the original body tag
             parsed_xml = self._restore_body_tag(parsed_xml, random_body_tag)
 
-        # remove tables, formulas, figures and bibliography
-        for e in parsed_xml.xpath("//table | //graphic | //disp-formula | ////inline-formula | //formula | //tex-math | //processing-instruction('CDATA') | //bibliography"):
-            self._remove_keeping_tail(e)
-
-        # move acknowledgments after body (most likely only a minority of documents have this problem)
-        for e in parsed_xml.xpath(" | ".join(META_CONTENT['xml']['acknowledgements']['xpath'])):
-            self._append_tag_outside_parent(e)
-
         if parser_name in ("lxml-xml", "direct-lxml-xml") and parsed_xml.nsmap:
             # These parsers detect namespaces and expand the namespace prefixes
             # into their namespace, we need to remove them to make xpath work
@@ -702,6 +694,15 @@ class StandardExtractorXML(object):
             # (e.g., 'xlink:href'), we need to remove them to make xpath work
             # without having to specify the namespace prefixes
             parsed_xml = self._remove_namespace_prefixes(parsed_xml)
+
+        # remove tables, formulas, figures and bibliography
+        for e in parsed_xml.xpath("//table | //graphic | //disp-formula | ////inline-formula | //formula | //tex-math | //processing-instruction('CDATA') | //bibliography"):
+            self._remove_keeping_tail(e)
+
+        # move acknowledgments after body (most likely only a minority of documents have this problem)
+        for e in parsed_xml.xpath(" | ".join(META_CONTENT['xml']['acknowledgements']['xpath'])):
+            self._append_tag_outside_parent(e)
+
 
         return parsed_xml
 

@@ -711,7 +711,7 @@ class TestXMLElsevierExtractor(test_base.TestUnit):
         full_text_content = self.extractor.open_xml()
 
         if self.parsers:
-            for parser_name in ("lxml-xml",): # this is the only parser that works for this unit test
+            for parser_name in self.parsers:
                 self.extractor.parse_xml(preferred_parser_names=(parser_name,))
                 section = self.extractor.extract_string('//body//section[@id="s3"]//para')
                 self.assertEqual(section, u'THIS SECTION TESTS THAT THE TAIL IS PRESERVED .')
