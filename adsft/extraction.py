@@ -31,6 +31,7 @@ import lxml.etree
 import lxml.objectify
 import lxml.html.soupparser
 import requests
+from adsputils import load_config
 from adsputils import overrides
 from adsputils import setup_logging
 from adsft.utils import TextCleaner, get_filenames
@@ -380,6 +381,7 @@ class StandardExtractorXML(object):
             'string': self.extract_string,
             'list': self.extract_list,
         }
+        self.preferred_parser_names = load_config().get('PREFERRED_XML_PARSER_NAMES')
 
     def open_xml(self):
         """
@@ -480,6 +482,16 @@ class StandardExtractorXML(object):
             # - A processing instruction is coded like this: <?ignore .... what ever I want here, including <!-- comments --> ...  ?>
             #   RegEx Source: https://stackoverflow.com/a/29418829/6940788
             raw_xml = re.sub('<\?[^>]+\?>', '', raw_xml) # Processing instructions
+        if parser_name in ("html5lib",):
+            # - Convert self closing xml tags to closing tags
+            #   Source: https://stackoverflow.com/a/14028108
+            # - html5lib will close them itself (unless it is a recognised html
+            #   tag) at a later point in the document, wrapping other content,
+            #   and if it turns out to be a tag that we want to remove
+            #   (i.e., graphics), we will wrongly remove the content that was
+            #   wrapped
+            raw_xml = re.sub('<\s*([^\s>]+)([^>]*)/\s*>', r'<\1\2></\1>', raw_xml) # Self closing tags (e.g., <graphics/>) to closing tabs (e.g., <graphics></graphics>)
+
         return raw_xml
 
     def _save_body_tag(self, raw_xml):
@@ -574,13 +586,19 @@ class StandardExtractorXML(object):
                 elem.tag = elem.tag[i+1:]
         return parsed_xml
 
-    def parse_xml(self, preferred_parser_names = ("lxml-xml", "html.parser", "lxml-html", "direct-lxml-html", "direct-lxml-xml", "html5lib",)):
+    def parse_xml(self, preferred_parser_names=None):
         """
         Parses the encoded string read from the opened XML file.
         Tries multiple parsers (sorted by order of preference), it stops trying
         the next parser the moment some fulltext is extracted.
         Removes tables, graphics, formulas, tex-math and CDATA.
         """
+
+        if preferred_parser_names is None or \
+            (isinstance(preferred_parser_names, (list, tuple)) and not isinstance(preferred_parser_names, basestring) and \
+             (len(preferred_parser_names) == 0 or all(item is None for item in preferred_parser_names))):
+            # If None or (None,), use the default from the config file
+            preferred_parser_names = self.preferred_parser_names
 
         for parser_name in preferred_parser_names:
             parsed_xml = self._parse_xml(parser_name)
@@ -672,14 +690,6 @@ class StandardExtractorXML(object):
             # and restore the original body tag
             parsed_xml = self._restore_body_tag(parsed_xml, random_body_tag)
 
-        # remove tables, formulas, figures and bibliography
-        for e in parsed_xml.xpath("//table | //graphic | //disp-formula | ////inline-formula | //formula | //tex-math | //processing-instruction('CDATA') | //bibliography"):
-            self._remove_keeping_tail(e)
-
-        # move acknowledgments after body (most likely only a minority of documents have this problem)
-        for e in parsed_xml.xpath(" | ".join(META_CONTENT['xml']['acknowledgements']['xpath'])):
-            self._append_tag_outside_parent(e)
-
         if parser_name in ("lxml-xml", "direct-lxml-xml") and parsed_xml.nsmap:
             # These parsers detect namespaces and expand the namespace prefixes
             # into their namespace, we need to remove them to make xpath work
@@ -692,6 +702,15 @@ class StandardExtractorXML(object):
             # (e.g., 'xlink:href'), we need to remove them to make xpath work
             # without having to specify the namespace prefixes
             parsed_xml = self._remove_namespace_prefixes(parsed_xml)
+
+        # remove tables, formulas, figures and bibliography
+        for e in parsed_xml.xpath("//table | //graphic | //disp-formula | ////inline-formula | //formula | //tex-math | //processing-instruction('CDATA') | //bibliography"):
+            self._remove_keeping_tail(e)
+
+        # move acknowledgments after body (most likely only a minority of documents have this problem)
+        for e in parsed_xml.xpath(" | ".join(META_CONTENT['xml']['acknowledgements']['xpath'])):
+            self._append_tag_outside_parent(e)
+
 
         return parsed_xml
 
@@ -792,7 +811,7 @@ class StandardExtractorXML(object):
 
         return data_inner
 
-    def extract_multi_content(self, translate=False, decode=False, preferred_parser_names=("lxml-xml", "html.parser", "lxml-html", "direct-lxml-html", "direct-lxml-xml", "html5lib",)):
+    def extract_multi_content(self, translate=False, decode=False, preferred_parser_names=None):
         """
         Extracts full text content from the XML article specified. It also
         extracts any content specified in settings.py. It expects that the user
@@ -804,6 +823,12 @@ class StandardExtractorXML(object):
         :return: updated meta-data containing the full text and other user
         specified content
         """
+
+        if preferred_parser_names is None or \
+            (isinstance(preferred_parser_names, (list, tuple)) and not isinstance(preferred_parser_names, basestring) and \
+             (len(preferred_parser_names) == 0 or all(item is None for item in preferred_parser_names))):
+            # If None or (None,), use the default from the config file
+            preferred_parser_names = self.preferred_parser_names
 
         meta_out = {}
         self.open_xml()
