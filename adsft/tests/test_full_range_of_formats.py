@@ -133,7 +133,7 @@ class TestFullRangeFormatExtraction(test_base.TestGeneric):
                 expected_fulltext_content = (
                         u"Introduction THIS IS AN INTERESTING TITLE",
                         u"Introduction THIS IS AN INTERESTING TITLE",
-                        u"I. INTRODUCTION INTRODUCTION GOES HERE Manual Entry\nAPPENDIX: APPENDIX TITLE GOES HERE APPENDIX CONTENT",
+                        u"I. INTRODUCTION INTRODUCTION GOES HERE Manual Entry TABLE I. TEXT a NOTES a TEXT\nAPPENDIX: APPENDIX TITLE GOES HERE APPENDIX CONTENT",
                         u'1 Introduction JOURNAL CONTENT Acknowledgments THANK YOU Appendix A APPENDIX TITLE APPENDIX',
                         u"No Title AA 999, 999-999 (1999) DOI: 99.9999/9999-9999:99999999 TITLE AUTHOR AFFILIATION Received 99 MONTH 1999 / Accepted 99 MONTH 1999 Abstract ABSTRACT Key words: KEYWORD INTRODUCTION SECTION Table 1: TABLE TABLE (1) COPYRIGHT",
                         #u"Introduction\nTHIS IS AN INTERESTING TITLE\n", # PDFBox
