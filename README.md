@@ -6,7 +6,7 @@
 Article full text extraction pipeline. Set of workers that check the filesystem and convert
 binary files into text.
 
-This pipeline extracts:
+##### This pipeline extracts:
 - body
     - includes table and figure captions, appendixes and supplements
 - acknowledgements
