@@ -31,22 +31,22 @@ def task_check_if_extract(message):
     Checks if the file needs to be extracted and pushes to the correct
     extraction queue.
     """
-    logger.debug('Checking content: %s', message)
+    logger.info('Checking content: %s', message)
     if not isinstance(message, list):
         message = [message]
 
-    logger.debug("Calling 'check_if_extract' with message '%s' and path '%s'", message, app.conf['FULLTEXT_EXTRACT_PATH'])
+    logger.info("Calling 'check_if_extract' with message '%s' and path '%s'", message, app.conf['FULLTEXT_EXTRACT_PATH'])
 
     results = checker.check_if_extract(message, app.conf['FULLTEXT_EXTRACT_PATH'])
-    logger.debug('Results: %s', results)
+    logger.info('Results: %s', results)
     if results:
         for key in results:
             if key == 'PDF' or key == 'Standard':
                 for msg in results[key]:
-                    logger.debug("Calling 'task_extract' with message '%s'", msg)
+                    logger.info("Calling 'task_extract' with message '%s'", msg)
                     task_extract.delay(msg)
                     if app.conf['GROBID_SERVICE'] is not None and key == 'PDF':
-                        logger.debug("Calling 'task_extract_grobid' with message '%s'", msg)
+                        logger.info("Calling 'task_extract_grobid' with message '%s'", msg)
                         task_extract_grobid.delay(msg)
             else:
                 logger.error('Unknown type: %s and message: %s', (key, results[key]))
@@ -58,14 +58,14 @@ def task_extract(message):
     Extracts the full text from the given location and pushes to the writing
     queue.
     """
-    logger.debug('Extract content: %s', message)
+    logger.info('Extract content: %s', message)
     if not isinstance(message, list):
         message = [message]
 
     results = extraction.extract_content(message, extract_pdf_script=app.conf['EXTRACT_PDF_SCRIPT'])
-    logger.debug('Results: %s', results)
+    logger.info('Results: %s', results)
     for r in results:
-        logger.debug("Calling 'write_content' with '%s'", str(r))
+        logger.info("Calling 'write_content' with '%s'", str(r))
         # Write locally to filesystem
         writer.write_content(r)
 
@@ -78,12 +78,12 @@ def task_extract(message):
             if x in r and r[x]:
                 msg[x] = r[x]
 
-        logger.debug("Calling 'task_output_results' with '%s'", msg)
+        logger.info("Calling 'task_output_results' with '%s'", msg)
         task_output_results.delay(msg)
 
         # Send results to master only if fulltext is not an empty string
         if r['fulltext'] != "":
-            logger.debug("Calling 'task_output_results' with '%s'", msg)
+            logger.info("Calling 'task_output_results' with '%s'", msg)
             task_output_results.delay(msg)
 
 
@@ -93,7 +93,7 @@ if app.conf['GROBID_SERVICE'] is not None:
         """
         Extracts the structured full text from the given location
         """
-        logger.debug('Extract grobid content: %s', message)
+        logger.info('Extract grobid content: %s', message)
         if not isinstance(message, list):
             message = [message]
 
@@ -102,15 +102,15 @@ if app.conf['GROBID_SERVICE'] is not None:
             msg['file_format'] += "-grobid"
 
         results = extraction.extract_content(message, grobid_service=app.conf['GROBID_SERVICE'])
-        logger.debug('Grobid results: %s', results)
+        logger.info('Grobid results: %s', results)
         for r in results:
-            logger.debug("Calling 'write_content' with '%s'", str(r))
+            logger.info("Calling 'write_content' with '%s'", str(r))
             # Write locally to filesystem
             writer.write_content(r)
 
             ## Send results to master
             #if r['grobid_fulltext'] != "":
-                #logger.debug("Calling 'task_output_results' with '%s'", msg)
+                #logger.info("Calling 'task_output_results' with '%s'", msg)
                 #task_output_results.delay(msg)
 
 
@@ -135,9 +135,9 @@ def task_output_results(msg):
     # but we still have some file saved extraction that weren't cleaned.
     msg['body'] = TextCleaner(text=msg['body']).run(translate=False, decode=True, normalise=True, trim=True)
 
-    logger.debug('Will forward this record: %s', msg)
+    logger.info('Will forward this record: %s', msg)
     rec = FulltextUpdate(**msg)
-    logger.debug("Calling 'app.forward_message' with '%s'", str(rec))
+    logger.info("Calling 'app.forward_message' with '%s'", str(rec))
     if not app.conf['CELERY_ALWAYS_EAGER']:
         app.forward_message(rec)
 
