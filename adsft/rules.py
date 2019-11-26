@@ -27,7 +27,7 @@ META_CONTENT = {
             'type': 'list',
             'info': 'xlink:href',
             },
-        'facilities': {
+        'facility': {
             'xpath': ['//named-content[@content-type="facility"]'],
             'type': 'list',
             'info': 'xlink:href',
