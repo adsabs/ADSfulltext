@@ -44,7 +44,7 @@ def task_check_if_extract(message):
             if key == 'PDF' or key == 'Standard':
                 for msg in results[key]:
                     logger.debug("Calling 'task_extract' with message '%s'", msg)
-                    task_extract.delay(msg)
+                    return msg
                     if app.conf['GROBID_SERVICE'] is not None and key == 'PDF':
                         logger.debug("Calling 'task_extract_grobid' with message '%s'", msg)
                         task_extract_grobid.delay(msg)
@@ -79,12 +79,12 @@ def task_extract(message):
                 msg[x] = r[x]
 
         logger.debug("Calling 'task_output_results' with '%s'", msg)
-        task_output_results.delay(msg)
+        return msg
 
         # Send results to master only if fulltext is not an empty string
         if r['fulltext'] != "":
             logger.debug("Calling 'task_output_results' with '%s'", msg)
-            task_output_results.delay(msg)
+            return msg
 
 
 if app.conf['GROBID_SERVICE'] is not None:
@@ -130,11 +130,11 @@ def task_output_results(msg):
             }
     :return: no return
     """
-    
+
     # Ensure we send unicode normalized trimmed text. Extractors already do this,
     # but we still have some file saved extraction that weren't cleaned.
     msg['body'] = TextCleaner(text=msg['body']).run(translate=False, decode=True, normalise=True, trim=True)
-    
+
     logger.debug('Will forward this record: %s', msg)
     rec = FulltextUpdate(**msg)
     logger.debug("Calling 'app.forward_message' with '%s'", str(rec))
