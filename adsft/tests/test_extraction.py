@@ -133,7 +133,7 @@ class TestXMLExtractor(TestXMLExtractorBase):
         full_text_content = self.extractor.open_xml()
         for parser_name in self.preferred_parser_names:
             content = self.extractor.extract_multi_content(preferred_parser_names=(parser_name,))
-            self.assertEqual(rules.META_CONTENT['xml'].keys(), content.keys())
+            self.assertEqual(rules.META_CONTENT['xml'].keys().sort(), content.keys().sort())
 
     def test_that_we_can_extract_all_content_from_payload_input(self):
         """
