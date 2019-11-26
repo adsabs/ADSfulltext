@@ -16,4 +16,9 @@ PREFERRED_XML_PARSER_NAMES = ("html5lib", "html.parser", "lxml-html", "direct-lx
 
 FULLTEXT_EXTRACT_PATH = './live'
 
-
+### Testing:
+# When 'True', it converts all the asynchronous calls into synchronous,
+# thus no need for rabbitmq, it does not forward to master
+# and it allows debuggers to run if needed:
+#CELERY_ALWAYS_EAGER = True
+#CELERY_EAGER_PROPAGATES_EXCEPTIONS = True

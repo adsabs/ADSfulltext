@@ -130,15 +130,16 @@ def task_output_results(msg):
             }
     :return: no return
     """
-    
+
     # Ensure we send unicode normalized trimmed text. Extractors already do this,
     # but we still have some file saved extraction that weren't cleaned.
     msg['body'] = TextCleaner(text=msg['body']).run(translate=False, decode=True, normalise=True, trim=True)
-    
+
     logger.debug('Will forward this record: %s', msg)
     rec = FulltextUpdate(**msg)
     logger.debug("Calling 'app.forward_message' with '%s'", str(rec))
-    app.forward_message(rec)
+    if not app.conf['CELERY_ALWAYS_EAGER']:
+        app.forward_message(rec)
 
 if __name__ == '__main__':
     app.start()

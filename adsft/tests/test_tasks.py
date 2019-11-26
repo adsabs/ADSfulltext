@@ -18,6 +18,8 @@ class TestWorkers(unittest.TestCase):
         self._app = tasks.app
         self.app = app.ADSFulltextCelery('test', proj_home=self.proj_home, local_config=\
             {
+                "CELERY_ALWAYS_EAGER": False,
+                "CELERY_EAGER_PROPAGATES_EXCEPTIONS": False,
             })
         tasks.app = self.app # monkey-patch the app object
 
