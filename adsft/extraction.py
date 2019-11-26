@@ -712,7 +712,7 @@ class StandardExtractorXML(object):
             self._append_tag_outside_parent(e)
 
         # move facilities out of acknowledgments
-        for e in parsed_xml.xpath(" | ".join(META_CONTENT['xml']['facilities']['xpath'])):
+        for e in parsed_xml.xpath(" | ".join(META_CONTENT['xml']['facility']['xpath'])):
             self._append_tag_outside_parent(e.getparent())
 
 
