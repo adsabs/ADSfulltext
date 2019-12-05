@@ -1,4 +1,4 @@
-git+https://github.com/adsabs/ADSPipelineUtils.git@v1.0.7
+git+https://github.com/adsabs/ADSPipelineUtils.git@v1.0.13
 beautifulsoup4==4.8.0
 ConcurrentLogHandler==0.9.1
 dateutils==0.6.6
