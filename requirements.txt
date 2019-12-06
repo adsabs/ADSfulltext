@@ -1,4 +1,8 @@
+<<<<<<< 5a336740a85a7f2a2e92559f4c9b71980b336fb2
 git+https://github.com/adsabs/ADSPipelineUtils.git@v1.0.13
+=======
+git+https://github.com/adsabs/ADSPipelineUtils.git@v1.0.9
+>>>>>>> bump ADSPipelineUtils to version 1.0.9
 beautifulsoup4==4.8.0
 dateutils==0.6.6
 httpretty==0.8.14
