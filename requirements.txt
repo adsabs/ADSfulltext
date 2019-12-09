@@ -1,4 +1,4 @@
-git+https://github.com/adsabs/ADSPipelineUtils.git@v1.0.13
+git+https://github.com/adsabs/ADSPipelineUtils.git@v1.0.14
 beautifulsoup4==4.8.0
 dateutils==0.6.6
 httpretty==0.8.14
