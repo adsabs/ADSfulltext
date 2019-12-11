@@ -140,7 +140,7 @@ def write_content(payload_dictionary):
     # Write everything but the full text content to the meta.json
     meta_dict = {}
 
-    for const in ('meta_path', 'ft_source', 'bibcode', 'provider', 'UPDATE', 'file_format', 'index_date', 'dataset'):
+    for const in ('meta_path', 'ft_source', 'bibcode', 'provider', 'UPDATE', 'file_format', 'index_date', 'dataset', 'facility'):
         try:
             meta_dict[const] = payload_dictionary[const]
             logger.debug('Adding meta content: {0}'.format(const))
@@ -151,7 +151,7 @@ def write_content(payload_dictionary):
     # Write the custom extractions of content to the meta.json
     logger.debug('Copying extra meta content')
     for meta_key_word in META_CONTENT[payload_dictionary['file_format']]:
-        if meta_key_word in ('dataset', 'fulltext'):
+        if meta_key_word in ('dataset', 'fulltext', 'facility'):
             continue
 
         logger.debug(meta_key_word)

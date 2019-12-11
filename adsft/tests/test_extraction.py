@@ -133,7 +133,7 @@ class TestXMLExtractor(TestXMLExtractorBase):
         full_text_content = self.extractor.open_xml()
         for parser_name in self.preferred_parser_names:
             content = self.extractor.extract_multi_content(preferred_parser_names=(parser_name,))
-            self.assertEqual(rules.META_CONTENT['xml'].keys(), content.keys())
+            self.assertEqual(rules.META_CONTENT['xml'].keys().sort(), content.keys().sort())
 
     def test_that_we_can_extract_all_content_from_payload_input(self):
         """
@@ -328,12 +328,26 @@ class TestXMLExtractor(TestXMLExtractorBase):
 
         """
         This checks that acknowledgments within the body tag are removed
+        :return: no return
         """
         full_text_content = self.extractor.open_xml()
 
         for parser_name in self.preferred_parser_names:
             content = self.extractor.extract_multi_content(preferred_parser_names=(parser_name,))
             self.assertEqual(content['acknowledgements'], u"Acknowledgments WE ACKNOWLEDGE.")
+
+    def test_extraction_of_facilities(self):
+        """
+        This tests that we can extract the faciltites field.
+        :return: no return
+        """
+        facility = [u'FacilityName']
+
+        full_text_content = self.extractor.open_xml()
+
+        for parser_name in self.preferred_parser_names:
+            content = self.extractor.extract_multi_content(preferred_parser_names=(parser_name,))
+            self.assertEqual(content['facility'], facility)
 
 class TestTEIXMLExtractor(TestXMLExtractorBase):
     """

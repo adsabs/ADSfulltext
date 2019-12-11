@@ -26,6 +26,11 @@ META_CONTENT = {
             'xpath': ['//named-content[@content-type="dataset"]'],
             'type': 'list',
             'info': 'xlink:href',
+            },
+        'facility': {
+            'xpath': ['//named-content[@content-type="facility"]'],
+            'type': 'list',
+            'info': 'xlink:href',
         }
     },
     'teixml': {
