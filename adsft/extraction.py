@@ -453,6 +453,7 @@ class StandardExtractorXML(object):
         """
         move tag outside/after the parent tag so it is now a sibling
         """
+
         parent = node.getparent()
 
         if parent != None:
@@ -713,8 +714,7 @@ class StandardExtractorXML(object):
 
         # move facilities out of acknowledgments
         for e in parsed_xml.xpath(" | ".join(META_CONTENT['xml']['facility']['xpath'])):
-            self._append_tag_outside_parent(e.getparent())
-
+            self._append_tag_outside_parent(e)
 
 
         return parsed_xml

@@ -166,7 +166,15 @@
       <ack>
          <title>Acknowledgments</title>
          <p>WE ACKNOWLEDGE.</p></ack>
-      <p><italic>Facility:</italic> <named-content content-type="facility" xlink:href="FacilityName"><italic>FacilityName</italic></named-content>.</p>
+      <p><italic>Facilities:</italic>
+        <named-content content-type="facility" xlink:href="FacilityName1">FacilityName1</named-content>,
+        <named-content content-type="facility" xlink:href="FacilityName2">FacilityName2</named-content>,
+        <named-content content-type="facility" xlink:href="FacilityName3">FacilityName3</named-content>,
+        <named-content content-type="facility" xlink:href="FacilityName4">FacilityName4</named-content>,
+        <named-content content-type="facility" xlink:href="FacilityName5">FacilityName5</named-content>,
+        <named-content content-type="facility" xlink:href="FacilityName6">FacilityName6</named-content>,
+        <named-content content-type="facility" xlink:href="FacilityName7">FacilityName7</named-content>
+      </p>
       <app-group>
          <app id="app1">
             <title>APPENDIX: APPENDIX TITLE GOES HERE</title>
