@@ -384,7 +384,7 @@ class TestNonStandardXMLExtractor(TestXMLExtractorBase):
             for parser_name in self.preferred_parser_names:
                 self.extractor.parse_xml(preferred_parser_names=(parser_name,))
                 content = self.extractor.extract_string('//body')
-                self.assertEqual(content, u'')
+                self.assertEqual(content, u'front text outside body')
 
 
 class TestTEIXMLExtractor(TestXMLExtractorBase):
