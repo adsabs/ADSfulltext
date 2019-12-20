@@ -341,13 +341,19 @@ class TestXMLExtractor(TestXMLExtractorBase):
         This tests that we can extract the faciltites field.
         :return: no return
         """
-        facility = [u'FacilityName']
+        facilities = [u'FacilityName1',
+                        u'FacilityName2',
+                        u'FacilityName3',
+                        u'FacilityName4',
+                        u'FacilityName5',
+                        u'FacilityName6',
+                        u'FacilityName7']
 
         full_text_content = self.extractor.open_xml()
 
         for parser_name in self.preferred_parser_names:
             content = self.extractor.extract_multi_content(preferred_parser_names=(parser_name,))
-            self.assertEqual(content['facility'], facility)
+            self.assertEqual(sorted(content['facility']), facilities)
 
 class TestTEIXMLExtractor(TestXMLExtractorBase):
     """
