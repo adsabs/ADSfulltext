@@ -625,7 +625,7 @@ class StandardExtractorXML(object):
 
         if not success:
             logger.warn('Parsing XML in non-standard way')
-            parsed_xml = lxml.html.document_fromstring(self.raw_xml)
+            parsed_xml = lxml.html.document_fromstring(self.raw_xml.encode('utf-8'))
 
         self.parsed_xml = parsed_xml
         return parsed_xml

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE article PUBLIC "Journal" "article.dtd">
+<article>
+<front>
+  front text outside body
+</front>
+<body>
+<ref-list xmlns:xlink="xlink"/>
+</body>
+</article>

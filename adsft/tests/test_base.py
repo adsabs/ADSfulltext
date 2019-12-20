@@ -167,6 +167,9 @@ class TestUnit(unittest.TestCase):
         self.test_stub_xml = \
             os.path.join(PROJ_HOME,
                          'tests/test_unit/stub_data/test.xml')
+        self.test_stub_nonstandard_xml = \
+            os.path.join(PROJ_HOME,
+                         'tests/test_unit/stub_data/test_failure.xml')
         self.test_stub_exml = \
             os.path.join(PROJ_HOME,
                          'tests/test_unit/stub_data/test_elsevier.xml')
@@ -327,4 +330,3 @@ class TestGeneric(unittest.TestCase):
                 print('deleted: {0} and its content'.format(path))
             else:
                 print('Could not delete {0}, does not exist'.format(path))
-
