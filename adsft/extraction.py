@@ -712,11 +712,6 @@ class StandardExtractorXML(object):
         for e in parsed_xml.xpath(" | ".join(META_CONTENT['xml']['acknowledgements']['xpath'])):
             self._append_tag_outside_parent(e)
 
-        # move facilities out of acknowledgments
-        for e in parsed_xml.xpath(" | ".join(META_CONTENT['xml']['facility']['xpath'])):
-            self._append_tag_outside_parent(e)
-
-
         return parsed_xml
 
     def extract_string(self, static_xpath, **kwargs):
