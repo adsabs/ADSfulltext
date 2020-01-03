@@ -324,17 +324,25 @@ class TestXMLExtractor(TestXMLExtractorBase):
             )
 
 
-    def test_that_we_can_extract_acknowledgments_when_inside_body(self):
+    def test_extraction_of_acknowledgments(self):
 
         """
-        This checks that acknowledgments within the body tag are removed
+        This tests that acknowledgments are extracted, acknowledgments should include the
+        facilities as of issue #100 in github. There are cases in which the acknowledgments
+        are found inside the body tag, but the body tag should not include the acknowledgments
+        as of issue #18. An acknowledgement field is included in the body tag in test.xml to
+        test that these are being moved outside of the body tag, which is why we see 'ACK
+        INSIDE BODY TAG.' appended to this acknowledgment.
+
         :return: no return
         """
         full_text_content = self.extractor.open_xml()
 
         for parser_name in self.preferred_parser_names:
             content = self.extractor.extract_multi_content(preferred_parser_names=(parser_name,))
-            self.assertEqual(content['acknowledgements'], u"Acknowledgments WE ACKNOWLEDGE.")
+            self.assertEqual(content['acknowledgements'], u"Acknowledgments WE ACKNOWLEDGE. Facilities: FacilityName1 , "
+                                                            "FacilityName2 , FacilityName3 , FacilityName4 , FacilityName5 , "
+                                                            "FacilityName6 , FacilityName7\nACK INSIDE BODY TAG.")
 
     def test_extraction_of_facilities(self):
         """
