@@ -469,6 +469,9 @@ class StandardExtractorXML(object):
             # replace encoding by UTF-8 since we already decoded the original file content
             raw_xml = re.sub('(<\?[^>]+encoding=")(?:[^"]*)("\?>)', '\g<1>UTF-8\g<2>', raw_xml)
         if parser_name in ("lxml-xml", "lxml-html", "html.parser", "html5lib"):
+            # replace <!-- body enbody --> with content inside
+            # see issue
+            raw_xml = re.sub('<!--\s*body\s*([^?]*)\s*endbody\s*-->', r'\1', raw_xml)
             # - A comment is coded like this: <!--  My comment goes here. and it can span multiple lines -->
             #   RegEx Source: https://stackoverflow.com/a/4616640/6940788
             raw_xml = re.sub('<!--[\s\S\n]*?-->', '', raw_xml) # Comments
