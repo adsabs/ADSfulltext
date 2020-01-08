@@ -95,7 +95,7 @@
 
       <custom-meta-group><custom-meta><meta-name>METANAME</meta-name><meta-value/></custom-meta></custom-meta-group></article-meta>
    </front>
-    <body>
+    <!-- body <body>
       <sec id="s1"><label>I.</label><title>INTRODUCTION</title>
           <p>INTRODUCTION <inline-formula>this should be removed</inline-formula>GOES HERE</p>
       </sec>
@@ -156,8 +156,16 @@
              </fn>
            </table-wrap-foot>
         </table-wrap>
+<<<<<<< b40a84279daf36b2695d392f0bf87a42021c396b
         <section type="acknowledgments"><p>ACK INSIDE BODY TAG.</p></section>
    </body>
+=======
+        <ack>
+          <title>Acknowledgments</title>
+          <p>WE ACKNOWLEDGE.</p>
+        </ack>
+   </body> endbody -->
+>>>>>>> add unit test, modify regex and apply to all parsers
 
     <back>
       <ack>
