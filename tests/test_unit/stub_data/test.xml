@@ -95,7 +95,7 @@
 
       <custom-meta-group><custom-meta><meta-name>METANAME</meta-name><meta-value/></custom-meta></custom-meta-group></article-meta>
    </front>
-    <body>
+    <!-- body <body>
       <sec id="s1"><label>I.</label><title>INTRODUCTION</title>
           <p>INTRODUCTION <inline-formula>this should be removed</inline-formula>GOES HERE</p>
       </sec>
@@ -160,7 +160,7 @@
           <title>Acknowledgments</title>
           <p>WE ACKNOWLEDGE.</p>
         </ack>
-   </body>
+   </body> endbody -->
 
     <back>
       <ack>

@@ -468,10 +468,12 @@ class StandardExtractorXML(object):
             # These parsers will use the encoding specified in the content, we need to
             # replace encoding by UTF-8 since we already decoded the original file content
             raw_xml = re.sub('(<\?[^>]+encoding=")(?:[^"]*)("\?>)', '\g<1>UTF-8\g<2>', raw_xml)
-        if parser_name in ("lxml-xml", "lxml-html", "html.parser", "html5lib"):
+
+        if parser_name in ("html5lib", "html.parser", "lxml-html", "direct-lxml-html", "lxml-xml", "direct-lxml-xml",):
             # replace <!-- body enbody --> with content inside
             # see issue https://github.com/adsabs/ADSfulltext/issues/104
-            raw_xml = re.sub('<!--\s*body\s*([^?]*)\s*endbody\s*-->', r'\1', raw_xml)
+            raw_xml = re.sub('<!--\s*body\s*([\s\S\n]*)\s*endbody\s*-->', r'\1', raw_xml)
+        if parser_name in ("lxml-xml", "lxml-html", "html.parser", "html5lib"):
             # - A comment is coded like this: <!--  My comment goes here. and it can span multiple lines -->
             #   RegEx Source: https://stackoverflow.com/a/4616640/6940788
             raw_xml = re.sub('<!--[\s\S\n]*?-->', '', raw_xml) # Comments
