@@ -345,6 +345,7 @@ class TestXMLExtractor(TestXMLExtractorBase):
                                                             "FacilityName6 , FacilityName7\nACK INSIDE BODY TAG.")
 
     def test_extraction_of_facilities(self):
+
         """
         This tests that we can extract the faciltites field.
         :return: no return
@@ -362,6 +363,21 @@ class TestXMLExtractor(TestXMLExtractorBase):
         for parser_name in self.preferred_parser_names:
             content = self.extractor.extract_multi_content(preferred_parser_names=(parser_name,))
             self.assertEqual(sorted(content['facility']), facilities)
+
+    def test_removal_of_comment_syntax_around_body(self):
+
+        """
+        This tests the removal of comment syntax indicating the body of
+        the article used by some publishers (AGU, sometimes Wiley).
+        See https://github.com/adsabs/ADSfulltext/issues/104
+
+        :return: no return
+        """
+
+        raw_xml = "<!-- body <body><p>body content</p></body> endbody -->"
+
+        for parser_name in self.preferred_parser_names:
+            self.assertEqual(self.extractor._remove_special_elements(raw_xml, parser_name), "<body><p>body content</p></body> ")
 
 
 class TestNonStandardXMLExtractor(TestXMLExtractorBase):
@@ -399,7 +415,6 @@ class TestNonStandardXMLExtractor(TestXMLExtractorBase):
                 self.extractor.parse_xml(preferred_parser_names=(parser_name,))
                 content = self.extractor.extract_string('//body')
                 self.assertEqual(content, u'front text outside body')
-
 
 class TestTEIXMLExtractor(TestXMLExtractorBase):
     """
