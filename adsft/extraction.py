@@ -603,29 +603,29 @@ class StandardExtractorXML(object):
 
         for parser_name in preferred_parser_names:
             parsed_xml = self._parse_xml(parser_name)
+
             logger.debug("Checking if the parser '{}' succeeded".format(parser_name))
             success = False
-            for xpath in META_CONTENT[self.meta_name].get('fulltext', {}).get('xpath', []):
-                fulltext = None
-                fulltext_elements = parsed_xml.xpath(xpath)
-                if len(fulltext_elements) > 0:
-                    fulltext = u" ".join(map(unicode.strip, map(unicode, fulltext_elements[0].itertext())))
-                    fulltext = TextCleaner(text=fulltext).run(decode=False, translate=True, normalise=True, trim=True)
-                if not fulltext:
-                    continue
-                else:
-                    logger.debug("The parser '{}' succeeded".format(parser_name))
-                    success = True
+            ft_found = False
+            for content_name in META_CONTENT[self.meta_name]:
+                if ft_found:
                     break
-
-            if not success:
-                logger.debug("The parser '{}' failed".format(parser_name))
-            else:
+                for xpath in META_CONTENT[self.meta_name].get(content_name, {}).get('xpath', []):
+                    element_found = False
+                    elements = parsed_xml.xpath(xpath)
+                    if len(elements) > 0:
+                        element_found = True
+                        success = True
+                    if content_name == 'fulltext' and element_found:
+                        ft_found = True
+                        fulltext = u" ".join(map(unicode.strip, map(unicode, elements[0].itertext())))
+                        fulltext = TextCleaner(text=fulltext).run(decode=False, translate=True, normalise=True, trim=True)
+                        break
+            if success:
+                logger.debug("The parser '{}' succeeded".format(parser_name))
                 break
-
-        if not success:
-            logger.warn('Parsing XML in non-standard way')
-            parsed_xml = lxml.html.document_fromstring(self.raw_xml.encode('utf-8'))
+            else:
+                logger.debug("The parser '{}' failed".format(parser_name))
 
         self.parsed_xml = parsed_xml
         return parsed_xml

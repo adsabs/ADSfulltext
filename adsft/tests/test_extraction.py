@@ -388,9 +388,9 @@ class TestNonStandardXMLExtractor(TestXMLExtractorBase):
         def test_failure_of_all_parsers_in_loop(self):
             """
             This ensures that articles that fail to get extracted by all of the parsers
-            we loop through (defined in config) will be extracted by our last resort
-            extractor lxml.html.document_fromstring(), which extracts the whole article
-            instead of just the body, ack, etc.
+            we loop through (defined in config) will return an empty body.
+
+            See https://github.com/adsabs/ADSfulltext/issues/101
             """
 
             self.extractor.open_xml()
@@ -398,7 +398,7 @@ class TestNonStandardXMLExtractor(TestXMLExtractorBase):
             for parser_name in self.preferred_parser_names:
                 self.extractor.parse_xml(preferred_parser_names=(parser_name,))
                 content = self.extractor.extract_string('//body')
-                self.assertEqual(content, u'front text outside body')
+                self.assertEqual(content, u'')
 
 
 class TestTEIXMLExtractor(TestXMLExtractorBase):
