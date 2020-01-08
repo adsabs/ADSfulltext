@@ -156,16 +156,8 @@
              </fn>
            </table-wrap-foot>
         </table-wrap>
-<<<<<<< b40a84279daf36b2695d392f0bf87a42021c396b
         <section type="acknowledgments"><p>ACK INSIDE BODY TAG.</p></section>
-   </body>
-=======
-        <ack>
-          <title>Acknowledgments</title>
-          <p>WE ACKNOWLEDGE.</p>
-        </ack>
    </body> endbody -->
->>>>>>> add unit test, modify regex and apply to all parsers
 
     <back>
       <ack>
