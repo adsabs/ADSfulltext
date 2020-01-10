@@ -149,15 +149,20 @@ class StandardExtractorHTML(object):
         :param in_html: HTML file to override the one given by the super class
         :return:
         """
-        import codecs
 
         if not in_html:
             html_file = self.file_input
         else:
             html_file = in_html
 
-        with codecs.open(html_file, 'r', 'utf-8') as f:
-            raw_html = f.read()
+        with open(html_file, 'rb') as fp:
+            raw_html = fp.read()
+
+        # detect the encoding of the html file
+        encoding = UnicodeDammit(raw_html).original_encoding
+
+        # encoding is then used to decode bytecode into unicode
+        raw_html = raw_html.decode(encoding, "ignore")
 
         raw_html = edef.convertentities(raw_html)
 
