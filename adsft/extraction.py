@@ -480,7 +480,7 @@ class StandardExtractorXML(object):
             raw_xml = re.sub('<!--[\s\S\n]*?-->', '', raw_xml) # Comments
         # - A CDATA is coded like this: <![CDATA[<b>Your Code Goes Here</b>]]>
         #   RegEx Source: https://superuser.com/a/1153242
-        raw_xml = re.sub('<!\[CDATA\[.*?\]\]>', '', raw_xml) # CDATA
+        raw_xml = re.sub('<!\[CDATA\[[\s\S\n]*?\]\]>', '', raw_xml) # CDATA
         # Notes:
         #   - no parser provides a reliable way to find CDATA and remove their content
         #     Source: https://stackoverflow.com/a/44561547
