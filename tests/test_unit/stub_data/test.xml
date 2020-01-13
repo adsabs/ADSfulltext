@@ -109,7 +109,9 @@
          <p>THIS SECTION TESTS <!-- THIS SHOULD BE REMOVED -->THAT COMMENTS ARE REMOVED.</p>
       </sec>
       <sec id="s5"><label>V.</label><title>SECTION V</title>
-          <p><?CDATA THIS SHOULD BE REMOVED ?>THIS SECTION TESTS <![CDATA[THIS SHOULD ALSO BE REMOVED]]>THAT CDATA IS REMOVED.</p>
+          <p><?CDATA THIS SHOULD BE REMOVED ?>THIS SECTION TESTS <![CDATA[
+            THIS SHOULD ALSO BE REMOVED
+            ]]>THAT CDATA IS REMOVED.</p>
       </sec>
 
         <data>
