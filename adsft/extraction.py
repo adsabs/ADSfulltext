@@ -798,7 +798,7 @@ class StandardExtractorXML(object):
                     # tags/attributes to namespace:name (e.g., {http://www.w3.org/1999/xlink}href)
                     # while others will keep the prefix (e.g., xlink:href)
                     # Our processing removes the namespace expansion and the
-                    # prefix (e.g., href), thus, if the attribute name in the ruls
+                    # prefix (e.g., href), thus, if the attribute name in the rules
                     # contains a namespace prefix, we need to remove it:
                     vspan_content = span_content.split(":")
                     if len(vspan_content) >= 2:
@@ -810,6 +810,11 @@ class StandardExtractorXML(object):
                     translate=translate,
                     normalise=True,
                     trim=True)
+
+                # to ignore facility tags missing xlink:href
+                # https://github.com/adsabs/ADSfulltext/issues/107
+                if text_content == 'None':
+                    continue
 
                 data_inner.append(text_content)
             except KeyError:
