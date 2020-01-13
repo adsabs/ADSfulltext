@@ -349,12 +349,12 @@ class TestXMLExtractor(TestXMLExtractorBase):
         """
         This tests that we can extract the faciltites field.The first facility is
         a test to make sure we are not extracting facilities where the xlink:href is
-        missing. This is discussed here: https://github.com/adsabs/ADSfulltext/issues/107
+        missing, and the second facilities where xlink:href is empty. This is
+        discussed here: https://github.com/adsabs/ADSfulltext/issues/107
 
         :return: no return
         """
-        facilities = [u'FacilityID2',
-                        u'FacilityID3',
+        facilities = [u'FacilityID3',
                         u'FacilityID4',
                         u'FacilityID5',
                         u'FacilityID6',

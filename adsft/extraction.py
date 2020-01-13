@@ -813,7 +813,7 @@ class StandardExtractorXML(object):
 
                 # to ignore facility tags missing xlink:href
                 # https://github.com/adsabs/ADSfulltext/issues/107
-                if text_content == 'None':
+                if text_content == 'None' or text_content == '':
                     continue
 
                 data_inner.append(text_content)

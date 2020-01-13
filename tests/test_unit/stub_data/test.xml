@@ -167,7 +167,7 @@
          <p>WE ACKNOWLEDGE.</p>
          <p><italic>Facilities:</italic>
            <named-content content-type="facility">FacilityName1</named-content>,
-           <named-content content-type="facility" xlink:href="FacilityID2">FacilityName2</named-content>,
+           <named-content content-type="facility" xlink:href="">FacilityName2</named-content>,
            <named-content content-type="facility" xlink:href="FacilityID3">FacilityName3</named-content>,
            <named-content content-type="facility" xlink:href="FacilityID4">FacilityName4</named-content>,
            <named-content content-type="facility" xlink:href="FacilityID5">FacilityName5</named-content>,
