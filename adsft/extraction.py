@@ -611,26 +611,19 @@ class StandardExtractorXML(object):
 
             logger.debug("Checking if the parser '{}' succeeded".format(parser_name))
             success = False
-            ft_found = False
+            content_found = []
             for content_name in META_CONTENT[self.meta_name]:
-                if ft_found:
-                    break
                 for xpath in META_CONTENT[self.meta_name].get(content_name, {}).get('xpath', []):
-                    element_found = False
                     elements = parsed_xml.xpath(xpath)
                     if len(elements) > 0:
-                        element_found = True
                         success = True
-                    if content_name == 'fulltext' and element_found:
-                        ft_found = True
-                        fulltext = u" ".join(map(unicode.strip, map(unicode, elements[0].itertext())))
-                        fulltext = TextCleaner(text=fulltext).run(decode=False, translate=True, normalise=True, trim=True)
+                        content_found.append(content_name)
                         break
             if success:
-                logger.debug("The parser '{}' succeeded".format(parser_name))
+                logger.debug("The parser '{}' succeeded extracting the following fields '{}'".format(parser_name, ", ".join(content_found)))
                 break
             else:
-                logger.debug("The parser '{}' failed".format(parser_name))
+                logger.debug("The parser '{}' did not extract any of the following fields '{}'".format(parser_name, ", ".join(META_CONTENT[self.meta_name].keys())))
 
         self.parsed_xml = parsed_xml
         return parsed_xml
