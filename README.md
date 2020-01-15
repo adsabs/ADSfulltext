@@ -6,13 +6,19 @@
 Article full text extraction pipeline. Set of workers that check the filesystem and convert
 binary files into text.
 
-##### This pipeline extracts:
+##### What does the pipeline extract?
 - body
     - includes table and figure captions, appendixes and supplements
 - acknowledgements
 - any dataset(s)
+- any facilities
 
 We do not include the list of references, because those are processed separately by the reference resolver to generate citations.
+
+##### Where does this data go?
+All of these fields are sent to ADSMasterPipeline, and all fields except the dataset are sent to Solr. Each bibcode has a fulltext.txt and meta.json file in the live folder in a directory constructed from the actual bibcode.
+
+Facilties and datasets are not in use by any other pipeline. 
 
 ##### A note on PDFs:
 When the fulltext is extracted from PDFs, we don’t necessarily have the different portions of the article properly fielded, and we end up throwing everything that comes out in the body field.  This will include things such as title, author list, abstract, keyword, bibliography, etc.  This is a bug and not a feature, of course, if we could use grobid to properly segment the source document we would only pick the relevant pieces
