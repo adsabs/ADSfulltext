@@ -347,16 +347,18 @@ class TestXMLExtractor(TestXMLExtractorBase):
     def test_extraction_of_facilities(self):
 
         """
-        This tests that we can extract the faciltites field.
+        This tests that we can extract the faciltites field.The first facility is
+        a test to make sure we are not extracting facilities where the xlink:href is
+        missing, and the second facilities where xlink:href is empty. This is
+        discussed here: https://github.com/adsabs/ADSfulltext/issues/107
+
         :return: no return
         """
-        facilities = [u'FacilityName1',
-                        u'FacilityName2',
-                        u'FacilityName3',
-                        u'FacilityName4',
-                        u'FacilityName5',
-                        u'FacilityName6',
-                        u'FacilityName7']
+        facilities = [u'FacilityID3',
+                        u'FacilityID4',
+                        u'FacilityID5',
+                        u'FacilityID6',
+                        u'FacilityID7']
 
         full_text_content = self.extractor.open_xml()
 
