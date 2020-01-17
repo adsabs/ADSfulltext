@@ -489,6 +489,11 @@ class StandardExtractorXML(object):
         # Notes:
         #   - no parser provides a reliable way to find CDATA and remove their content
         #     Source: https://stackoverflow.com/a/44561547
+        if parser_name in ("html5lib", "html.parser", "lxml-html", "direct-lxml-html"):
+            # CDATA in Processing Instruction form, can include '>' symbol
+            # which will break Processing Instruction regex below
+            raw_xml = re.sub('<\?CDATA[\s\S\n]*?\?>', '', raw_xml)
+
         if parser_name in ("lxml-html", "html.parser", "html5lib"):
             # - A processing instruction is coded like this: <?ignore .... what ever I want here, including <!-- comments --> ...  ?>
             #   RegEx Source: https://stackoverflow.com/a/29418829/6940788
