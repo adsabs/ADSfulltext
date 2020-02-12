@@ -13,7 +13,7 @@ binary files into text.
 - any dataset(s)
 - any facilities
 
-We do not include the list of references, because those are processed separately by the reference resolver to generate citations.
+We do not include the list of references because those are processed separately by the reference resolver to generate citations.
 
 ##### Where does this data go?
 All of these fields are sent to ADSMasterPipeline, and all fields except the dataset are sent to Solr. Each bibcode has a fulltext.txt and meta.json file in the live folder in a directory constructed from the actual bibcode.
