@@ -11,9 +11,10 @@ FILES_INFO=(
     links/fulltext/all.links:5500000
 )
 
-# Delete old input files
+# zip/delete old input files
 if [ -d ./logs/input ]; then
-    find ./logs/input/ -name "input.20*-*-*_*-*-*" -type d -mtime +20 -exec rm -rf '{}' \;
+    find ./logs/input/ -name "input.20*-*-*_*-*-*" -type d -mtime +1 -exec tar cvzf '{}'.tar.gz '{}' \; -exec rm -r '{}' \;
+    find ./logs/input/ -name "input.20*-*-*_*-*-*" -mtime +7 -exec rm -rf '{}' \;
 fi
 
 # create local copies of files
