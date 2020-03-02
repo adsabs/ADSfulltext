@@ -6,6 +6,8 @@ from adsft import extraction, checker, writer
 from adsmsg import FulltextUpdate
 import os
 from adsft.utils import TextCleaner
+import spacy
+from adsft import ner
 
 # ============================= INITIALIZATION ==================================== #
 
@@ -20,6 +22,11 @@ app.conf.CELERY_QUEUES = (
     Queue('extract-grobid', app.exchange, routing_key='extract-grobid'),
     Queue('output-results', app.exchange, routing_key='output-results'),
 )
+
+
+logger.debug("Loading spacy model for facilities...")
+model_dir = "models/ner_model_facility"
+model = spacy.load(model_dir)
 
 
 # ============================= TASKS ============================================= #
@@ -66,6 +73,19 @@ def task_extract(message):
     results = extraction.extract_content(message, extract_pdf_script=app.conf['EXTRACT_PDF_SCRIPT'])
     logger.debug('Results: %s', results)
     for r in results:
+
+        facs = ner.get_facilities(model, r['acknowledgements'])
+        logger.debug("Adding %s as facilities found in ack using spacy ner model" % str(facs))
+        for f in facs:
+            r['facility'].append(f)
+
+        facs = ner.get_facilities(model, r['fulltext'])
+        logger.debug("Adding %s as facilities found in fulltext using spacy ner model" % str(facs))
+        for f in facs:
+            r['facility'].append(f)
+
+        r['facility'] = list(set(r['facility'])) # remove duplicates
+
         logger.debug("Calling 'write_content' with '%s'", str(r))
         # Write locally to filesystem
         writer.write_content(r)
