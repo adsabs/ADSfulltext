@@ -74,12 +74,17 @@ def task_extract(message):
     logger.debug('Results: %s', results)
     for r in results:
 
-        facs = ner.get_facilities(model, r['acknowledgements'])
-        logger.debug("Adding %s as facilities found in ack using spacy ner model" % str(facs))
-        for f in facs:
-            r['facility'].append(f)
+        if 'acknowledgements' in r.keys():
+            facs = ner.get_facilities(model, r['acknowledgements'])
+            if len(facs) > 0:
+                r['facility'] = []
+            logger.debug("Adding %s as facilities found in ack using spacy ner model" % str(facs))
+            for f in facs:
+                r['facility'].append(f)
 
         facs = ner.get_facilities(model, r['fulltext'])
+        if len(facs) > 0:
+            r['facility'] = []
         logger.debug("Adding %s as facilities found in fulltext using spacy ner model" % str(facs))
         for f in facs:
             r['facility'].append(f)
