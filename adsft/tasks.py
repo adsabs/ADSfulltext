@@ -74,7 +74,7 @@ def task_extract(message):
     logger.debug('Results: %s', results)
     for r in results:
 
-        if 'acknowledgements' in r.keys():
+        if 'acknowledgements' in r:
             facs = ner.get_facilities(model, r['acknowledgements'])
             if len(facs) > 0:
                 r['facility'] = []
@@ -85,11 +85,12 @@ def task_extract(message):
         facs = ner.get_facilities(model, r['fulltext'])
         if len(facs) > 0:
             r['facility'] = []
-        logger.debug("Adding %s as facilities found in fulltext using spacy ner model" % str(facs))
-        for f in facs:
-            r['facility'].append(f)
+            logger.debug("Adding %s as facilities found in fulltext using spacy ner model" % str(facs))
+            for f in facs:
+                r['facility'].append(f)
 
-        r['facility'] = list(set(r['facility'])) # remove duplicates
+        if 'facility' in r:
+            r['facility'] = list(set(r['facility'])) # remove duplicates
 
         logger.debug("Calling 'write_content' with '%s'", str(r))
         # Write locally to filesystem
