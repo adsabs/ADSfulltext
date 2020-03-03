@@ -57,6 +57,11 @@ def run(full_text_links, **kwargs):
     else:
         diagnose = False
 
+    if 'facility_ner' in kwargs:
+        facility_ner = kwargs['facility_ner']
+    else:
+        facility_ner = False
+
 
     if diagnose:
         print("Calling 'read_links_from_file' with filename '{}', force_extract set to '{}' and force_send set to '{}'".format(full_text_links, str(force_extract), str(force_send)))
@@ -75,26 +80,50 @@ def run(full_text_links, **kwargs):
     else:
         max_queue_size = 0
 
-    logger.info('Publishing records to: CheckIfExtract')
+    if facility_ner and not force_extract:
 
-    i = 0
-    total = len(records.payload)
-    for record in records.payload:
-        logger.info(
-            'Publishing [{0:d}/{1:d}]: [{2}]'.format(
-                i+1, total, record['bibcode'])
-        )
+        logger.info('Publishing records to: task_identify_facilities')
 
-        if max_queue_size and i >= max_queue_size:
-            logger.info('Max_queue_size reached, stopping...')
-            break
+        i = 0
+        total = len(records.payload)
+        for record in records.payload:
+            logger.info(
+                'Publishing [{0:d}/{1:d}]: [{2}]'.format(
+                    i+1, total, record['bibcode'])
+            )
 
-        if diagnose:
-            print("[{}/{}] Calling 'task_check_if_extract' with '{}'".format(i+1, total, str(record)))
-        logger.info("[%i/%i] Calling 'task_check_if_extract' with '%s'", i+1, total, str(record))
-        tasks.task_check_if_extract.delay(record)
-        #tasks.task_check_if_extract(record) # Treat synchronously to avoid saturating NFS mount access
-        i += 1
+            if max_queue_size and i >= max_queue_size:
+                logger.info('Max_queue_size reached, stopping...')
+                break
+
+            if diagnose:
+                logger.debug("[{}/{}] Calling 'task_identify_facilities' with '{}'".format(i+1, total, str(record)))
+            logger.info("[%i/%i] Calling 'task_identify_facilities' with '%s'", i+1, total, str(record))
+            tasks.task_identify_facilities.delay(record)
+            i += 1
+
+    else:
+
+        logger.info('Publishing records to: CheckIfExtract')
+
+        i = 0
+        total = len(records.payload)
+        for record in records.payload:
+            logger.info(
+                'Publishing [{0:d}/{1:d}]: [{2}]'.format(
+                    i+1, total, record['bibcode'])
+            )
+
+            if max_queue_size and i >= max_queue_size:
+                logger.info('Max_queue_size reached, stopping...')
+                break
+
+            if diagnose:
+                print("[{}/{}] Calling 'task_check_if_extract' with '{}'".format(i+1, total, str(record)))
+            logger.info("[%i/%i] Calling 'task_check_if_extract' with '%s'", i+1, total, str(record))
+            tasks.task_check_if_extract.delay(record)
+            #tasks.task_check_if_extract(record) # Treat synchronously to avoid saturating NFS mount access
+            i += 1
 
 def build_diagnostics(bibcodes=None, raw_files=None, providers=None):
     tmp_file = tempfile.NamedTemporaryFile(delete=False)
@@ -164,6 +193,12 @@ if __name__ == '__main__':
                         action='store',
                         default=None,
                         help='Comma delimited list of providers (for diagnostics)')
+
+    parser.add_argument('-ner',
+                        '--ner_facility',
+                        dest='facility_ner',
+                        action='store_true',
+                        help='Run named entity recognition for facilities, except if extract force is true.')
 
     parser.set_defaults(full_text_links=False)
     parser.set_defaults(packet_size=100)

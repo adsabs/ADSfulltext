@@ -2,7 +2,7 @@ from __future__ import absolute_import, unicode_literals
 from adsputils import get_date, exceptions
 import adsft.app as app_module
 from kombu import Queue
-from adsft import extraction, checker, writer
+from adsft import extraction, checker, writer, reader
 from adsmsg import FulltextUpdate
 import os
 from adsft.utils import TextCleaner
@@ -24,8 +24,8 @@ app.conf.CELERY_QUEUES = (
 )
 
 
-logger.debug("Loading spacy model for facilities...")
-model_dir = "models/ner_model_facility"
+logger.debug("Loading spacy models for facilities...")
+model_dir = ""
 model = spacy.load(model_dir)
 
 
@@ -73,24 +73,6 @@ def task_extract(message):
     results = extraction.extract_content(message, extract_pdf_script=app.conf['EXTRACT_PDF_SCRIPT'])
     logger.debug('Results: %s', results)
     for r in results:
-
-        if 'acknowledgements' in r:
-            facs = ner.get_facilities(model, r['acknowledgements'])
-            if len(facs) > 0:
-                r['facility'] = []
-            logger.debug("Adding %s as facilities found in ack using spacy ner model" % str(facs))
-            for f in facs:
-                r['facility'].append(f)
-
-        facs = ner.get_facilities(model, r['fulltext'])
-        if len(facs) > 0:
-            r['facility'] = []
-            logger.debug("Adding %s as facilities found in fulltext using spacy ner model" % str(facs))
-            for f in facs:
-                r['facility'].append(f)
-
-        if 'facility' in r:
-            r['facility'] = list(set(r['facility'])) # remove duplicates
 
         logger.debug("Calling 'write_content' with '%s'", str(r))
         # Write locally to filesystem
@@ -165,6 +147,38 @@ def task_output_results(msg):
     logger.info("Calling app.forward_message...")
     if not app.conf['CELERY_ALWAYS_EAGER']:
         app.forward_message(rec)
+
+@app.task(queue='')
+def task_identify_facilities(message):
+
+    logger.debug('Extract content: %s', message)
+    if not isinstance(message, list):
+        message = [message]
+
+    results = reader.read_content(message)
+
+    # read in text from files
+    for r in results:
+
+        if 'acknowledgements' in r:
+            facs = ner.get_facilities(model, r['acknowledgements'])
+            if len(facs) > 0:
+                r['facility-ack'] = []
+                logger.debug("Adding %s as facilities found in ack using spacy ner model" % str(facs))
+                for f in facs:
+                    r['facility'].append(f)
+
+                r['facility-ack'] = list(set(r['facility-ack'])) # remove duplicates
+
+        facs = ner.get_facilities(model, r['fulltext'])
+        if len(facs) > 0:
+            r['facility-ft'] = []
+            logger.debug("Adding %s as facilities found in fulltext using spacy ner model" % str(facs))
+            for f in facs:
+                r['facility'].append(f)
+
+            r['facility-ft'] = list(set(r['facility-ft'])) # remove duplicates
+
 
 if __name__ == '__main__':
     app.start()
