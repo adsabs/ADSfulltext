@@ -18,6 +18,8 @@ import unittest
 import time
 import json
 
+from mock import MagicMock
+sys.modules['spacy'] = MagicMock()
 from adsft import tasks, app
 from adsft import checker
 
