@@ -155,12 +155,14 @@ def task_identify_facilities(message):
     if not isinstance(message, list):
         message = [message]
 
-    meta = []
+    content = []
     for m in message:
-        meta.append(checker.load_meta_file(m, app.conf['FULLTEXT_EXTRACT_PATH']))
+        meta = checker.load_meta_file(m, app.conf['FULLTEXT_EXTRACT_PATH'])
+        ft = reader.read_content(meta)
+        if ft is not None:
+            content.append(ft)
 
-
-    for r in meta:
+    for r in content:
 
         if 'acknowledgements' in r:
             facs = ner.get_facilities(model1, r['acknowledgements'])
@@ -197,6 +199,8 @@ def task_identify_facilities(message):
 
 
         writer.write_content(r)
+
+
 
 
 if __name__ == '__main__':

@@ -127,34 +127,53 @@ class TestWorkers(unittest.TestCase):
             self.assertEqual(actual.body, msg['body'])
 
     def test_task_identify_facilities(self):
+
         with patch('adsft.writer.write_content', return_value=None) as task_write_text:
             msg = {
                     'bibcode': 'fta',
+                    'file_format': 'pdf',
+                    'meta_path': u'{}/ft/a/meta.json'.format(self.app.conf['FULLTEXT_EXTRACT_PATH']),
                     'acknowledgements': 'We thank the Alma team.',
-                    'fulltext': 'Introduction\nTHIS IS AN INTERESTING TITLE\n'
                     }
 
             with patch('adsft.checker.load_meta_file', return_value=msg) as load_meta:
-                facs = ['facility0', 'facility1', 'facility1']
+                msg = {
+                        'bibcode': 'fta',
+                        'file_format': 'pdf',
+                        'meta_path': u'{}/ft/a/meta.json'.format(self.app.conf['FULLTEXT_EXTRACT_PATH']),
+                        'acknowledgements': 'We thank the Alma team.',
+                        'fulltext': 'Introduction\nTHIS IS AN INTERESTING TITLE\n'
+                        }
 
-                with patch('adsft.ner.get_facilities', return_value=facs) as get_facs:
+                with patch('adsft.reader.read_content', return_value=msg) as read_content:
+                    facs = ['facility0', 'facility1', 'facility1']
+
+                    with patch('adsft.ner.get_facilities', return_value=facs) as get_facs:
+                        tasks.task_identify_facilities(msg)
+                        self.assertTrue(load_meta.called)
+                        self.assertTrue(read_content.called)
+                        self.assertTrue(get_facs.called)
+                        self.assertTrue(task_write_text.called)
+
+                        actual = task_write_text.call_args[0][0]
+                        self.assertEqual(actual['facility-ack'], list(set(facs)))
+                        self.assertEqual(actual['facility-ft'], list(set(facs)))
+
+                    # test when facilties are not found, this will test the logic with logs when we move to python3
+                    with patch('adsft.ner.get_facilities', return_value=[]) as get_facs:
+                        tasks.task_identify_facilities(msg)
+                        # use logging to check logic here when we switch to python3
+
+                # send empty acknowledgements, test logging in python3
+                msg = {
+                        'bibcode': 'fta',
+                        'file_format': 'pdf',
+                        'meta_path': u'{}/ft/a/meta.json'.format(self.app.conf['FULLTEXT_EXTRACT_PATH']),
+                        }
+
+                with patch('adsft.checker.load_meta_file', return_value=msg) as load_meta:
                     tasks.task_identify_facilities(msg)
-                    self.assertTrue(task_write_text.called)
-                    actual = task_write_text.call_args[0][0]
-                    self.assertEqual(actual['facility-ack'], list(set(facs)))
-                    self.assertEqual(actual['facility-ft'], list(set(facs)))
-
-                # should test the logging when we move to python3
-                with patch('adsft.ner.get_facilities', return_value=[]) as get_facs:
-                    tasks.task_identify_facilities(msg)
-
-            # send empty acknowledgements and fulltext, test logging in python3
-            msg = {
-                    'bibcode': 'fta',
-                    }
-
-            with patch('adsft.checker.load_meta_file', return_value=msg) as load_meta:
-                tasks.task_identify_facilities(msg)
+                    # use logging to check logic here when we switch to python3
 
 
 if __name__ == '__main__':
