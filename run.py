@@ -195,10 +195,10 @@ if __name__ == '__main__':
                         help='Comma delimited list of providers (for diagnostics)')
 
     parser.add_argument('-ner',
-                        '--ner_facility',
+                        '--ner',
                         dest='facility_ner',
                         action='store_true',
-                        help='Run named entity recognition for facilities, except if extract force is true.')
+                        help='Run named entity recognition for facilities, this flag will be ignored if --extract_force is true.')
 
     parser.set_defaults(full_text_links=False)
     parser.set_defaults(packet_size=100)
@@ -207,6 +207,7 @@ if __name__ == '__main__':
     parser.set_defaults(force_extract=False)
     parser.set_defaults(force_send=False)
     parser.set_defaults(diagnose=False)
+    parser.set_defaults(facility_ner=False)
 
     args = parser.parse_args()
 
@@ -242,7 +243,8 @@ if __name__ == '__main__':
         max_queue_size=args.max_queue_size,
         force_extract=args.force_extract,
         force_send=args.force_send,
-        diagnose=args.diagnose)
+        diagnose=args.diagnose,
+        facility_ner=args.facility_ner)
 
     if args.diagnose:
         print("Removing diagnostics temporary file '{}'".format(args.full_text_links))

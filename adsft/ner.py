@@ -1,4 +1,5 @@
 from adsputils import setup_logging
+import spacy
 
 logger = setup_logging(__name__)
 
@@ -18,3 +19,7 @@ def get_facilities(model, text):
         facilities.append(ent.text)
 
     return facilities
+
+def load_model(dir):
+
+    return spacy.load(dir)
