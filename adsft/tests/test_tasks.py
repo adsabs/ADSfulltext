@@ -4,7 +4,7 @@ import json
 
 from mock import patch
 import unittest
-from adsft import app, tasks
+from adsft import app, tasks, checker
 from adsmsg import FulltextUpdate
 import httpretty
 
@@ -125,6 +125,37 @@ class TestWorkers(unittest.TestCase):
             self.assertTrue(isinstance(actual, FulltextUpdate))
             self.assertEqual(actual.bibcode, msg['bibcode'])
             self.assertEqual(actual.body, msg['body'])
+
+    def test_task_identify_facilities(self):
+        with patch('adsft.writer.write_content', return_value=None) as task_write_text:
+            msg = {
+                    'bibcode': 'fta',
+                    'acknowledgements': 'We thank the Alma team.',
+                    'fulltext': 'Introduction\nTHIS IS AN INTERESTING TITLE\n'
+                    }
+
+            with patch('adsft.checker.load_meta_file', return_value=msg) as load_meta:
+                facs = ['facility0', 'facility1', 'facility1']
+
+                with patch('adsft.ner.get_facilities', return_value=facs) as get_facs:
+                    tasks.task_identify_facilities(msg)
+                    self.assertTrue(task_write_text.called)
+                    actual = task_write_text.call_args[0][0]
+                    self.assertEqual(actual['facility-ack'], list(set(facs)))
+                    self.assertEqual(actual['facility-ft'], list(set(facs)))
+
+                # should test the logging when we move to python3
+                with patch('adsft.ner.get_facilities', return_value=[]) as get_facs:
+                    tasks.task_identify_facilities(msg)
+
+            # send empty acknowledgements and fulltext, test logging in python3
+            msg = {
+                    'bibcode': 'fta',
+                    }
+
+            with patch('adsft.checker.load_meta_file', return_value=msg) as load_meta:
+                tasks.task_identify_facilities(msg)
+
 
 if __name__ == '__main__':
     unittest.main()

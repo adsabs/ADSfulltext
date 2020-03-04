@@ -2,11 +2,11 @@ from __future__ import absolute_import, unicode_literals
 from adsputils import get_date, exceptions
 import adsft.app as app_module
 from kombu import Queue
-from adsft import extraction, checker, writer, reader
+from adsft import extraction, checker, writer, reader, ner
 from adsmsg import FulltextUpdate
 import os
 from adsft.utils import TextCleaner
-from adsft import ner
+import spacy
 
 # ============================= INITIALIZATION ==================================== #
 
@@ -20,12 +20,13 @@ app.conf.CELERY_QUEUES = (
     Queue('extract', app.exchange, routing_key='extract'),
     Queue('extract-grobid', app.exchange, routing_key='extract-grobid'),
     Queue('output-results', app.exchange, routing_key='output-results'),
+    Queue('facility-ner', app.exchange, routing_key='facility-ner'),
 )
 
 
 logger.debug("Loading spacy models for facilities...")
 model1 = ner.load_model(app.conf['NER_FACILITY_MODEL_ACK'])
-#model2 = ner.load_model(app.conf['NER_FACILITY_MODEL_FT'])
+model2 = ner.load_model(app.conf['NER_FACILITY_MODEL_FT'])
 
 
 # ============================= TASKS ============================================= #
@@ -147,7 +148,8 @@ def task_output_results(msg):
     if not app.conf['CELERY_ALWAYS_EAGER']:
         app.forward_message(rec)
 
-@app.task(queue='ner')
+
+@app.task(queue='facility-ner')
 def task_identify_facilities(message):
 
     if not isinstance(message, list):
@@ -171,19 +173,28 @@ def task_identify_facilities(message):
                 r['facility-ack'] = list(set(r['facility-ack'])) # remove duplicates
 
             else:
-                logger.info("No facilities found for bibcode: %s." % r['bibcode'])
+                logger.info("No facilities found in acknowledgements for bibcode: %s." % r['bibcode'])
 
         else:
-            logger.info("No acknowledgements for bibcode: %s" % r['bibcode'])
+            logger.info("Acknowledgements field is empty for bibcode: %s" % r['bibcode'])
 
-        #facs = ner.get_facilities(model2, r['fulltext'])
-        #if len(facs) > 0:
-        #    r['facility-ft'] = []
-        #    logger.debug("Adding %s as facilities found in fulltext using spacy ner model" % str(facs))
-        #    for f in facs:
-        #        r['facility-ft'].append(f)
 
-        #    r['facility-ft'] = list(set(r['facility-ft'])) # remove duplicates
+        if 'fulltext' in r:
+            facs = ner.get_facilities(model2, r['fulltext'])
+            if len(facs) > 0:
+                r['facility-ft'] = []
+                logger.debug("Adding %s as facilities found in fulltext using spacy ner model" % str(facs))
+                for f in facs:
+                    r['facility-ft'].append(f)
+
+                r['facility-ft'] = list(set(r['facility-ft'])) # remove duplicates
+
+            else:
+                logger.info("No facilities found in fulltext for bibcode: %s." % r['bibcode'])
+
+        else:
+            logger.info("Fulltext field is empty for bibcode: %s" % r['bibcode'])
+
 
         writer.write_content(r)
 
