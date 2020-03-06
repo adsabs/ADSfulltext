@@ -2,8 +2,10 @@ import sys
 import os
 import json
 
-from mock import patch
+
 import unittest
+from mock import patch, MagicMock
+sys.modules['spacy'] = MagicMock()
 from adsft import app, tasks, checker
 from adsmsg import FulltextUpdate
 import httpretty
@@ -20,6 +22,7 @@ class TestWorkers(unittest.TestCase):
             {
                 "CELERY_ALWAYS_EAGER": False,
                 "CELERY_EAGER_PROPAGATES_EXCEPTIONS": False,
+                'FULLTEXT_EXTRACT_PATH': os.path.join(self.proj_home, 'tests/test_unit/stub_data'),
             })
         tasks.app = self.app # monkey-patch the app object
 
@@ -77,14 +80,16 @@ class TestWorkers(unittest.TestCase):
                         'ft_source': '{}/tests/test_integration/stub_data/full_test.xml'.format(self.proj_home),
                         'provider': 'MNRAS'}
             with patch.object(tasks.task_output_results, 'delay', return_value=None) as task_output_results:
-                tasks.task_extract(msg)
-                self.assertTrue(task_write_text.called)
-                actual = task_write_text.call_args[0][0]
+                with patch.object(tasks.task_identify_facilities, 'delay', return_value=None) as identify_facilities:
+                    tasks.task_extract(msg)
+                    self.assertTrue(task_write_text.called)
+                    self.assertTrue(identify_facilities.called)
+                    actual = task_write_text.call_args[0][0]
 
-                self.assertEqual(u'I. INTRODUCTION INTRODUCTION GOES HERE Manual Entry TABLE I. TEXT a NOTES a TEXT\nAPPENDIX: APPENDIX TITLE GOES HERE APPENDIX CONTENT', actual['fulltext'])
-                self.assertEqual(u'Acknowledgments WE ACKNOWLEDGE.', actual['acknowledgements'])
-                self.assertEqual([u'ADS/Sa.CXO#Obs/11458'], actual['dataset'])
-                self.assertTrue(task_output_results.called)
+                    self.assertEqual(u'I. INTRODUCTION INTRODUCTION GOES HERE Manual Entry TABLE I. TEXT a NOTES a TEXT\nAPPENDIX: APPENDIX TITLE GOES HERE APPENDIX CONTENT', actual['fulltext'])
+                    self.assertEqual(u'Acknowledgments WE ACKNOWLEDGE.', actual['acknowledgements'])
+                    self.assertEqual([u'ADS/Sa.CXO#Obs/11458'], actual['dataset'])
+                    self.assertTrue(task_output_results.called)
 
 
     def test_task_extract_pdf(self):
@@ -101,16 +106,18 @@ class TestWorkers(unittest.TestCase):
                         'meta_path': u'{}/ft/a/meta.json'.format(self.app.conf['FULLTEXT_EXTRACT_PATH']),
                         'ft_source': '{}/tests/test_integration/stub_data/full_test.pdf'.format(self.proj_home),
                         'provider': 'MNRAS'}
-            with patch.object(tasks.task_output_results, 'delay', return_value=None) as task_output_results:
+            with patch.object(tasks.task_identify_facilities, 'delay', return_value=None) as identify_facilities:
                 with patch.object(tasks.task_output_results, 'delay', return_value=None) as task_output_results:
-                    tasks.task_extract(msg)
-                self.assertTrue(task_write_text.called)
-                actual = task_write_text.call_args[0][0]
-                #self.assertEqual(u'Introduction\nTHIS IS AN INTERESTING TITLE\n', actual['fulltext']) # PDFBox
-                self.assertEqual(u'Introduction THIS IS AN INTERESTING TITLE', actual['fulltext']) # pdftotext
-                if self.grobid_service is not None:
-                    self.assertEqual(expected_grobid_fulltext, actual['grobid_fulltext'])
-                self.assertTrue(task_output_results.called)
+                    with patch.object(tasks.task_output_results, 'delay', return_value=None) as task_output_results:
+                        tasks.task_extract(msg)
+                        self.assertTrue(identify_facilities.called)
+                        self.assertTrue(task_write_text.called)
+                        actual = task_write_text.call_args[0][0]
+                        #self.assertEqual(u'Introduction\nTHIS IS AN INTERESTING TITLE\n', actual['fulltext']) # PDFBox
+                        self.assertEqual(u'Introduction THIS IS AN INTERESTING TITLE', actual['fulltext']) # pdftotext
+                        if self.grobid_service is not None:
+                            self.assertEqual(expected_grobid_fulltext, actual['grobid_fulltext'])
+                        self.assertTrue(task_output_results.called)
 
     def test_task_output_results(self):
         with patch('adsft.app.ADSFulltextCelery.forward_message', return_value=None) as forward_message:

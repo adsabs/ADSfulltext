@@ -16,8 +16,8 @@ PREFERRED_XML_PARSER_NAMES = ("html5lib", "html.parser", "lxml-html", "direct-lx
 
 FULLTEXT_EXTRACT_PATH = './live'
 
-NER_FACILITY_MODEL_ACK = './ner_models/ner_facility_ack/ner_model_facility/'
-NER_FACILITY_MODEL_FT = './ner_models/ner_facility_ft/ner_model_facility/'
+NER_FACILITY_MODEL_ACK = '/app/ner_models/ner_facility_ack/ner_model_facility/'
+NER_FACILITY_MODEL_FT = '/app/ner_models/ner_facility_ft/ner_model_facility/'
 
 ### Testing:
 # When 'True', it converts all the asynchronous calls into synchronous,
