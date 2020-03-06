@@ -164,17 +164,20 @@ def task_identify_facilities(message):
         if ft is not None:
             content.append(ft)
 
-    for r in content:
+    keys = ['acknowledgements', 'fulltext']
+    ft_exists = False
 
-        keys = ['acknowledgements', 'fulltext']
+    for r in content:
 
         for key in keys:
 
             elem_str = 'facility-ack'
             model = model1
+
             if key == keys[1]:
                 elem_str = 'facility-ft'
                 model = model2
+                ft_exists = True
 
             if key in r:
                 facs = ner.get_facilities(model, r[key])
@@ -192,6 +195,9 @@ def task_identify_facilities(message):
 
             else:
                 logger.info("The %s field is empty for bibcode: %s" % (key, r['bibcode']))
+
+        if ft_exists:
+            r.pop(keys[1], None)
 
         writer.write_content(r)
 
