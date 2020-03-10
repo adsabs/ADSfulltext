@@ -22,7 +22,6 @@ class TestWorkers(unittest.TestCase):
             {
                 "CELERY_ALWAYS_EAGER": False,
                 "CELERY_EAGER_PROPAGATES_EXCEPTIONS": False,
-                'FULLTEXT_EXTRACT_PATH': os.path.join(self.proj_home, 'tests/test_unit/stub_data'),
             })
         tasks.app = self.app # monkey-patch the app object
 
@@ -135,7 +134,7 @@ class TestWorkers(unittest.TestCase):
 
     def test_task_identify_facilities(self):
 
-        with patch('adsft.writer.write_content', return_value=None) as task_write_text:
+        with patch('adsft.writer.write_file', return_value=None) as task_write_text:
             msg = {
                     'bibcode': 'fta',
                     'file_format': 'pdf',
@@ -162,7 +161,7 @@ class TestWorkers(unittest.TestCase):
                         self.assertTrue(get_facs.called)
                         self.assertTrue(task_write_text.called)
 
-                        actual = task_write_text.call_args[0][0]
+                        actual = task_write_text.call_args[0][1]
                         self.assertEqual(actual['facility-ack'], list(set(facs)))
                         self.assertEqual(actual['facility-ft'], list(set(facs)))
 

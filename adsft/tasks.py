@@ -165,9 +165,13 @@ def task_identify_facilities(message):
             content.append(ft)
 
     keys = ['acknowledgements', 'fulltext']
-    ft_exists = False
 
     for r in content:
+
+        bibcode_pair_tree_path = os.path.dirname(r['meta_path'])
+        output_file_path = os.path.join(bibcode_pair_tree_path, 'facility_ner.json')
+
+        out = {}
 
         for key in keys:
 
@@ -177,18 +181,12 @@ def task_identify_facilities(message):
             if key == keys[1]:
                 elem_str = 'facility-ft'
                 model = model2
-                ft_exists = True
 
             if key in r:
                 facs = ner.get_facilities(model, r[key])
                 if len(facs) > 0:
-                    r[elem_str] = []
                     logger.debug("Adding %s as facilities found in %s using spacy ner model" % (str(facs), key))
-
-                    for f in facs:
-                        r[elem_str].append(f)
-
-                    r[elem_str] = list(set(r[elem_str])) # remove duplicates
+                    out[elem_str] = list(set(facs)) # remove duplicates
 
                 else:
                     logger.info("No facilities found in the %s for bibcode: %s." % (key, r['bibcode']))
@@ -196,10 +194,7 @@ def task_identify_facilities(message):
             else:
                 logger.info("The %s field is empty for bibcode: %s" % (key, r['bibcode']))
 
-        if ft_exists:
-            r.pop(keys[1], None)
-
-        writer.write_content(r)
+        writer.write_file(output_file_path, out)
 
 
 if __name__ == '__main__':

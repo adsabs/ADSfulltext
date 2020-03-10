@@ -140,7 +140,7 @@ def write_content(payload_dictionary):
     # Write everything but the full text content to the meta.json
     meta_dict = {}
 
-    for const in ('meta_path', 'ft_source', 'bibcode', 'provider', 'UPDATE', 'file_format', 'index_date', 'dataset', 'facility', 'facility-ack', 'facility-ft'):
+    for const in ('meta_path', 'ft_source', 'bibcode', 'provider', 'UPDATE', 'file_format', 'index_date', 'dataset', 'facility'):
         try:
             meta_dict[const] = payload_dictionary[const]
             logger.debug('Adding meta content: {0}'.format(const))
@@ -180,27 +180,17 @@ def write_content(payload_dictionary):
     # Write the full text content to its own file fulltext.txt
     logger.debug('Copying full text content')
 
-    keys = ['fulltext', 'facility-ack', 'facility-ft']
-
-    file_output = {
-            keys[0]: full_text_output_file_path,
-            keys[1]: "facility_ner.json",
-            keys[2]: "facility_ner.json",
-        }
-
-    for key in keys:
-
-        if key in payload_dictionary and payload_dictionary[key] != "":
-            try:
-                logger.debug('Writing to file: {0}'.format(file_output[key]))
-                logger.debug('Content has length: {0}'.format(len(payload_dictionary[key])))
-                write_file(file_output[key], payload_dictionary[key], json_format=False)
-                logger.debug('Writing complete.')
-            except IOError:
-                logger.exception('IO Error when writing to file {0}'.format(payload_dictionary['bibcode']))
-                raise IOError
-        #else:
-            #logger.warning('No fulltext found for dictionary {0}'.format(payload_dictionary['bibcode']))
+    if 'fulltext' in payload_dictionary and payload_dictionary['fulltext'] != "":
+        try:
+            logger.debug('Writing to file: {0}'.format(full_text_output_file_path))
+            logger.debug('Content has length: {0}'.format(len(payload_dictionary['fulltext'])))
+            write_file(full_text_output_file_path, payload_dictionary['fulltext'], json_format=False)
+            logger.debug('Writing complete.')
+        except IOError:
+            logger.exception('IO Error when writing to file {0}'.format(payload_dictionary['bibcode']))
+            raise IOError
+    #else:
+        #logger.warning('No fulltext found for dictionary {0}'.format(payload_dictionary['bibcode']))
 
     if payload_dictionary['file_format'] != "pdf-grobid":
         # Do not write meta-data if it is a grobid extraction, only grobid_fulltext.xml is required

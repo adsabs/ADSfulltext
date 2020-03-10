@@ -88,9 +88,9 @@ def run(full_text_links, **kwargs):
     }
 
     if facility_ner and not force_extract:
-        task_str = task_dict.keys()[0]
+        task_str = 'task_identify_facilities'
     else:
-        task_str = task_dict.keys()[1]
+        task_str = 'CheckIfExtract'
 
     logger.info('Publishing records to: %s' % task_str)
 
