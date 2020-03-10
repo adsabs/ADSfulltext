@@ -2,7 +2,9 @@ import unittest
 import os
 import sys
 
-#from adsft import extraction, rules, utils
+#from adsft import extraction, rules,
+from mock import patch, MagicMock
+sys.modules['spacy'] = MagicMock()
 from adsft import tasks
 from adsft.tests import test_base
 from datetime import datetime
