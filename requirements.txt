@@ -6,3 +6,4 @@ lxml==4.4.1
 html5lib==1.0.1
 ptree==0.1
 requests==2.18.1
+spacy==2.2.3

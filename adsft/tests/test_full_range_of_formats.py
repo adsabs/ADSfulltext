@@ -3,6 +3,7 @@ import os
 import sys
 
 #from adsft import extraction, rules, utils
+from mock import patch
 from adsft import tasks
 from adsft.tests import test_base
 from datetime import datetime
@@ -96,11 +97,12 @@ class TestFullRangeFormatExtraction(test_base.TestGeneric):
                 extraction_arguments_set.append(actual)
 
         with patch.object(tasks.task_output_results, 'delay', return_value=None) as task_output_results:
-            # Now we do call the extraction task with the proper arguments
-            for arguments in extraction_arguments_set:
-                #if arguments['ft_source'].endswith('.pdf') is False:
-                tasks.task_extract(arguments)
-                self.assertTrue(task_output_results.called)
+            with patch.object(tasks.task_identify_facilities, 'delay', return_value=None) as task_identify_facilities:
+                # Now we do call the extraction task with the proper arguments
+                for arguments in extraction_arguments_set:
+                    #if arguments['ft_source'].endswith('.pdf') is False:
+                    tasks.task_extract(arguments)
+                    self.assertTrue(task_output_results.called)
 
         # After the extractor, the meta writer should write all the payloads to
         # disk in the correct folders

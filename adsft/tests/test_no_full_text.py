@@ -2,7 +2,8 @@ import unittest
 import os
 import sys
 
-#from adsft import extraction, rules, utils
+#from adsft import extraction, rules,
+from mock import patch
 from adsft import tasks
 from adsft.tests import test_base
 from datetime import datetime
@@ -97,9 +98,10 @@ class TestNoFulltext(test_base.TestGeneric):
             self.assertTrue('index_date' in actual)
 
         with patch.object(tasks.task_output_results, 'delay', return_value=None) as task_output_results:
-            # Now we do call the extraction task with the proper arguments
-            tasks.task_extract(actual)
-            self.assertTrue(task_output_results.called)
+            with patch.object(tasks.task_identify_facilities, 'delay', return_value=None) as task_identify_facilities:
+                # Now we do call the extraction task with the proper arguments
+                tasks.task_extract(actual)
+                self.assertTrue(task_output_results.called)
 
         # After the extractor, the meta writer should write all the payloads to
         # disk in the correct folders

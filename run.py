@@ -57,10 +57,15 @@ def run(full_text_links, **kwargs):
     else:
         diagnose = False
 
+    if 'facility_ner' in kwargs:
+        facility_ner = kwargs['facility_ner']
+    else:
+        facility_ner = False
+
 
     if diagnose:
         print("Calling 'read_links_from_file' with filename '{}', force_extract set to '{}' and force_send set to '{}'".format(full_text_links, str(force_extract), str(force_send)))
-    logger.debug("Calling 'read_links_from_file' with filename '%s', force_extract set to '%s and force_send set to '%s''", full_text_links, str(force_extract), str(force_send))
+    logger.debug("Calling 'read_links_from_file' with filename '%s', force_extract set to '%s' and force_send set to '%s'" , (full_text_links, str(force_extract), str(force_send)))
     records = read_links_from_file(
         full_text_links,
         force_extract=force_extract,
@@ -71,11 +76,16 @@ def run(full_text_links, **kwargs):
     logger.info('Setting variables')
     if 'max_queue_size' in kwargs:
         max_queue_size = kwargs['max_queue_size']
-        logger.info('Max queue size overridden: %d' % kwargs['max_queue_size'])
+        logger.info('Max queue size overridden: %d' , kwargs['max_queue_size'])
     else:
         max_queue_size = 0
 
-    logger.info('Publishing records to: CheckIfExtract')
+    if facility_ner and not force_extract:
+        task_str = 'task_identify_facilities'
+    else:
+        task_str = 'task_check_if_extract'
+
+    logger.info('Publishing records to: %s' , task_str)
 
     i = 0
     total = len(records.payload)
@@ -90,10 +100,9 @@ def run(full_text_links, **kwargs):
             break
 
         if diagnose:
-            print("[{}/{}] Calling 'task_check_if_extract' with '{}'".format(i+1, total, str(record)))
-        logger.info("[%i/%i] Calling 'task_check_if_extract' with '%s'", i+1, total, str(record))
-        tasks.task_check_if_extract.delay(record)
-        #tasks.task_check_if_extract(record) # Treat synchronously to avoid saturating NFS mount access
+            print("[{}/{}] Calling '{}' with '{}'".format(i+1, total, task_str, str(record)))
+        logger.info("[%i/%i] Calling '%s' with '%s'" , (i+1, total, task_str, str(record)))
+        getattr(tasks, task_str).delay(record)
         i += 1
 
 def build_diagnostics(bibcodes=None, raw_files=None, providers=None):
@@ -165,6 +174,12 @@ if __name__ == '__main__':
                         default=None,
                         help='Comma delimited list of providers (for diagnostics)')
 
+    parser.add_argument('-ner',
+                        '--ner',
+                        dest='facility_ner',
+                        action='store_true',
+                        help='Run named entity recognition for facilities, this flag will be ignored if --extract_force is true.')
+
     parser.set_defaults(full_text_links=False)
     parser.set_defaults(packet_size=100)
     parser.set_defaults(purge_queues=False)
@@ -172,6 +187,7 @@ if __name__ == '__main__':
     parser.set_defaults(force_extract=False)
     parser.set_defaults(force_send=False)
     parser.set_defaults(diagnose=False)
+    parser.set_defaults(facility_ner=False)
 
     args = parser.parse_args()
 
@@ -207,7 +223,8 @@ if __name__ == '__main__':
         max_queue_size=args.max_queue_size,
         force_extract=args.force_extract,
         force_send=args.force_send,
-        diagnose=args.diagnose)
+        diagnose=args.diagnose,
+        facility_ner=args.facility_ner)
 
     if args.diagnose:
         print("Removing diagnostics temporary file '{}'".format(args.full_text_links))
