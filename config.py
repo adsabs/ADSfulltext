@@ -18,6 +18,7 @@ FULLTEXT_EXTRACT_PATH = './live'
 
 NER_FACILITY_MODEL_ACK = '/app/ner_models/ner_facility_ack/ner_model_facility/'
 NER_FACILITY_MODEL_FT = '/app/ner_models/ner_facility_ft/ner_model_facility/'
+RUN_NER_FACILITIES_AFTER_EXTRACTION = False
 
 ### Testing:
 # When 'True', it converts all the asynchronous calls into synchronous,

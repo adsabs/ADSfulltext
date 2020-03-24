@@ -92,8 +92,9 @@ def task_extract(message):
         logger.info("Calling task_output_results...")
         task_output_results.delay(msg)
 
-    # perform named-entity recognition
-    task_identify_facilities.delay(message)
+    if app.config['RUN_NER_FACILITIES_AFTER_EXTRACTION']:
+        # perform named-entity recognition
+        task_identify_facilities.delay(message)
 
 if app.conf['GROBID_SERVICE'] is not None:
     @app.task(queue='extract-grobid')
@@ -173,14 +174,7 @@ def task_identify_facilities(message):
 
         out = {}
 
-        for key in keys:
-
-            elem_str = 'facility-ack'
-            model = model1
-
-            if key == keys[1]:
-                elem_str = 'facility-ft'
-                model = model2
+        for key, elem_str, model in zip(keys, ['facility-ack', 'facility-ft'], [model1, model2]):
 
             if key in r:
                 facs = ner.get_facilities(model, r[key])
