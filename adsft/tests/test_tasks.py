@@ -21,6 +21,7 @@ class TestWorkers(unittest.TestCase):
             {
                 "CELERY_ALWAYS_EAGER": False,
                 "CELERY_EAGER_PROPAGATES_EXCEPTIONS": False,
+                'RUN_NER_FACILITIES_AFTER_EXTRACTION': True,
             })
         tasks.app = self.app # monkey-patch the app object
 
