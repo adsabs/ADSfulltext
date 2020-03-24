@@ -92,7 +92,7 @@ def task_extract(message):
         logger.info("Calling task_output_results...")
         task_output_results.delay(msg)
 
-    if app.config['RUN_NER_FACILITIES_AFTER_EXTRACTION']:
+    if app.conf['RUN_NER_FACILITIES_AFTER_EXTRACTION']:
         # perform named-entity recognition
         task_identify_facilities.delay(message)
 
