@@ -4,8 +4,7 @@ import json
 
 
 import unittest
-from mock import patch, MagicMock
-sys.modules['spacy'] = MagicMock()
+from mock import patch
 from adsft import app, tasks, checker
 from adsmsg import FulltextUpdate
 import httpretty
