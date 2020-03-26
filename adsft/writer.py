@@ -85,7 +85,7 @@ def compress_file(path, temp_name, file_name):
     """
     try:
         shutil.copy(temp_name, file_name)
-        shutil.make_archive(base_name=file_name, format='gztar', root_dir=path, base_dir=os.path.split(f$
+        shutil.make_archive(base_name=file_name, format='gztar', root_dir=path, base_dir=os.path.split(file_name))
     except Exception as err:
         logger.error('Unexpected error from shutil while compressing file: {0}'.format(err))
 
