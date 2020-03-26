@@ -283,6 +283,17 @@ class TestWriteMetaFileWorker(test_base.TestUnit):
         self.assertFalse(os.path.exists(temp_file_name))
         self.assertTrue(os.path.exists(self.meta_file))
 
+    def test_file_is_compressed(self):
+        """
+        Tests the compress_file method.
+
+        :return: no return
+        """
+
+        writer.write_file(self.dict_item['meta_path'], [self.dict_item], compress=True)
+        self.assertTrue(os.path.exists(self.dict_item['meta_path']+'.tar.gz'))
+
+
     def test_write_worker_returns_content(self):
         """
         Tests the extract_content method. Checks that the payload that the

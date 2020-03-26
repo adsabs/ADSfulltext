@@ -118,7 +118,6 @@ def write_file(file_name, payload, json_format=True, compress=False):
     temp_path = os.path.dirname(file_name)
     temp_file_name = write_to_temp_file(payload, temp_path=temp_path,
                                         json_format=json_format)
-    move_temp_file_to_file(temp_file_name, file_name)
 
     if not compress:
         move_temp_file_to_file(temp_file_name, file_name)

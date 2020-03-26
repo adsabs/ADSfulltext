@@ -323,8 +323,9 @@ class TestGeneric(unittest.TestCase):
                 dataset = os.path.join(path, 'dataset.txt')
                 acknowledgements = os.path.join(path, 'acknowledgements.txt')
                 facility = os.path.join(path, 'facility_ner.json')
+                compressed = os.path.join(path, 'meta.json.tar.gz')
 
-                file_list = [meta, fulltext, grobid_fulltext, dataset, acknowledgements, facility]
+                file_list = [meta, fulltext, grobid_fulltext, dataset, acknowledgements, facility, compressed]
                 for file_ in file_list:
                     if os.path.exists(file_):
                         os.remove(file_)

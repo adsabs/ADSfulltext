@@ -216,8 +216,7 @@ def task_apply_nlp_technqiues(message):
         output_file_path = os.path.join(bibcode_pair_tree_path, 'nlp.json')
 
         doc = en_model(r['fulltext'])
-        out = {}
-        out['sents'] = [sent for sent in doc.sents]
+        out = doc.to_json()
         out['ents'] = [{'text':ent.text, 'label':ent.label_} for ent in doc.ents]
         out['noun-phrases'] = [chunk.text for chunk in doc.noun_chunks]
         out['tokens'] = []
