@@ -20,9 +20,12 @@ NER_FACILITY_MODEL_ACK = '/app/ner_models/ner_facility_ack/ner_model_facility/'
 NER_FACILITY_MODEL_FT = '/app/ner_models/ner_facility_ft/ner_model_facility/'
 RUN_NER_FACILITIES_AFTER_EXTRACTION = False
 
+NLP_MODEL = 'en_core_web_sm'
+RUN_NLP_AFTER_EXTRACTION = False
+
 ### Testing:
 # When 'True', it converts all the asynchronous calls into synchronous,
 # thus no need for rabbitmq, it does not forward to master
 # and it allows debuggers to run if needed:
-#CELERY_ALWAYS_EAGER = True
-#CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
+CELERY_ALWAYS_EAGER = True
+CELERY_EAGER_PROPAGATES_EXCEPTIONS = True

@@ -62,6 +62,11 @@ def run(full_text_links, **kwargs):
     else:
         facility_ner = False
 
+    if 'nlp_techniques' in kwargs:
+        nlp_techniques = kwargs['nlp_techniques']
+    else:
+        nlp_techniques = False
+
 
     if diagnose:
         print("Calling 'read_links_from_file' with filename '{}', force_extract set to '{}' and force_send set to '{}'".format(full_text_links, str(force_extract), str(force_send)))
@@ -80,10 +85,15 @@ def run(full_text_links, **kwargs):
     else:
         max_queue_size = 0
 
-    if facility_ner and not force_extract:
-        task_str = 'task_identify_facilities'
-    else:
+    task_str = 'task_check_if_extract' # default task
+
+    if force_extract:
         task_str = 'task_check_if_extract'
+    elif facility_ner:
+        task_str = 'task_identify_facilities'
+    elif nlp_techniques:
+        task_str = 'task_apply_nlp_technqiues'
+
 
     logger.info('Publishing records to: %s' , task_str)
 
@@ -101,7 +111,7 @@ def run(full_text_links, **kwargs):
 
         if diagnose:
             print("[{}/{}] Calling '{}' with '{}'".format(i+1, total, task_str, str(record)))
-        logger.info("[%i/%i] Calling '%s' with '%s'" , (i+1, total, task_str, str(record)))
+        logger.info("[%i/%i] Calling '%s' with '%s'" , i+1, total, task_str, str(record))
         getattr(tasks, task_str).delay(record)
         i += 1
 
@@ -178,7 +188,14 @@ if __name__ == '__main__':
                         '--ner',
                         dest='facility_ner',
                         action='store_true',
-                        help='Run named entity recognition for facilities, this flag will be ignored if --extract_force is true.')
+                        help='Run named entity recognition for facilities.')
+
+    parser.add_argument('-nlp',
+                        '--nlp',
+                        dest='nlp_techniques',
+                        action='store_true',
+                        help='Implement NLP techniques on full-text.')
+
 
     parser.set_defaults(full_text_links=False)
     parser.set_defaults(packet_size=100)
@@ -188,6 +205,7 @@ if __name__ == '__main__':
     parser.set_defaults(force_send=False)
     parser.set_defaults(diagnose=False)
     parser.set_defaults(facility_ner=False)
+    parser.set_defaults(nlp_techniques=False)
 
     args = parser.parse_args()
 
@@ -217,6 +235,10 @@ if __name__ == '__main__':
         parser.print_help()
         sys.exit(0)
 
+    if args.facility_ner and args.nlp_techniques:
+        print('--ner and --nlp are mutually exclusive, both tasks can be called by running the pipeline as usual and modifying config.py.')
+        sys.exit(0)
+
     # Send the files to be put on the queue
     run(args.full_text_links,
         packet_size=args.packet_size,
@@ -224,7 +246,8 @@ if __name__ == '__main__':
         force_extract=args.force_extract,
         force_send=args.force_send,
         diagnose=args.diagnose,
-        facility_ner=args.facility_ner)
+        facility_ner=args.facility_ner,
+        nlp_techniques=args.nlp_techniques,)
 
     if args.diagnose:
         print("Removing diagnostics temporary file '{}'".format(args.full_text_links))

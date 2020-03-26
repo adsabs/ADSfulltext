@@ -79,7 +79,28 @@ def move_temp_file_to_file(temp_file_name, new_file_name):
         'Succeeded to copy: {0} to {1}'.format(temp_file_name, new_file_name)
     )
 
-def write_file(file_name, payload, json_format=True):
+def compress_file(path, temp_name, file_name):
+    """
+    Converts the temporary file to a compressed file.
+    """
+    try:
+        shutil.copy(temp_name, file_name)
+        shutil.make_archive(base_name=file_name, format='gztar', root_dir=path, base_dir=os.path.split(f$
+    except Exception as err:
+        logger.error('Unexpected error from shutil while compressing file: {0}'.format(err))
+
+    try:
+        os.remove(temp_name)
+        os.remove(file_name)
+    except Exception as err:
+        logger.error(
+            'Unexpected error from os removing a file: {0}'.format(err))
+
+    logger.debug(
+        'Succeeded to compress: {0} to {1}'.format(temp_name, file_name)
+    )
+
+def write_file(file_name, payload, json_format=True, compress=False):
     """
     A wrapper function for two separate functions, with the aim of:
       1. creating a temporary file with the payload as content
@@ -99,6 +120,10 @@ def write_file(file_name, payload, json_format=True):
                                         json_format=json_format)
     move_temp_file_to_file(temp_file_name, file_name)
 
+    if not compress:
+        move_temp_file_to_file(temp_file_name, file_name)
+    else:
+        compress_file(temp_path, temp_file_name, file_name)
 
 def write_content(payload_dictionary):
     """
