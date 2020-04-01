@@ -291,7 +291,7 @@ class TestWriteMetaFileWorker(test_base.TestUnit):
         """
 
         writer.write_file(self.dict_item['meta_path'], [self.dict_item], compress=True)
-        self.assertTrue(os.path.exists(self.dict_item['meta_path']+'.tar.gz'))
+        self.assertTrue(os.path.exists(self.dict_item['meta_path']+'.gz'))
 
 
     def test_write_worker_returns_content(self):

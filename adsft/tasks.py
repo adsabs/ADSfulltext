@@ -6,7 +6,6 @@ from adsft import extraction, checker, writer, reader, ner
 from adsmsg import FulltextUpdate
 import os
 from adsft.utils import TextCleaner
-import spacy
 
 # ============================= INITIALIZATION ==================================== #
 
@@ -26,11 +25,11 @@ app.conf.CELERY_QUEUES = (
 
 
 logger.debug("Loading spacy models for facilities...")
-model1 = spacy.load(app.conf['NER_FACILITY_MODEL_ACK'])
-model2 = spacy.load(app.conf['NER_FACILITY_MODEL_FT'])
+model1 = ner.load_model(app.conf['NER_FACILITY_MODEL_ACK'])
+model2 = ner.load_model(app.conf['NER_FACILITY_MODEL_FT'])
 
 logger.debug("Loading spacy model for implementing nlp techniques...")
-en_model = spacy.load(app.conf['NLP_MODEL'])
+en_model = ner.load_model(app.conf['NLP_MODEL'])
 # ============================= TASKS ============================================= #
 
 

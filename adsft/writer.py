@@ -21,6 +21,7 @@ import tempfile
 import shutil
 from adsft.rules import META_CONTENT
 from adsputils import setup_logging
+import gzip
 
 logger = setup_logging(__name__)
 
@@ -85,7 +86,8 @@ def compress_file(path, temp_name, file_name):
     """
     try:
         shutil.copy(temp_name, file_name)
-        shutil.make_archive(base_name=file_name, format='gztar', root_dir=path, base_dir=os.path.split(file_name))
+        with open(file_name, 'rb') as f_in, gzip.open(file_name + '.gz', 'wb') as f_out:
+            shutil.copyfileobj(f_in, f_out)
     except Exception as err:
         logger.error('Unexpected error from shutil while compressing file: {0}'.format(err))
 

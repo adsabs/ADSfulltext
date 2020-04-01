@@ -79,9 +79,9 @@ class TestWorkers(unittest.TestCase):
                         'meta_path': u'{}/ft/a/meta.json'.format(self.app.conf['FULLTEXT_EXTRACT_PATH']),
                         'ft_source': '{}/tests/test_integration/stub_data/full_test.xml'.format(self.proj_home),
                         'provider': 'MNRAS'}
-            with patch.object(tasks.task_output_results, 'delay', return_value=None) as task_output_results:
-                with patch.object(tasks.task_identify_facilities, 'delay', return_value=None) as identify_facilities:
-                    with patch.object(tasks.task_apply_nlp_technqiues, 'delay', return_value=None) as apply_nlp:
+            with patch.object(tasks.task_output_results, 'delay', return_value=None) as task_output_results, \
+                    patch.object(tasks.task_identify_facilities, 'delay', return_value=None) as identify_facilities, \
+                    patch.object(tasks.task_apply_nlp_technqiues, 'delay', return_value=None) as apply_nlp:
                         tasks.task_extract(msg)
                         self.assertTrue(task_write_text.called)
                         self.assertTrue(identify_facilities.called)
@@ -108,9 +108,9 @@ class TestWorkers(unittest.TestCase):
                         'meta_path': u'{}/ft/a/meta.json'.format(self.app.conf['FULLTEXT_EXTRACT_PATH']),
                         'ft_source': '{}/tests/test_integration/stub_data/full_test.pdf'.format(self.proj_home),
                         'provider': 'MNRAS'}
-            with patch.object(tasks.task_identify_facilities, 'delay', return_value=None) as identify_facilities:
-                with patch.object(tasks.task_output_results, 'delay', return_value=None) as task_output_results:
-                    with patch.object(tasks.task_apply_nlp_technqiues, 'delay', return_value=None) as apply_nlp:
+            with patch.object(tasks.task_identify_facilities, 'delay', return_value=None) as identify_facilities, \
+                    patch.object(tasks.task_output_results, 'delay', return_value=None) as task_output_results, \
+                    patch.object(tasks.task_apply_nlp_technqiues, 'delay', return_value=None) as apply_nlp:
                         tasks.task_extract(msg)
                         self.assertTrue(identify_facilities.called)
                         self.assertTrue(apply_nlp.called)
@@ -126,7 +126,7 @@ class TestWorkers(unittest.TestCase):
         with patch('adsft.app.ADSFulltextCelery.forward_message', return_value=None) as forward_message:
             msg = {
                     'bibcode': 'fta',
-                    'body': 'Introduction\nTHIS IS AN INTERESTING TITLE\n'
+                    'body': u'Introduction\nTHIS IS AN INTERESTING TITLE\n'
                     }
             tasks.task_output_results(msg)
             self.assertTrue(forward_message.called)
@@ -151,23 +151,23 @@ class TestWorkers(unittest.TestCase):
                         'bibcode': 'fta',
                         'file_format': 'pdf',
                         'meta_path': u'{}/ft/a/meta.json'.format(self.app.conf['FULLTEXT_EXTRACT_PATH']),
-                        'acknowledgements': 'We thank the Alma team.',
-                        'fulltext': 'Introduction\nTHIS IS AN INTERESTING TITLE\n'
+                        'acknowledgements': u'We thank the Alma team.',
+                        'fulltext': u'Introduction\nTHIS IS AN INTERESTING TITLE\n'
                         }
 
                 with patch('adsft.reader.read_content', return_value=msg) as read_content:
                     facs = ['facility0', 'facility1', 'facility1']
 
                     with patch('adsft.ner.get_facilities', return_value=facs) as get_facs:
-                                tasks.task_identify_facilities(msg)
-                                self.assertTrue(load_meta.called)
-                                self.assertTrue(read_content.called)
-                                self.assertTrue(get_facs.called)
-                                self.assertTrue(task_write_text.called)
+                        tasks.task_identify_facilities(msg)
+                        self.assertTrue(load_meta.called)
+                        self.assertTrue(read_content.called)
+                        self.assertTrue(get_facs.called)
+                        self.assertTrue(task_write_text.called)
 
-                                actual = task_write_text.call_args[0][1]
-                                self.assertEqual(actual['facility-ack'], list(set(facs)))
-                                self.assertEqual(actual['facility-ft'], list(set(facs)))
+                        actual = task_write_text.call_args[0][1]
+                        self.assertEqual(actual['facility-ack'], list(set(facs)))
+                        self.assertEqual(actual['facility-ft'], list(set(facs)))
 
                     # test when facilties are not found, this will test the logic with logs when we move to python3
                     with patch('adsft.ner.get_facilities', return_value=[]) as get_facs:
@@ -191,13 +191,13 @@ class TestWorkers(unittest.TestCase):
                 'bibcode': 'fta',
                 'file_format': 'pdf',
                 'meta_path': u'{}/ft/a/meta.json'.format(self.app.conf['FULLTEXT_EXTRACT_PATH']),
-                'acknowledgements': 'We thank the Alma team.',
-                'fulltext': 'Introduction\nTHIS IS AN INTERESTING TITLE\n'
+                'acknowledgements': u'We thank the Alma team.',
+                'fulltext': u'Introduction\nTHIS IS AN INTERESTING TITLE\n'
                 }
 
-        with patch('adsft.writer.write_file', return_value=None) as task_write_text:
-            with patch('adsft.checker.load_meta_file', return_value=None) as load_meta:
-                with patch('adsft.reader.read_content', return_value=msg) as read_content:
+        with patch('adsft.writer.write_file', return_value=None) as task_write_text, \
+                patch('adsft.checker.load_meta_file', return_value=None) as load_meta, \
+                patch('adsft.reader.read_content', return_value=msg) as read_content:
                     tasks.task_apply_nlp_technqiues(read_content())
                     self.assertTrue(load_meta.called)
                     self.assertTrue(read_content.called)

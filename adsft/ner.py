@@ -1,4 +1,7 @@
 from adsputils import setup_logging
+import spacy
+import os
+import pkgutil
 
 logger = setup_logging(__name__)
 
@@ -18,3 +21,14 @@ def get_facilities(model, text):
         facilities.append(ent.text)
 
     return facilities
+
+def load_model(dir):
+
+    model = None
+    packageExists = pkgutil.find_loader(dir) is not None
+    dirExists = os.path.isdir(dir)
+
+    if dirExists or packageExists:
+        model = spacy.load(dir)
+
+    return model
