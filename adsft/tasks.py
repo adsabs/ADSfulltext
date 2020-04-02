@@ -212,22 +212,11 @@ def task_apply_nlp_technqiues(message):
     for r in content:
 
         bibcode_pair_tree_path = os.path.dirname(r['meta_path'])
-        output_file_path = os.path.join(bibcode_pair_tree_path, 'nlp.json')
+        output_file_path = os.path.join(bibcode_pair_tree_path, 'nlp.bin')
 
         doc = en_model(r['fulltext'])
-        out = doc.to_json()
-        out['ents'] = [{'text':ent.text, 'label':ent.label_} for ent in doc.ents]
-        out['noun-phrases'] = [chunk.text for chunk in doc.noun_chunks]
-        out['tokens'] = []
-        for tok in doc:
-            if not tok.is_punct and tok.is_alpha and not tok.is_stop and len(tok.text)>2:
-                out['tokens'].append({'token':tok.lower_,
-                                           'pos':tok.pos_,
-                                           'tag':tok.tag_,
-                                           'dep':tok.dep_,
-                                           'lemma':tok.lemma_})
-
-        writer.write_file(output_file_path, out, compress=True)
+        out = doc.to_bytes()
+        writer.write_file(output_file_path, out, json_format=False, compress=True)
 
 
 if __name__ == '__main__':

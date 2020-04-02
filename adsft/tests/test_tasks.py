@@ -203,7 +203,7 @@ class TestWorkers(unittest.TestCase):
                     self.assertTrue(read_content.called)
                     self.assertTrue(task_write_text.called)
                     actual = task_write_text.call_args[0]
-                    self.assertEqual(os.path.dirname(msg['meta_path'])+'/nlp.json', actual[0])
+                    self.assertEqual(os.path.dirname(msg['meta_path'])+'/nlp.bin', actual[0])
 
 
 
