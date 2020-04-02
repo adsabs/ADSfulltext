@@ -212,6 +212,7 @@ class TestWorkers(unittest.TestCase):
                     tokens = [tok.text for tok in doc]
                     ents = [(ent.text, ent.label_) for ent in doc.ents]
                     chunks = [chunk.text for chunk in doc.noun_chunks]
+                    sents = [(sent.text, sent.start_char, sent.end_char) for sent in doc.sents]
                     self.assertEqual(tokens, [u'Introduction',
                                                     u'\n',
                                                     u'THIS',
@@ -233,6 +234,9 @@ class TestWorkers(unittest.TestCase):
                     self.assertEqual(chunks, [u'Introduction',
                                                     u'AN INTERESTING TITLE',
                                                     u'The Hubble Space Telescope'])
+                    self.assertEqual(sents, [(u'Introduction\n', 0, 13),
+                                                    (u'THIS IS AN INTERESTING TITLE\n', 13, 42),
+                                                    (u'The Hubble Space Telescope was launched in 1990.', 42, 90)])
 
 
 
