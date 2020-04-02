@@ -8,6 +8,8 @@ from mock import patch
 from adsft import app, tasks, checker, ner, writer
 from adsmsg import FulltextUpdate
 import httpretty
+import spacy
+from spacy.tokens import Doc
 
 
 class TestWorkers(unittest.TestCase):
@@ -192,7 +194,7 @@ class TestWorkers(unittest.TestCase):
                 'file_format': 'pdf',
                 'meta_path': u'{}/ft/a/meta.json'.format(self.app.conf['FULLTEXT_EXTRACT_PATH']),
                 'acknowledgements': u'We thank the Alma team.',
-                'fulltext': u'Introduction\nTHIS IS AN INTERESTING TITLE\n'
+                'fulltext': u'Introduction\nTHIS IS AN INTERESTING TITLE\nThe Hubble Space Telescope was launched in 1990.'
                 }
 
         with patch('adsft.writer.write_file', return_value=None) as task_write_text, \
@@ -202,8 +204,35 @@ class TestWorkers(unittest.TestCase):
                     self.assertTrue(load_meta.called)
                     self.assertTrue(read_content.called)
                     self.assertTrue(task_write_text.called)
-                    actual = task_write_text.call_args[0]
-                    self.assertEqual(os.path.dirname(msg['meta_path'])+'/nlp.bin', actual[0])
+                    actual = task_write_text.call_args
+                    self.assertEqual(os.path.dirname(msg['meta_path'])+'/nlp.bin', actual[0][0])
+
+                    model = spacy.load(tasks.app.conf['NLP_MODEL'])
+                    doc = Doc(model.vocab).from_bytes(actual[0][1])
+                    tokens = [tok.text for tok in doc]
+                    ents = [(ent.text, ent.label_) for ent in doc.ents]
+                    chunks = [chunk.text for chunk in doc.noun_chunks]
+                    self.assertEqual(tokens, [u'Introduction',
+                                                    u'\n',
+                                                    u'THIS',
+                                                    u'IS',
+                                                    u'AN',
+                                                    u'INTERESTING',
+                                                    u'TITLE',
+                                                    u'\n',
+                                                    u'The',
+                                                    u'Hubble',
+                                                    u'Space',
+                                                    u'Telescope',
+                                                    u'was',
+                                                    u'launched',
+                                                    u'in',
+                                                    u'1990',
+                                                    u'.'])
+                    self.assertEqual(ents, [(u'1990', u'DATE')])
+                    self.assertEqual(chunks, [u'Introduction',
+                                                    u'AN INTERESTING TITLE',
+                                                    u'The Hubble Space Telescope'])
 
 
 
