@@ -34,7 +34,8 @@ class TestWriteMetaFileWorker(test_base.TestUnit):
             'ft_source': '/vagrant/source.txt',
             'bibcode': 'MNRAS2014',
             'provider': 'MNRAS',
-            'UPDATE': 'MISSING_FULL_TEXT'
+            'UPDATE': 'MISSING_FULL_TEXT',
+            'lang': 'en'
         }
 
         self.meta_file = self.dict_item['meta_path']
@@ -178,6 +179,10 @@ class TestWriteMetaFileWorker(test_base.TestUnit):
             self.dict_item['UPDATE'],
             meta_dict['UPDATE']
         )
+        self.assertEqual(
+            self.dict_item['lang'],
+            meta_dict['lang']
+        )
 
     def pipeline_extract(self, format_):
         """
@@ -219,6 +224,10 @@ class TestWriteMetaFileWorker(test_base.TestUnit):
         self.assertEqual(
             self.dict_item['UPDATE'],
             meta_dict['UPDATE']
+        )
+        self.assertEqual(
+            self.dict_item['lang'],
+            meta_dict['lang']
         )
 
     def test_pipeline_extract_works_for_all_formats(self):
@@ -282,6 +291,17 @@ class TestWriteMetaFileWorker(test_base.TestUnit):
         writer.move_temp_file_to_file(temp_file_name, self.meta_file)
         self.assertFalse(os.path.exists(temp_file_name))
         self.assertTrue(os.path.exists(self.meta_file))
+
+    def test_file_is_compressed(self):
+        """
+        Tests the compress_file method.
+
+        :return: no return
+        """
+
+        writer.write_file(self.dict_item['meta_path'], [self.dict_item], compress=True)
+        self.assertTrue(os.path.exists(self.dict_item['meta_path']+'.gz'))
+
 
     def test_write_worker_returns_content(self):
         """

@@ -6,6 +6,7 @@ from adsft import extraction, checker, writer, reader, ner
 from adsmsg import FulltextUpdate
 import os
 from adsft.utils import TextCleaner
+from langdetect import detect
 
 # ============================= INITIALIZATION ==================================== #
 
@@ -20,6 +21,7 @@ app.conf.CELERY_QUEUES = (
     Queue('extract-grobid', app.exchange, routing_key='extract-grobid'),
     Queue('output-results', app.exchange, routing_key='output-results'),
     Queue('facility-ner', app.exchange, routing_key='facility-ner'),
+    Queue('nlp-techniques', app.exchange, routing_key='nlp-techniques'),
 )
 
 
@@ -27,7 +29,8 @@ logger.debug("Loading spacy models for facilities...")
 model1 = ner.load_model(app.conf['NER_FACILITY_MODEL_ACK'])
 model2 = ner.load_model(app.conf['NER_FACILITY_MODEL_FT'])
 
-
+logger.debug("Loading spacy model for implementing nlp techniques...")
+en_model = ner.load_model(app.conf['NLP_MODEL'])
 # ============================= TASKS ============================================= #
 
 
@@ -95,6 +98,10 @@ def task_extract(message):
     if app.conf['RUN_NER_FACILITIES_AFTER_EXTRACTION']:
         # perform named-entity recognition
         task_identify_facilities.delay(message)
+
+    if app.conf['RUN_NLP_AFTER_EXTRACTION']:
+        # implement nlp techniques
+        task_apply_nlp_technqiues.delay(message)
 
 if app.conf['GROBID_SERVICE'] is not None:
     @app.task(queue='extract-grobid')
@@ -189,6 +196,29 @@ def task_identify_facilities(message):
                 logger.info("The %s field is empty for bibcode: %s" % (key, r['bibcode']))
 
         writer.write_file(output_file_path, out)
+
+@app.task(queue='nlp-techniques')
+def task_apply_nlp_technqiues(message):
+
+    if not isinstance(message, list):
+        message = [message]
+
+    content = []
+    for m in message:
+        meta = checker.load_meta_file(m, app.conf['FULLTEXT_EXTRACT_PATH'])
+        ft = reader.read_content(meta)
+        if ft is not None:
+            content.append(ft)
+
+    for r in content:
+
+        bibcode_pair_tree_path = os.path.dirname(r['meta_path'])
+        output_file_path = os.path.join(bibcode_pair_tree_path, 'nlp.bin')
+
+        if r.get("lang", detect(r['fulltext'])) == "en":
+            doc = en_model(r['fulltext'])
+            out = doc.to_bytes()
+            writer.write_file(output_file_path, out, json_format=False, compress=True)
 
 
 if __name__ == '__main__':

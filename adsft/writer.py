@@ -21,6 +21,7 @@ import tempfile
 import shutil
 from adsft.rules import META_CONTENT
 from adsputils import setup_logging
+import gzip
 
 logger = setup_logging(__name__)
 
@@ -79,7 +80,29 @@ def move_temp_file_to_file(temp_file_name, new_file_name):
         'Succeeded to copy: {0} to {1}'.format(temp_file_name, new_file_name)
     )
 
-def write_file(file_name, payload, json_format=True):
+def compress_file(path, temp_name, file_name):
+    """
+    Converts the temporary file to a compressed file.
+    """
+    try:
+        shutil.copy(temp_name, file_name)
+        with open(file_name, 'rb') as f_in, gzip.open(file_name + '.gz', 'wb') as f_out:
+            shutil.copyfileobj(f_in, f_out)
+    except Exception as err:
+        logger.error('Unexpected error from shutil while compressing file: {0}'.format(err))
+
+    try:
+        os.remove(temp_name)
+        os.remove(file_name)
+    except Exception as err:
+        logger.error(
+            'Unexpected error from os removing a file: {0}'.format(err))
+
+    logger.debug(
+        'Succeeded to compress: {0} to {1}'.format(temp_name, file_name)
+    )
+
+def write_file(file_name, payload, json_format=True, compress=False):
     """
     A wrapper function for two separate functions, with the aim of:
       1. creating a temporary file with the payload as content
@@ -97,8 +120,11 @@ def write_file(file_name, payload, json_format=True):
     temp_path = os.path.dirname(file_name)
     temp_file_name = write_to_temp_file(payload, temp_path=temp_path,
                                         json_format=json_format)
-    move_temp_file_to_file(temp_file_name, file_name)
 
+    if not compress:
+        move_temp_file_to_file(temp_file_name, file_name)
+    else:
+        compress_file(temp_path, temp_file_name, file_name)
 
 def write_content(payload_dictionary):
     """
@@ -140,7 +166,7 @@ def write_content(payload_dictionary):
     # Write everything but the full text content to the meta.json
     meta_dict = {}
 
-    for const in ('meta_path', 'ft_source', 'bibcode', 'provider', 'UPDATE', 'file_format', 'index_date', 'dataset', 'facility'):
+    for const in ('meta_path', 'ft_source', 'bibcode', 'provider', 'UPDATE', 'file_format', 'index_date', 'dataset', 'facility', 'lang'):
         try:
             meta_dict[const] = payload_dictionary[const]
             logger.debug('Adding meta content: {0}'.format(const))

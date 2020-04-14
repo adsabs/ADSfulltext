@@ -5,9 +5,11 @@ import json
 
 import unittest
 from mock import patch
-from adsft import app, tasks, checker
+from adsft import app, tasks, checker, ner, writer
 from adsmsg import FulltextUpdate
 import httpretty
+import spacy
+from spacy.tokens import Doc
 
 
 class TestWorkers(unittest.TestCase):
@@ -22,6 +24,7 @@ class TestWorkers(unittest.TestCase):
                 "CELERY_ALWAYS_EAGER": False,
                 "CELERY_EAGER_PROPAGATES_EXCEPTIONS": False,
                 'RUN_NER_FACILITIES_AFTER_EXTRACTION': True,
+                'RUN_NLP_AFTER_EXTRACTION': True,
             })
         tasks.app = self.app # monkey-patch the app object
 
@@ -78,17 +81,19 @@ class TestWorkers(unittest.TestCase):
                         'meta_path': u'{}/ft/a/meta.json'.format(self.app.conf['FULLTEXT_EXTRACT_PATH']),
                         'ft_source': '{}/tests/test_integration/stub_data/full_test.xml'.format(self.proj_home),
                         'provider': 'MNRAS'}
-            with patch.object(tasks.task_output_results, 'delay', return_value=None) as task_output_results:
-                with patch.object(tasks.task_identify_facilities, 'delay', return_value=None) as identify_facilities:
-                    tasks.task_extract(msg)
-                    self.assertTrue(task_write_text.called)
-                    self.assertTrue(identify_facilities.called)
-                    actual = task_write_text.call_args[0][0]
+            with patch.object(tasks.task_output_results, 'delay', return_value=None) as task_output_results, \
+                    patch.object(tasks.task_identify_facilities, 'delay', return_value=None) as identify_facilities, \
+                    patch.object(tasks.task_apply_nlp_technqiues, 'delay', return_value=None) as apply_nlp:
+                        tasks.task_extract(msg)
+                        self.assertTrue(task_write_text.called)
+                        self.assertTrue(identify_facilities.called)
+                        self.assertTrue(apply_nlp.called)
+                        actual = task_write_text.call_args[0][0]
 
-                    self.assertEqual(u'I. INTRODUCTION INTRODUCTION GOES HERE Manual Entry TABLE I. TEXT a NOTES a TEXT\nAPPENDIX: APPENDIX TITLE GOES HERE APPENDIX CONTENT', actual['fulltext'])
-                    self.assertEqual(u'Acknowledgments WE ACKNOWLEDGE.', actual['acknowledgements'])
-                    self.assertEqual([u'ADS/Sa.CXO#Obs/11458'], actual['dataset'])
-                    self.assertTrue(task_output_results.called)
+                        self.assertEqual(u'I. INTRODUCTION INTRODUCTION GOES HERE Manual Entry TABLE I. TEXT a NOTES a TEXT\nAPPENDIX: APPENDIX TITLE GOES HERE APPENDIX CONTENT', actual['fulltext'])
+                        self.assertEqual(u'Acknowledgments WE ACKNOWLEDGE.', actual['acknowledgements'])
+                        self.assertEqual([u'ADS/Sa.CXO#Obs/11458'], actual['dataset'])
+                        self.assertTrue(task_output_results.called)
 
 
     def test_task_extract_pdf(self):
@@ -105,11 +110,12 @@ class TestWorkers(unittest.TestCase):
                         'meta_path': u'{}/ft/a/meta.json'.format(self.app.conf['FULLTEXT_EXTRACT_PATH']),
                         'ft_source': '{}/tests/test_integration/stub_data/full_test.pdf'.format(self.proj_home),
                         'provider': 'MNRAS'}
-            with patch.object(tasks.task_identify_facilities, 'delay', return_value=None) as identify_facilities:
-                with patch.object(tasks.task_output_results, 'delay', return_value=None) as task_output_results:
-                    with patch.object(tasks.task_output_results, 'delay', return_value=None) as task_output_results:
+            with patch.object(tasks.task_identify_facilities, 'delay', return_value=None) as identify_facilities, \
+                    patch.object(tasks.task_output_results, 'delay', return_value=None) as task_output_results, \
+                    patch.object(tasks.task_apply_nlp_technqiues, 'delay', return_value=None) as apply_nlp:
                         tasks.task_extract(msg)
                         self.assertTrue(identify_facilities.called)
+                        self.assertTrue(apply_nlp.called)
                         self.assertTrue(task_write_text.called)
                         actual = task_write_text.call_args[0][0]
                         #self.assertEqual(u'Introduction\nTHIS IS AN INTERESTING TITLE\n', actual['fulltext']) # PDFBox
@@ -122,7 +128,7 @@ class TestWorkers(unittest.TestCase):
         with patch('adsft.app.ADSFulltextCelery.forward_message', return_value=None) as forward_message:
             msg = {
                     'bibcode': 'fta',
-                    'body': 'Introduction\nTHIS IS AN INTERESTING TITLE\n'
+                    'body': u'Introduction\nTHIS IS AN INTERESTING TITLE\n'
                     }
             tasks.task_output_results(msg)
             self.assertTrue(forward_message.called)
@@ -147,8 +153,8 @@ class TestWorkers(unittest.TestCase):
                         'bibcode': 'fta',
                         'file_format': 'pdf',
                         'meta_path': u'{}/ft/a/meta.json'.format(self.app.conf['FULLTEXT_EXTRACT_PATH']),
-                        'acknowledgements': 'We thank the Alma team.',
-                        'fulltext': 'Introduction\nTHIS IS AN INTERESTING TITLE\n'
+                        'acknowledgements': u'We thank the Alma team.',
+                        'fulltext': u'Introduction\nTHIS IS AN INTERESTING TITLE\n'
                         }
 
                 with patch('adsft.reader.read_content', return_value=msg) as read_content:
@@ -180,6 +186,58 @@ class TestWorkers(unittest.TestCase):
                 with patch('adsft.checker.load_meta_file', return_value=msg) as load_meta:
                     tasks.task_identify_facilities(msg)
                     # use logging to check logic here when we switch to python3
+
+    def test_task_apply_nlp(self):
+
+        msg = {
+                'bibcode': 'fta',
+                'file_format': 'pdf',
+                'meta_path': u'{}/ft/a/meta.json'.format(self.app.conf['FULLTEXT_EXTRACT_PATH']),
+                'acknowledgements': u'We thank the Alma team.',
+                'fulltext': u'Introduction\nTHIS IS AN INTERESTING TITLE\nThe Hubble Space Telescope was launched in 1990.'
+                }
+
+        with patch('adsft.writer.write_file', return_value=None) as task_write_text, \
+                patch('adsft.checker.load_meta_file', return_value=None) as load_meta, \
+                patch('adsft.reader.read_content', return_value=msg) as read_content:
+                    tasks.task_apply_nlp_technqiues(read_content())
+                    self.assertTrue(load_meta.called)
+                    self.assertTrue(read_content.called)
+                    self.assertTrue(task_write_text.called)
+                    actual = task_write_text.call_args
+                    self.assertEqual(os.path.dirname(msg['meta_path'])+'/nlp.bin', actual[0][0])
+
+                    model = spacy.load(tasks.app.conf['NLP_MODEL'])
+                    doc = Doc(model.vocab).from_bytes(actual[0][1])
+                    tokens = [tok.text for tok in doc]
+                    ents = [(ent.text, ent.label_) for ent in doc.ents]
+                    chunks = [chunk.text for chunk in doc.noun_chunks]
+                    sents = [(sent.text, sent.start_char, sent.end_char) for sent in doc.sents]
+                    self.assertEqual(tokens, [u'Introduction',
+                                                    u'\n',
+                                                    u'THIS',
+                                                    u'IS',
+                                                    u'AN',
+                                                    u'INTERESTING',
+                                                    u'TITLE',
+                                                    u'\n',
+                                                    u'The',
+                                                    u'Hubble',
+                                                    u'Space',
+                                                    u'Telescope',
+                                                    u'was',
+                                                    u'launched',
+                                                    u'in',
+                                                    u'1990',
+                                                    u'.'])
+                    self.assertEqual(ents, [(u'1990', u'DATE')])
+                    self.assertEqual(chunks, [u'Introduction',
+                                                    u'AN INTERESTING TITLE',
+                                                    u'The Hubble Space Telescope'])
+                    self.assertEqual(sents, [(u'Introduction\n', 0, 13),
+                                                    (u'THIS IS AN INTERESTING TITLE\n', 13, 42),
+                                                    (u'The Hubble Space Telescope was launched in 1990.', 42, 90)])
+
 
 
 if __name__ == '__main__':
