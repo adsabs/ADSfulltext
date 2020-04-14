@@ -7,4 +7,5 @@ html5lib==1.0.1
 ptree==0.1
 requests==2.18.1
 spacy==2.2.3
+langdetect==1.0.8
 https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.2.0/en_core_web_sm-2.2.0.tar.gz

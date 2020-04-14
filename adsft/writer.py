@@ -166,7 +166,7 @@ def write_content(payload_dictionary):
     # Write everything but the full text content to the meta.json
     meta_dict = {}
 
-    for const in ('meta_path', 'ft_source', 'bibcode', 'provider', 'UPDATE', 'file_format', 'index_date', 'dataset', 'facility'):
+    for const in ('meta_path', 'ft_source', 'bibcode', 'provider', 'UPDATE', 'file_format', 'index_date', 'dataset', 'facility', 'lang'):
         try:
             meta_dict[const] = payload_dictionary[const]
             logger.debug('Adding meta content: {0}'.format(const))

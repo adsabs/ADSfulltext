@@ -34,7 +34,8 @@ class TestWriteMetaFileWorker(test_base.TestUnit):
             'ft_source': '/vagrant/source.txt',
             'bibcode': 'MNRAS2014',
             'provider': 'MNRAS',
-            'UPDATE': 'MISSING_FULL_TEXT'
+            'UPDATE': 'MISSING_FULL_TEXT',
+            'lang': 'en'
         }
 
         self.meta_file = self.dict_item['meta_path']
@@ -178,6 +179,10 @@ class TestWriteMetaFileWorker(test_base.TestUnit):
             self.dict_item['UPDATE'],
             meta_dict['UPDATE']
         )
+        self.assertEqual(
+            self.dict_item['lang'],
+            meta_dict['lang']
+        )
 
     def pipeline_extract(self, format_):
         """
@@ -219,6 +224,10 @@ class TestWriteMetaFileWorker(test_base.TestUnit):
         self.assertEqual(
             self.dict_item['UPDATE'],
             meta_dict['UPDATE']
+        )
+        self.assertEqual(
+            self.dict_item['lang'],
+            meta_dict['lang']
         )
 
     def test_pipeline_extract_works_for_all_formats(self):

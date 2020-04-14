@@ -43,6 +43,7 @@ from adsft import entitydefs as edef
 from adsft.rules import META_CONTENT
 from requests.exceptions import HTTPError
 from subprocess import Popen, PIPE, STDOUT
+from langdetect import detect
 
 proj_home = os.path.realpath(os.path.join(os.path.dirname(__file__), '../'))
 logger = setup_logging(__name__)
@@ -1201,6 +1202,7 @@ def extract_content(input_list, **kwargs):
                     dict_item['ft_source'] = f
                     extractor = ExtractorClass(dict_item)
                     parsed_content = extractor.extract_multi_content()
+                    dict_item['lang'] = detect(parsed_content.get("fulltext", parsed_content.get("acknowledgments")))
 
                     for item in parsed_content:
                         if item in dict_item:

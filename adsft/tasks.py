@@ -6,6 +6,7 @@ from adsft import extraction, checker, writer, reader, ner
 from adsmsg import FulltextUpdate
 import os
 from adsft.utils import TextCleaner
+from langdetect import detect
 
 # ============================= INITIALIZATION ==================================== #
 
@@ -214,9 +215,10 @@ def task_apply_nlp_technqiues(message):
         bibcode_pair_tree_path = os.path.dirname(r['meta_path'])
         output_file_path = os.path.join(bibcode_pair_tree_path, 'nlp.bin')
 
-        doc = en_model(r['fulltext'])
-        out = doc.to_bytes()
-        writer.write_file(output_file_path, out, json_format=False, compress=True)
+        if r.get("lang", detect(r['fulltext'])) == "en":
+            doc = en_model(r['fulltext'])
+            out = doc.to_bytes()
+            writer.write_file(output_file_path, out, json_format=False, compress=True)
 
 
 if __name__ == '__main__':
