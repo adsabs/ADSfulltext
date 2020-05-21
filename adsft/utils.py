@@ -15,7 +15,6 @@ __license__ = 'GPLv3'
 
 import sys
 import os
-import logging
 import string
 import unicodedata
 import re

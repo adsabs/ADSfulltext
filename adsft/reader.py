@@ -6,11 +6,22 @@ read previously extracted content.
 """
 import os
 import json
-from adsputils import setup_logging
-
 from adsft.rules import META_CONTENT
-logger = setup_logging(__name__)
 
+# ============================= INITIALIZATION ==================================== #
+# - Use app logger:
+#import logging
+#logger = logging.getLogger('ads-fulltext')
+# - Or individual logger for this file:
+from adsputils import setup_logging, load_config
+proj_home = os.path.realpath(os.path.join(os.path.dirname(__file__), '../'))
+config = load_config(proj_home=proj_home)
+logger = setup_logging(__name__, proj_home=proj_home,
+                        level=config.get('LOGGING_LEVEL', 'INFO'),
+                        attach_stdout=config.get('LOG_STDOUT', False))
+
+
+# =============================== FUNCTIONS ======================================= #
 
 def read_file(input_filename, json_format=True):
     """

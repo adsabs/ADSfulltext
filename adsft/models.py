@@ -10,6 +10,6 @@ class KeyValue(Base):
     __tablename__ = 'storage'
     key = Column(String(255), primary_key=True)
     value = Column(Text)
-    
+
     def toJSON(self):
-        return {'key': self.key, 'value': self.value } 
+        return {'key': self.key, 'value': self.value }
