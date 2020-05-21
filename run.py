@@ -5,9 +5,17 @@ import tempfile
 import argparse
 import json
 from adsft import tasks, utils
-from adsputils import setup_logging
 
-logger = setup_logging('run.py')
+# ============================= INITIALIZATION ==================================== #
+
+from adsputils import setup_logging, load_config
+proj_home = os.path.realpath(os.path.dirname(__file__))
+config = load_config(proj_home=proj_home)
+logger = setup_logging('run.py', proj_home=proj_home,
+                        level=config.get('LOGGING_LEVEL', 'INFO'),
+                        attach_stdout=config.get('LOG_STDOUT', False))
+
+# =============================== FUNCTIONS ======================================= #
 
 
 def read_links_from_file(file_input, force_extract=False, force_send=False):

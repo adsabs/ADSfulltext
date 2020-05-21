@@ -33,7 +33,6 @@ import lxml.html.soupparser
 import requests
 from adsputils import load_config
 from adsputils import overrides
-from adsputils import setup_logging
 from adsft.utils import TextCleaner, get_filenames
 from adsft import reader
 import re
@@ -44,9 +43,20 @@ from adsft.rules import META_CONTENT
 from requests.exceptions import HTTPError
 from subprocess import Popen, PIPE, STDOUT
 
+# ============================= INITIALIZATION ==================================== #
+# - Use app logger:
+#import logging
+#logger = logging.getLogger('ads-fulltext')
+# - Or individual logger for this file:
+from adsputils import setup_logging, load_config
 proj_home = os.path.realpath(os.path.join(os.path.dirname(__file__), '../'))
-logger = setup_logging(__name__)
+config = load_config(proj_home=proj_home)
+logger = setup_logging(__name__, proj_home=proj_home,
+                        level=config.get('LOGGING_LEVEL', 'INFO'),
+                        attach_stdout=config.get('LOG_STDOUT', False))
 
+
+# ================================ CLASSES ======================================== #
 
 class StandardExtractorBasicText(object):
     """
