@@ -1,4 +1,4 @@
-adsputils==v1.2.4
+adsputils==v1.2.7
 beautifulsoup4==4.8.0
 dateutils==0.6.6
 httpretty==0.8.14
