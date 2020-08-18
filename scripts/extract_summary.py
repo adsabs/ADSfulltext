@@ -9,12 +9,14 @@ Run as:
 
 AA 10/4/2016
 """
+from __future__ import print_function
 
-
+import sys
+if sys.version_info > (3,):
+    from builtins import str
 import json
 import fileinput
 import traceback
-import sys
 import codecs
 from adsft import extraction
 from adsft.utils import TextCleaner
@@ -37,7 +39,11 @@ def process_one_file(bibcode, fname, provider):
     sys.stderr.write("summary is of type {}\n".format(type(summary)))
     text = TextCleaner(text=summary)
     if sections:
-        summary = unicode(sections[-1].text_content())
+        if sys.version_info > (3,):
+            test_type = str
+        else:
+            test_type = unicode
+        summary = test_type(sections[-1].text_content())
     if summary:
         text = TextCleaner(text=summary).run()
     return text
@@ -53,8 +59,8 @@ if __name__ == '__main__':
             summary = process_one_file(bibcode, fname, provider)
         except KeyboardInterrupt:
             pass
-        except Exception, desc:
+        except Exception as desc:
             traceback.print_exc()
             sys.stderr.write("error extracting summary for {}\n".format(bibcode))
         if summary:
-            print u"%R {}\n{}\n".format(bibcode, summary.strip())
+            print(u"%R {}\n{}\n".format(bibcode, summary.strip()))

@@ -1,4 +1,8 @@
 from __future__ import absolute_import, unicode_literals
+import sys
+if sys.version_info > (3,):
+    from builtins import zip
+    from builtins import str
 from adsputils import get_date, exceptions
 import adsft.app as app_module
 from kombu import Queue

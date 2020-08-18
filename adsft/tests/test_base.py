@@ -3,6 +3,9 @@ Test base class to be used in all of the tests. Contains helper functions and
 other common utilities that are used.
 """
 
+import sys
+if sys.version_info > (3,):
+    from builtins import range
 __author__ = 'J. Elliott'
 __maintainer__ = 'J. Elliott'
 __copyright__ = 'Copyright 2015'
@@ -12,7 +15,6 @@ __status__ = 'Production'
 __credit__ = ['V. Sudilovsky', 'A. Accomazzi', 'J. Luker']
 __license__ = 'GPLv3'
 
-import sys
 import os
 import unittest
 import time
@@ -110,7 +112,7 @@ def build_links(test_name):
 
     for file_dictionary in files:
 
-        file_name = file_dictionary.keys()[0]
+        file_name = list(file_dictionary.keys())[0]
         file_ = file_dictionary[file_name]
 
         test_bibcode_ = file_['bibcode']
@@ -279,8 +281,7 @@ class TestGeneric(unittest.TestCase):
 
         self.number_of_PDFs = len(
             list(
-                filter(lambda x: x.lower().endswith('.pdf'),
-                       [i.strip().split("\t")[-2] for i in lines])
+                [x for x in [i.strip().split("\t")[-2] for i in lines] if x.lower().endswith('.pdf')]
             )
         )
 

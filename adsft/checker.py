@@ -5,6 +5,7 @@ These are the functions for the CheckIfExtract class. This worker should
 determine if the record selected by the given BibCode should be modified or not
 based on a given timing criteria (or changleable if required).
 """
+from __future__ import absolute_import
 
 __author__ = 'J. Elliott'
 __maintainer__ = 'J. Elliott'
@@ -18,7 +19,7 @@ __license__ = 'GPLv3'
 
 import sys
 import os
-import utils
+from . import utils
 import json
 import ptree
 import traceback

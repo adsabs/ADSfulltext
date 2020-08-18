@@ -52,7 +52,7 @@ def write_to_temp_file(payload, temp_path='/tmp/', json_format=True):
         if json_format:
             json.dump(payload, temp_file)
         else:
-            if type(payload) == unicode:
+            if sys.version_info < (3,) and isinstance(payload, unicode):
                 temp_file.write(payload.encode('utf-8'))
             else:
                 temp_file.write(payload) # assuming this is already a bytecode
@@ -75,7 +75,7 @@ def move_temp_file_to_file(temp_file_name, new_file_name):
     try:
         shutil.copy(temp_file_name, new_file_name)
         # protect full-text from world access but keep it group-readable
-        os.chmod(new_file_name, 0640)
+        os.chmod(new_file_name, 0o640)
     except Exception as err:
         logger.error('Unexpected error from shutil in copying temporary file to'
                      ' new file: {0}'.format(err))
@@ -208,7 +208,7 @@ def write_content(payload_dictionary):
         # and we avoid over-writting valid meta-data from the regular PDF extraction
         try:
             logger.debug('Writing to file: {0}'.format(meta_output_file_path))
-            logger.debug('Content has keys: {0}'.format((meta_dict.keys())))
+            logger.debug('Content has keys: {0}'.format((list(meta_dict.keys()))))
             write_file(meta_output_file_path, meta_dict, json_format=True)
             logger.debug('Writing complete.')
         except IOError:

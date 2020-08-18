@@ -83,7 +83,7 @@ class TestNotExtractedBefore(test_base.TestGeneric):
                          'meta_path': '{}/tests/test_unit/stub_data/te/st/4/meta.json'.format(self.app.conf['PROJ_HOME']),
                          'provider': 'TEST'}
             actual = task_extract.call_args[0][0]
-            self.assertDictContainsSubset(expected, actual)
+            self.assertTrue(set(expected).issubset(actual))
             self.assertTrue('index_date' in actual)
 
         with patch.object(tasks.task_output_results, 'delay', return_value=None) as task_output_results:
