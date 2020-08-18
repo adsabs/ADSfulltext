@@ -1,10 +1,15 @@
-dist: trusty
-sudo: required
 language: python
-python:
- - "2.7"
- - "3.7"
- - "3.8"
+matrix:
+    include:
+        - python: 2.7
+          dist: trusty
+          sudo: false
+        - python: 3.7
+          dist: xenial
+          sudo: true
+        - python: 3.8
+          dist: xenial
+          sudo: true
 addons:
   # Required to avoid Java 7 openjdk buffer overflow:
   # https://github.com/travis-ci/travis-ci/issues/5227#issuecomment-165131913
