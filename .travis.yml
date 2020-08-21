@@ -1,21 +1,13 @@
-dist: trusty
-sudo: required
 language: python
 python:
- - "2.7"
-addons:
-  # Required to avoid Java 7 openjdk buffer overflow:
-  # https://github.com/travis-ci/travis-ci/issues/5227#issuecomment-165131913
-  hosts:
-    - myshorthost
-  hostname: myshorthost
+ - "3.8"
 before_install:
  - sudo apt-get update
  - sudo apt-get install poppler-utils
  - sudo apt-get install libxml2-dev libxslt1-dev
- - sudo apt-get install openjdk-7-jdk icedtea-7-plugin
+ - sudo apt-get install openjdk-8-jdk icedtea-8-plugin
  - sudo apt-get install maven
- - export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64/
+ - export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/
 install:
  - pip install --upgrade setuptools
  - pip install -r requirements.txt
@@ -23,10 +15,6 @@ install:
 services:
  - rabbitmq
 before_script:
-# - sudo rabbitmqctl add_vhost fulltext_pipeline
-# - sudo rabbitmqctl add_vhost master_pipeline
-# - sudo rabbitmqctl set_permissions -p fulltext_pipeline guest ".*" ".*" ".*"
-# - sudo rabbitmqctl set_permissions -p master_pipeline guest ".*" ".*" ".*"
  - mvn package
 script:
  - py.test
