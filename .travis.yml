@@ -23,10 +23,10 @@ install:
 services:
  - rabbitmq
 before_script:
- - sudo rabbitmqctl add_vhost fulltext_pipeline
- - sudo rabbitmqctl add_vhost master_pipeline
- - sudo rabbitmqctl set_permissions -p fulltext_pipeline guest ".*" ".*" ".*"
- - sudo rabbitmqctl set_permissions -p master_pipeline guest ".*" ".*" ".*"
+# - sudo rabbitmqctl add_vhost fulltext_pipeline
+# - sudo rabbitmqctl add_vhost master_pipeline
+# - sudo rabbitmqctl set_permissions -p fulltext_pipeline guest ".*" ".*" ".*"
+# - sudo rabbitmqctl set_permissions -p master_pipeline guest ".*" ".*" ".*"
  - mvn package
 script:
  - py.test
