@@ -12,11 +12,10 @@ from __future__ import print_function
 
 import sys
 
-if sys.version_info > (3,):
-    from builtins import map
-    from builtins import range
-    from past.builtins import basestring
-    from builtins import object
+from builtins import map
+from builtins import range
+from past.builtins import basestring
+from builtins import object
 __author__ = 'J. Elliott'
 __maintainer__ = ''
 __copyright__ = 'Copyright 2015'
@@ -296,7 +295,7 @@ class StandardExtractorHTML(object):
         # Insert tables from external files
         first_parsed_html = self.parsed_html
         self.collate_tables()
-        for table_name, table_root_node in list(self.dictionary_of_tables.items()):
+        for table_name, table_root_node in self.dictionary_of_tables.items():
 
             table_node_to_insert = None
             logger.debug(
@@ -652,7 +651,7 @@ class StandardExtractorXML(object):
                 logger.debug("The parser '{}' succeeded extracting the following fields '{}'".format(parser_name, ", ".join(content_found)))
                 break
             else:
-                logger.debug("The parser '{}' did not extract any of the following fields '{}'".format(parser_name, ", ".join(list(META_CONTENT[self.meta_name].keys()))))
+                logger.debug("The parser '{}' did not extract any of the following fields '{}'".format(parser_name, ", ".join(META_CONTENT[self.meta_name].keys())))
 
         self.parsed_xml = parsed_xml
         return parsed_xml
@@ -771,7 +770,7 @@ class StandardExtractorXML(object):
                 space_string = u" "
                 str_type = unicode
 
-            text_content = space_string.join(map(str_type.strip, list(map(str_type, s[0].itertext()))))
+            text_content = space_string.join(map(str_type.strip, map(str_type, s[0].itertext())))
         old = text_content
         text_content = TextCleaner(text=text_content).run(
             decode=decode,

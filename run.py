@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 import sys
-if sys.version_info > (3,):
-    from builtins import zip
-    from builtins import str
+from builtins import zip
+from builtins import str
 import os
 import tempfile
 import argparse

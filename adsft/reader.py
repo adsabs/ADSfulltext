@@ -76,7 +76,7 @@ def read_content(payload_dictionary):
         logger.debug('Copying extra meta content')
         for meta_key_word in META_CONTENT[payload_dictionary['file_format']]:
             if meta_key_word in ('dataset', 'fulltext') \
-                    or meta_key_word in list(content.keys()):
+                    or meta_key_word in content.keys():
                 continue
 
             logger.debug(meta_key_word)

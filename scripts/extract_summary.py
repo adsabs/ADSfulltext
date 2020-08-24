@@ -12,8 +12,7 @@ AA 10/4/2016
 from __future__ import print_function
 
 import sys
-if sys.version_info > (3,):
-    from builtins import str
+from builtins import str
 import json
 import fileinput
 import traceback

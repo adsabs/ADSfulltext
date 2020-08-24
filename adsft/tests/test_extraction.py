@@ -153,7 +153,7 @@ class TestXMLExtractor(TestXMLExtractorBase):
         content = extraction.extract_content(pay_load)
 
         self.assertTrue(
-            set(rules.META_CONTENT['xml'].keys()).issubset(list(content[0].keys()))
+            set(rules.META_CONTENT['xml'].keys()).issubset(content[0].keys())
         )
 
     def test_that_the_correct_extraction_is_used_for_the_datatype(self):
@@ -497,7 +497,7 @@ class TestTEIXMLExtractor(TestXMLExtractorBase):
         for parser_name in self.preferred_parser_names:
             content = self.extractor.extract_multi_content(preferred_parser_names=(parser_name,))
 
-            self.assertEqual(list(rules.META_CONTENT['teixml'].keys()), list(content.keys()))
+            self.assertEqual(rules.META_CONTENT['teixml'].keys(), content.keys())
 
     def test_that_we_can_extract_all_content_from_payload_input(self):
         """
@@ -512,7 +512,7 @@ class TestTEIXMLExtractor(TestXMLExtractorBase):
         content = extraction.extract_content(pay_load)
 
         self.assertTrue(
-            set(rules.META_CONTENT['teixml'].keys()).issubset(list(content[0].keys()))
+            set(rules.META_CONTENT['teixml'].keys()).issubset(content[0].keys())
         )
 
     def test_that_we_can_extract_acknowledgments(self):
@@ -599,8 +599,8 @@ class TestXMLElsevierExtractor(TestXMLExtractorBase):
             else:
                 func = self.assertItemsEqual
             func(['fulltext', 'acknowledgements', 'dataset'],
-                 list(content.keys()),
-                 list(content.keys()))
+                 content.keys(),
+                 content.keys())
 
             self.assertIn('JOURNAL CONTENT', content['fulltext'])
 
@@ -789,7 +789,7 @@ class TestHTMLExtractor(test_base.TestUnit):
         parsed_html = self.extractor.parse_html()
         table_content = self.extractor.collate_tables()
 
-        for key in list(table_content.keys()):
+        for key in table_content.keys():
             self.assertTrue(table_content[key].xpath('//table'))
             self.assertTrue(self.extractor.parsed_html.xpath('//h2'))
 

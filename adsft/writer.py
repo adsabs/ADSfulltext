@@ -208,7 +208,7 @@ def write_content(payload_dictionary):
         # and we avoid over-writting valid meta-data from the regular PDF extraction
         try:
             logger.debug('Writing to file: {0}'.format(meta_output_file_path))
-            logger.debug('Content has keys: {0}'.format((list(meta_dict.keys()))))
+            logger.debug('Content has keys: {0}'.format((meta_dict.keys())))
             write_file(meta_output_file_path, meta_dict, json_format=True)
             logger.debug('Writing complete.')
         except IOError:

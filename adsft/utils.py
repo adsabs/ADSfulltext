@@ -7,11 +7,11 @@ from __future__ import print_function
 
 import sys
 
+from builtins import chr
+from builtins import range
+from builtins import object
 if sys.version_info > (3,):
     from builtins import str
-    from builtins import chr
-    from builtins import range
-    from builtins import object
 __author__ = 'J. Elliott'
 __maintainer__ = 'J. Elliott'
 __copyright__ = 'Copyright 2015'

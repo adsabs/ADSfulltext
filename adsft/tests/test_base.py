@@ -4,8 +4,7 @@ other common utilities that are used.
 """
 
 import sys
-if sys.version_info > (3,):
-    from builtins import range
+from builtins import range
 __author__ = 'J. Elliott'
 __maintainer__ = 'J. Elliott'
 __copyright__ = 'Copyright 2015'

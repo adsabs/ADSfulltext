@@ -111,7 +111,7 @@ class TestCheckIfExtracted(test_base.TestUnit):
 
         new_meta_content = {}
 
-        for key in list(meta_content.keys()):
+        for key in meta_content.keys():
             if key != 'ft_source':
                 new_meta_content[key] = meta_content[key]
 
