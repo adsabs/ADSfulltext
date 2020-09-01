@@ -1,3 +1,5 @@
+import sys
+from builtins import chr
 import unittest
 import os
 import re
@@ -56,10 +58,14 @@ class TestFileStreamInput(test_base.TestUnit):
         Tests that the trim normalizes the text.
         """
         # non-breakable space
-        a = 'a\xc2\xa0b'.decode('utf8')
-        b = 'a' + b'\xc2\xa0' + 'b' #utf-8 bytecode
+        if sys.version_info > (3,):
+            a = b'a\xc2\xa0b'.decode('utf8')
+            b = b'a' + b'\xc2\xa0' + b'b'  # utf-8 bytecode
+        else:
+            a = 'a\xc2\xa0b'.decode('utf8')
+            b = 'a' + b'\xc2\xa0' + 'b' #utf-8 bytecode
         c = u'a' + u'\xa0' + u'b' # unicode
-        d = u'a' + chr(160).decode('latin1') + u'b'
+        d = u'a' + chr(160) + u'b'
         # string with a large token representing table data
         e = u'a ' + ('123%5.7890' * 100) + u' b' 
         for x in (a, b, c, d, e):

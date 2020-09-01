@@ -1,3 +1,6 @@
+import sys
+if sys.version_info > (3,):
+    from builtins import chr
 import unittest
 import os
 import re
@@ -133,7 +136,7 @@ class TestXMLExtractor(TestXMLExtractorBase):
         full_text_content = self.extractor.open_xml()
         for parser_name in self.preferred_parser_names:
             content = self.extractor.extract_multi_content(preferred_parser_names=(parser_name,))
-            self.assertEqual(rules.META_CONTENT['xml'].keys().sort(), content.keys().sort())
+            self.assertEqual(list(rules.META_CONTENT['xml'].keys()).sort(), list(content.keys()).sort())
 
     def test_that_we_can_extract_all_content_from_payload_input(self):
         """
@@ -164,12 +167,19 @@ class TestXMLExtractor(TestXMLExtractorBase):
         extract_string = self.extractor.data_factory['string']
         extract_list = self.extractor.data_factory['list']
 
+        if sys.version_info > (3,):
+            es_name = extract_string.__name__
+            el_name = extract_list.__name__
+        else:
+            es_name = extract_string.func_name
+            el_name = extract_list.func_name
+
         self.assertTrue(
-            extract_string.func_name == 'extract_string',
+            es_name == 'extract_string',
         )
 
         self.assertTrue(
-            extract_list.func_name == 'extract_list',
+            el_name == 'extract_list',
         )
 
     def test_that_we_can_extract_a_list_of_datasets(self):
@@ -192,9 +202,14 @@ class TestXMLExtractor(TestXMLExtractorBase):
             data_set = content['dataset']
             data_set_length = len(data_set)
 
-            self.assertIs(unicode, type(acknowledgements))
+            if sys.version_info > (3,):
+                test_type = str
+            else:
+                test_type = unicode
 
-            self.assertIs(unicode, type(full_text))
+            self.assertIs(test_type, type(acknowledgements))
+
+            self.assertIs(test_type, type(full_text))
             expected_full_text = 'INTRODUCTION'
             self.assertTrue(
                 expected_full_text in full_text,
@@ -579,9 +594,13 @@ class TestXMLElsevierExtractor(TestXMLExtractorBase):
         for parser_name in self.preferred_parser_names:
             content = self.extractor.extract_multi_content(preferred_parser_names=(parser_name,))
 
-            self.assertItemsEqual(['fulltext', 'acknowledgements', 'dataset'],
-                                  content.keys(),
-                                  content.keys())
+            if sys.version_info > (3,):
+                func = self.assertCountEqual
+            else:
+                func = self.assertItemsEqual
+            func(['fulltext', 'acknowledgements', 'dataset'],
+                 content.keys(),
+                 content.keys())
 
             self.assertIn('JOURNAL CONTENT', content['fulltext'])
 
@@ -596,12 +615,19 @@ class TestXMLElsevierExtractor(TestXMLExtractorBase):
         extract_string = self.extractor.data_factory['string']
         extract_list = self.extractor.data_factory['list']
 
+        if sys.version_info > (3,):
+            es_name = extract_string.__name__
+            el_name = extract_list.__name__
+        else:
+            es_name = extract_string.func_name
+            el_name = extract_list.func_name
+
         self.assertTrue(
-            extract_string.func_name == 'extract_string',
+            es_name == 'extract_string',
         )
 
         self.assertTrue(
-            extract_list.func_name == 'extract_list',
+            el_name == 'extract_list',
         )
 
     def test_that_we_can_extract_a_list_of_datasets(self):
@@ -624,9 +650,14 @@ class TestXMLElsevierExtractor(TestXMLExtractorBase):
             data_set = content['dataset']
             data_set_length = len(data_set)
 
-            self.assertIs(unicode, type(acknowledgements))
+            if sys.version_info > (3,):
+                test_type = str
+            else:
+                test_type = unicode
 
-            self.assertIs(unicode, type(full_text))
+            self.assertIs(test_type, type(acknowledgements))
+
+            self.assertIs(test_type, type(full_text))
             expected_full_text = 'CONTENT'
             self.assertTrue(
                 expected_full_text in full_text,
@@ -773,7 +804,7 @@ class TestHTMLExtractor(test_base.TestUnit):
 
         content = self.extractor.extract_multi_content()
 
-        self.assertEqual(content.keys(), ['fulltext'])
+        self.assertEqual(list(content.keys()), ['fulltext'])
         self.assertIn(
             'ONLY IN TABLE',
             content['fulltext'],

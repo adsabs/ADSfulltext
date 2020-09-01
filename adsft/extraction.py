@@ -8,8 +8,14 @@ Java pipeline.
 
 Credits: repository adsabs/adsdata by Jay Luke
 """
+from __future__ import print_function
 
+import sys
 
+from builtins import map
+from builtins import range
+from past.builtins import basestring
+from builtins import object
 __author__ = 'J. Elliott'
 __maintainer__ = ''
 __copyright__ = 'Copyright 2015'
@@ -19,7 +25,6 @@ __status__ = 'Production'
 __credit__ = ['V. Sudilovsky', 'A. Accomazzi', 'J. Luker']
 __license__ = 'GPLv3'
 
-import sys
 import os
 import random
 import string
@@ -221,8 +226,7 @@ class StandardExtractorHTML(object):
         file_source = table_source_files.pop()
 
         dictionary_of_tables = {}
-        for table_file_path in filter(lambda x: re.search('table', x),
-                                      table_source_files):
+        for table_file_path in [x for x in table_source_files if re.search('table', x)]:
             table_name = os.path.basename(table_file_path)
 
             table_raw_html = self.open_html(table_file_path)
@@ -259,7 +263,7 @@ class StandardExtractorHTML(object):
                     break
 
             except Exception:
-                print Exception(traceback.format_exc())
+                print(Exception(traceback.format_exc()))
 
         if removed_content is None:
             logger.debug('Could not find intro for {0} (last xpath: {1})'
@@ -357,7 +361,14 @@ class StandardExtractorHTML(object):
         except Exception:
             pass
 
-        string_of_all_html = u" ".join(map(unicode.strip, map(unicode,
+        if sys.version_info > (3,):
+            space_string = " "
+            str_type = str
+        else:
+            space_string = u" "
+            str_type = unicode
+
+        string_of_all_html = space_string.join(map(str_type.strip, map(str_type,
             [individual_element_tree_node for individual_element_tree_node
              in self.parsed_html.itertext()
              if individual_element_tree_node
@@ -568,7 +579,7 @@ class StandardExtractorXML(object):
         # Remove namespaces:
         for elem in parsed_xml.getiterator():
             # Attributes
-            for key in elem.attrib.iterkeys():
+            for key in elem.attrib.keys():
                 if not hasattr(key, 'find') or key[0] != '{':
                     continue
                 i = key.find('}')
@@ -594,7 +605,7 @@ class StandardExtractorXML(object):
         # Remove prefixes:
         for elem in parsed_xml.getiterator():
             # Attributes
-            for key in elem.attrib.iterkeys():
+            for key in elem.attrib.keys():
                 if not hasattr(key, 'find'):
                     continue
                 i = key.find(':')
@@ -752,7 +763,14 @@ class StandardExtractorXML(object):
         s = self.parsed_xml.xpath(static_xpath)
 
         if s:
-            text_content = u" ".join(map(unicode.strip, map(unicode, s[0].itertext())))
+            if sys.version_info > (3,):
+                space_string = " "
+                str_type = str
+            else:
+                space_string = u" "
+                str_type = unicode
+
+            text_content = space_string.join(map(str_type.strip, map(str_type, s[0].itertext())))
         old = text_content
         text_content = TextCleaner(text=text_content).run(
             decode=decode,
@@ -1115,7 +1133,7 @@ class GrobidPDFExtractor(object):
                 with open(self.ft_source, 'r') as f:
                     logger.debug("Contacting grobid service: %s", self.grobid_service)
                     response = requests.post(url=self.grobid_service, files={'input': f}, timeout=self.timeout)
-            except IOError, error:
+            except IOError as error:
                 logger.exception("Error opening file %s: %s", self.ft_source, error)
             except requests.exceptions.Timeout:
                 logger.exception("Grobid service timeout after %d seconds", self.timeout)
@@ -1181,7 +1199,7 @@ def extract_content(input_list, **kwargs):
             recovered_content = reader.read_content(dict_item)
 
         if recovered_content is not None and recovered_content['fulltext'] != "":
-            for key, value in recovered_content.iteritems():
+            for key, value in recovered_content.items():
                 if key != 'UPDATE':
                     dict_item[key] = value
             output_list.append(dict_item)

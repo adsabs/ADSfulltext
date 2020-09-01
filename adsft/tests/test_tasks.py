@@ -47,7 +47,7 @@ class TestWorkers(unittest.TestCase):
                         'ft_source': '{}/tests/test_integration/stub_data/full_test.txt'.format(self.proj_home),
                         'provider': 'MNRAS'}
             actual = task_extract.call_args[0][0]
-            self.assertDictContainsSubset(expected, actual)
+            self.assertTrue(set(expected).issubset(actual))
             self.assertTrue('index_date' in actual)
 
 
@@ -65,7 +65,7 @@ class TestWorkers(unittest.TestCase):
                         'ft_source': '{}/tests/test_integration/stub_data/full_test.pdf'.format(self.proj_home),
                         'provider': 'MNRAS'}
             actual = task_extract.call_args[0][0]
-            self.assertDictContainsSubset(expected, actual)
+            self.assertTrue(set(expected).issubset(actual))
             self.assertTrue('index_date' in actual)
 
 

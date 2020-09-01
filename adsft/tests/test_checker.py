@@ -1,3 +1,6 @@
+import sys
+if sys.version_info > (3,):
+    from builtins import str
 import unittest
 import os
 import re
@@ -278,10 +281,15 @@ class TestCheckIfExtracted(test_base.TestUnit):
                             'provider', 'file_format',
                             'UPDATE', 'meta_path',
                             'index_date']
-        expected_content = [unicode(i) for i in expected_content]
+        if sys.version_info > (3,):
+            test_type = str
+        else:
+            test_type = unicode
+
+        expected_content = [test_type(i) for i in expected_content]
         expected_content.sort()
 
-        actual_content = payload['Standard'][0].keys()
+        actual_content = list(payload['Standard'][0].keys())
         actual_format = payload['Standard'][0]['file_format']
 
         actual_content.sort()

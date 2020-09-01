@@ -3,6 +3,7 @@ beautifulsoup4==4.8.0
 dateutils==0.6.6
 httpretty==0.8.14
 lxml==4.4.1
-html5lib==1.0.1
-ptree==0.1
+html5lib==1.1
+ptree==0.2
 spacy==2.2.3
+portalocker==1.7.1

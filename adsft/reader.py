@@ -63,7 +63,7 @@ def read_content(payload_dictionary):
     content = {}
     if os.path.exists(meta_output_file_path):
         meta_dict = read_file(meta_output_file_path, json_format=True)
-        for key, value in meta_dict.iteritems():
+        for key, value in meta_dict.items():
             content[key] = value
 
         if os.path.exists(full_text_output_file_path):

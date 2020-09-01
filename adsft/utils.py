@@ -3,7 +3,15 @@ Contains useful functions and utilities that are not neccessarily only useful
 for this module. But are also used in differing modules insidide the same
 project, and so do not belong to anything specific.
 """
+from __future__ import print_function
 
+import sys
+
+from builtins import chr
+from builtins import range
+from builtins import object
+if sys.version_info > (3,):
+    from builtins import str
 __author__ = 'J. Elliott'
 __maintainer__ = 'J. Elliott'
 __copyright__ = 'Copyright 2015'
@@ -13,7 +21,6 @@ __status__ = 'Production'
 __credit__ = ['V. Sudilovsky']
 __license__ = 'GPLv3'
 
-import sys
 import os
 import string
 import unicodedata
@@ -47,10 +54,10 @@ class FileInputStream(object):
         :return: no return
         """
 
-        print 'Bibcode: {0}'.format(self.bibcode)
-        print 'Full text path: {0}'.format(self.full_text_path)
-        print 'Provider: {0}'.format(self.provider)
-        print 'Payload content: {0}'.format(self.payload)
+        print('Bibcode: {0}'.format(self.bibcode))
+        print('Full text path: {0}'.format(self.full_text_path))
+        print('Provider: {0}'.format(self.provider))
+        print('Payload content: {0}'.format(self.payload))
 
     def extract(self, force_extract=False, force_send=False):
         """
@@ -98,7 +105,7 @@ class FileInputStream(object):
             self.payload = raw
 
         except IOError:
-            print in_file, sys.exc_info()
+            print(in_file, sys.exc_info())
 
         return self.bibcode, self.full_text_path, self.provider, self.payload
 
@@ -181,7 +188,12 @@ class TextCleaner(object):
 
         input_control_characters = "".join([chr(i) for i in range(0, 32)])
 
-        self.ASCII_translation_map = string.maketrans(
+        if sys.version_info > (3,):
+            maketrans = str.maketrans
+        else:
+            maketrans = string.maketrans
+
+        self.ASCII_translation_map = maketrans(
             input_control_characters, translated_control_characters)
 
         unicode_control_numbers = [(0x00, 0x08), (0x0B, 0x1F), (0x7F, 0x84),
@@ -222,7 +234,11 @@ class TextCleaner(object):
         :return: no return
         """
 
-        if type(self.text) == str:
+        if sys.version_info > (3,):
+            test_type = bytes
+        else:
+            test_type = str
+        if isinstance(self.text, test_type):
             self.text = self.text.decode('utf-8', 'ignore')
 
     def normalise(self):
@@ -245,7 +261,12 @@ class TextCleaner(object):
         # (e.g., non-breaking space '\xa0' with space ' ', Roman numeral one and latin capital letter I)
         # NFKD: apply the compatibility decomposition (i.e. replace all compatibility characters with their equivalents)
         # NFKC: applies the compatibility decomposition, followed by the canonical composition
-        self.text = unicodedata.normalize('NFKC', unicode(self.text))
+        if sys.version_info > (3,):
+            test_type = str
+        else:
+            test_type = unicode
+
+        self.text = unicodedata.normalize('NFKC', test_type(self.text))
 
     def trimwords(self, maxlength=100):
         """

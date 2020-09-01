@@ -1,6 +1,8 @@
 #!/usr/bin/env python
-import os
 import sys
+from builtins import zip
+from builtins import str
+import os
 import tempfile
 import argparse
 import json
@@ -221,7 +223,7 @@ if __name__ == '__main__':
         args.full_text_links = build_diagnostics(raw_files=args.raw_files, bibcodes=args.bibcodes, providers=args.providers)
 
     if not args.full_text_links:
-        print 'You need to give the input list'
+        print("You need to give the input list")
         parser.print_help()
         sys.exit(0)
 
