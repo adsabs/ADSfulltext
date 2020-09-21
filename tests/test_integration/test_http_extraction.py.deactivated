@@ -188,7 +188,7 @@ class TestExtractWorker(TestGeneric):
                 'Meta file not created: {0}'.format(path)
             )
             self.assertTrue(
-                os.path.exists(os.path.join(path, 'fulltext.txt')),
+                os.path.exists(os.path.join(path, 'fulltext.txt.gz')),
                 'Full text file not created: {0}'.format(path)
             )
 

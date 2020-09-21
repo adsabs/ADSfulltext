@@ -19,6 +19,7 @@ import os
 import json
 import tempfile
 import shutil
+import gzip
 from adsft.rules import META_CONTENT
 
 # ============================= INITIALIZATION ==================================== #
@@ -49,6 +50,7 @@ def write_to_temp_file(payload, temp_path='/tmp/', json_format=True):
     with tempfile.NamedTemporaryFile(mode='w', dir=temp_path,
                                      delete=False) as temp_file:
         temp_file_name = temp_file.name
+        temp_file_name_compress = temp_file_name + '.gz'
         if json_format:
             json.dump(payload, temp_file)
         else:
@@ -56,6 +58,22 @@ def write_to_temp_file(payload, temp_path='/tmp/', json_format=True):
                 temp_file.write(payload.encode('utf-8'))
             else:
                 temp_file.write(payload) # assuming this is already a bytecode
+            temp_file.close()
+            with open(temp_file_name, 'rb') as file_in:
+                try:
+                    with gzip.open(temp_file_name_compress, 'wb') as file_out:
+                        shutil.copyfileobj(file_in, file_out)
+                    os.chmod(temp_file_name_compress, 0o640)
+                except Exception as err:
+                    logger.error('Unexpected error from shutil in copying temp file to '
+                                 'compressed temp file: {0}'.format(err))
+
+            try:
+                os.remove(temp_file_name)
+            except Exception as err:
+                logger.error('Unexpected error from os in removing non-compressed temp file: {0}'.format(err))
+
+            temp_file_name = temp_file_name_compress
 
     logger.debug('Temp file name: {0}'.format(temp_file_name))
 
@@ -134,13 +152,13 @@ def write_content(payload_dictionary):
     if payload_dictionary['file_format'] == 'pdf-grobid':
         full_text_output_file_path = os.path.join(bibcode_pair_tree_path, 'grobid_fulltext.xml')
     else:
-        full_text_output_file_path = os.path.join(bibcode_pair_tree_path, 'fulltext.txt')
+        full_text_output_file_path = os.path.join(bibcode_pair_tree_path, 'fulltext.txt.gz')
 
     if 'UPDATE' in payload_dictionary and \
         payload_dictionary['UPDATE'] == 'FORCE_TO_SEND' and \
         os.path.exists(meta_output_file_path) and os.path.exists(full_text_output_file_path):
-                # Data was already extracted and saved
-                return
+            # Data was already extracted and saved
+            return
 
     if not os.path.exists(bibcode_pair_tree_path):
         try:
@@ -172,7 +190,7 @@ def write_content(payload_dictionary):
 
             try:
                 meta_constant_file_path = os.path.join(bibcode_pair_tree_path,
-                                                       meta_key_word) + '.txt'
+                                                       meta_key_word) + '.txt.gz'
                 logger.debug('Writing {0} to file at: {1}'.format(
                     meta_key_word, meta_constant_file_path))
                 write_file(meta_constant_file_path, meta_key_word_value,
@@ -188,7 +206,7 @@ def write_content(payload_dictionary):
                          .format(meta_key_word))
             continue
 
-    # Write the full text content to its own file fulltext.txt
+    # Write the full text content to its own file fulltext.txt.gz
     logger.debug('Copying full text content')
 
     if 'fulltext' in payload_dictionary and payload_dictionary['fulltext'] != "":
