@@ -131,7 +131,7 @@ class TestNonExtractedExtraction(test_base.TestGeneric):
             )
 
             if os.path.exists(fulltext_path):
-                fulltext_content = reader.read_file(fulltext_path)
+                fulltext_content = reader.read_file(fulltext_path, json_format=False)
                 self.assertEqual(fulltext_content, "Introduction THIS IS AN INTERESTING TITLE")
 
 

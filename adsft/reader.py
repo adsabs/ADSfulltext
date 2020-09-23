@@ -35,7 +35,10 @@ def read_file(input_filename, json_format=True):
 
     if input_filename.endswith('gz'):
         with gzip.open(input_filename, 'rb') as input_file:
-            content = input_file.read().decode('utf-8')
+            if json_format:
+                content = json.load(input_file)
+            else:
+                content = input_file.read().decode('utf-8')
     else:
         with open(input_filename, 'r') as input_file:
             if json_format:

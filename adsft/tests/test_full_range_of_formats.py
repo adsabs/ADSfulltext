@@ -130,7 +130,7 @@ class TestFullRangeFormatExtraction(test_base.TestGeneric):
             )
 
             if os.path.exists(fulltext_path):
-                fulltext_content = reader.read_file(fulltext_path)
+                fulltext_content = reader.read_file(fulltext_path, json_format=False)
                 expected_fulltext_content = (
                         u"Introduction THIS IS AN INTERESTING TITLE",
                         u"Introduction THIS IS AN INTERESTING TITLE",

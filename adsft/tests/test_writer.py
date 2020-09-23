@@ -133,7 +133,7 @@ class TestWriteMetaFileWorker(test_base.TestUnit):
         self.assertTrue(return_payload, 1)
 
         full_text = ''
-        fulltext_content = reader.read_file(self.dict_item['meta_path'].replace('meta.json', 'fulltext.txt.gz'))
+        fulltext_content = reader.read_file(self.dict_item['meta_path'].replace('meta.json', 'fulltext.txt.gz'), json_format=False)
 
         self.assertEqual(self.dict_item['fulltext'], fulltext_content)
 

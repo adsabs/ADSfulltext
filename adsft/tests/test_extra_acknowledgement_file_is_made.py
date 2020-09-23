@@ -119,7 +119,7 @@ class TestExtraAcknowledgment(test_base.TestGeneric):
 
             # unless changed, tests/test_integration/stub_data/full_test_elsevier.xml
             if os.path.exists(fulltext_path):
-                fulltext_content = reader.read_file(fulltext_path)
+                fulltext_content = reader.read_file(fulltext_path, json_format=False)
                 self.assertEqual(fulltext_content,
                                  '1 Introduction JOURNAL CONTENT Acknowledgments THANK YOU Appendix A APPENDIX TITLE APPENDIX')
 
@@ -130,7 +130,7 @@ class TestExtraAcknowledgment(test_base.TestGeneric):
             )
 
             if os.path.exists(acknowledgments_path):
-                acknowledgements_content = reader.read_file(acknowledgments_path)
+                acknowledgements_content = reader.read_file(acknowledgments_path, json_format=False)
                 self.assertEqual(acknowledgements_content,
                                  "Acknowledgments THANK YOU")
 
