@@ -1,10 +1,9 @@
 import unittest
 import os
 
-from adsft import writer
+from adsft import writer, reader
 from adsft.tests import test_base
 import json
-
 
 
 
@@ -42,10 +41,10 @@ class TestWriteMetaFileWorker(test_base.TestUnit):
         self.bibcode_pair_tree = \
             self.dict_item['meta_path'].replace('meta.json', '')
 
-        self.full_text_file = self.bibcode_pair_tree + 'fulltext.txt'
+        self.full_text_file = self.bibcode_pair_tree + 'fulltext.txt.gz'
 
         self.acknowledgement_file = \
-            self.bibcode_pair_tree + 'acknowledgements.txt'
+            self.bibcode_pair_tree + 'acknowledgements.txt.gz'
 
     def tearDown(self):
         """
@@ -61,6 +60,11 @@ class TestWriteMetaFileWorker(test_base.TestUnit):
 
         try:
             os.remove(self.full_text_file)
+        except OSError:
+            pass
+
+        try:
+            os.remove(self.acknowledgement_file)
         except OSError:
             pass
 
@@ -129,14 +133,9 @@ class TestWriteMetaFileWorker(test_base.TestUnit):
         self.assertTrue(return_payload, 1)
 
         full_text = ''
-        with open(
-                self.dict_item['meta_path']
-                        .replace('meta.json', 'fulltext.txt'), 'r'
-        ) as full_text_file:
+        fulltext_content = reader.read_file(self.dict_item['meta_path'].replace('meta.json', 'fulltext.txt.gz'), json_format=False)
 
-            full_text = full_text_file.read()
-
-        self.assertEqual(self.dict_item['fulltext'], full_text)
+        self.assertEqual(self.dict_item['fulltext'], fulltext_content)
 
     def test_pipeline_extract_content_extracts_meta_text_correctly(self):
         """

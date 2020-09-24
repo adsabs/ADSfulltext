@@ -4,7 +4,7 @@ import sys
 
 #from adsft import extraction, rules, utils
 from mock import patch
-from adsft import tasks
+from adsft import tasks, reader
 from adsft.tests import test_base
 from datetime import datetime
 import json
@@ -123,15 +123,14 @@ class TestFullRangeFormatExtraction(test_base.TestGeneric):
                     .format(meta_content)
                 )
 
-            fulltext_path = os.path.join(path, 'fulltext.txt')
+            fulltext_path = os.path.join(path, 'fulltext.txt.gz')
             self.assertTrue(
                 os.path.exists(fulltext_path),
                 'Full text file not created: %s'.format(path)
             )
 
             if os.path.exists(fulltext_path):
-                with open(fulltext_path, 'r') as fulltext_file:
-                    fulltext_content = fulltext_file.read()
+                fulltext_content = reader.read_file(fulltext_path, json_format=False)
                 expected_fulltext_content = (
                         u"Introduction THIS IS AN INTERESTING TITLE",
                         u"Introduction THIS IS AN INTERESTING TITLE",

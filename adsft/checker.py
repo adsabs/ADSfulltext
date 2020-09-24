@@ -186,7 +186,7 @@ def meta_needs_update(dict_input, meta_content,
         return 'STALE_CONTENT'
 
     # If the fulltext is older than the meta file
-    fulltext_path = meta_path.replace('meta.json', 'fulltext.txt')
+    fulltext_path = meta_path.replace('meta.json', 'fulltext.txt.gz')
     fulltext_last_modified = file_last_modified_time(fulltext_path)
 
     logger.debug('FULLTEXT_PATH last modified: {0}'.format(fulltext_last_modified))

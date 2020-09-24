@@ -4,7 +4,7 @@ import sys
 
 #from adsft import extraction, rules, utils
 from mock import patch
-from adsft import tasks
+from adsft import tasks, reader
 from adsft.tests import test_base
 from datetime import datetime
 import json
@@ -111,7 +111,7 @@ class TestExtraAcknowledgment(test_base.TestGeneric):
                     .format(meta_content)
                 )
 
-            fulltext_path = os.path.join(path, 'fulltext.txt')
+            fulltext_path = os.path.join(path, 'fulltext.txt.gz')
             self.assertTrue(
                 os.path.exists(fulltext_path),
                 'Full text file not created: %s'.format(path)
@@ -119,20 +119,18 @@ class TestExtraAcknowledgment(test_base.TestGeneric):
 
             # unless changed, tests/test_integration/stub_data/full_test_elsevier.xml
             if os.path.exists(fulltext_path):
-                with open(fulltext_path, 'r') as fulltext_file:
-                    fulltext_content = fulltext_file.read()
+                fulltext_content = reader.read_file(fulltext_path, json_format=False)
                 self.assertEqual(fulltext_content,
                                  '1 Introduction JOURNAL CONTENT Acknowledgments THANK YOU Appendix A APPENDIX TITLE APPENDIX')
 
-            acknowledgments_path = os.path.join(path, 'acknowledgements.txt')
+            acknowledgments_path = os.path.join(path, 'acknowledgements.txt.gz')
             self.assertTrue(
                 os.path.exists(acknowledgments_path),
                 'Full text file not created: %s'.format(path)
             )
 
             if os.path.exists(acknowledgments_path):
-                with open(acknowledgments_path, 'r') as acknowledgments_file:
-                    acknowledgements_content = acknowledgments_file.read()
+                acknowledgements_content = reader.read_file(acknowledgments_path, json_format=False)
                 self.assertEqual(acknowledgements_content,
                                  "Acknowledgments THANK YOU")
 

@@ -6,6 +6,7 @@ read previously extracted content.
 """
 import os
 import json
+import gzip
 from adsft.rules import META_CONTENT
 
 # ============================= INITIALIZATION ==================================== #
@@ -32,11 +33,18 @@ def read_file(input_filename, json_format=True):
     :return: File content
     """
 
-    with open(input_filename, 'r') as input_file:
-        if json_format:
-            content = json.load(input_file)
-        else:
-            content = input_file.read().decode('utf-8')
+    if input_filename.endswith('gz'):
+        with gzip.open(input_filename, 'rb') as input_file:
+            if json_format:
+                content = json.load(input_file)
+            else:
+                content = input_file.read().decode('utf-8')
+    else:
+        with open(input_filename, 'r') as input_file:
+            if json_format:
+                content = json.load(input_file)
+            else:
+                content = input_file.read().decode('utf-8')
 
     logger.debug('Read file name: {0}'.format(input_filename))
 
@@ -58,7 +66,7 @@ def read_content(payload_dictionary):
     if payload_dictionary['file_format'] == "pdf-grobid":
         full_text_output_file_path = os.path.join(bibcode_pair_tree_path, 'grobid_fulltext.xml')
     else:
-        full_text_output_file_path = os.path.join(bibcode_pair_tree_path, 'fulltext.txt')
+        full_text_output_file_path = os.path.join(bibcode_pair_tree_path, 'fulltext.txt.gz')
 
     content = {}
     if os.path.exists(meta_output_file_path):
@@ -80,7 +88,7 @@ def read_content(payload_dictionary):
                 continue
 
             logger.debug(meta_key_word)
-            meta_constant_file_path = os.path.join(bibcode_pair_tree_path, meta_key_word) + '.txt'
+            meta_constant_file_path = os.path.join(bibcode_pair_tree_path, meta_key_word) + '.txt.gz'
             logger.debug('Reading {0} from file at: {1}'.format(meta_key_word, meta_constant_file_path))
             if os.path.exists(meta_constant_file_path):
                 try:
