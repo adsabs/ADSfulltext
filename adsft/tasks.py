@@ -150,7 +150,6 @@ def task_output_results(msg):
 
     logger.debug('Will forward this record: %s', msg)
     rec = FulltextUpdate(**msg)
-    logger.debug("Calling 'app.forward_message' with '%s'", str(rec))
     logger.info("Calling app.forward_message...")
     if not app.conf['CELERY_ALWAYS_EAGER']:
         app.forward_message(rec)
