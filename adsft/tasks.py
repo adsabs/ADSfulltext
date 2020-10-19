@@ -60,7 +60,7 @@ def task_check_if_extract(message):
                         logger.debug("Calling 'task_extract_grobid' with message '%s'", msg)
                         task_extract_grobid.delay(msg)
             else:
-                logger.error('Unknown type: %s and message: %s', (key, results[key]))
+                logger.error('Unknown type: %s and message: %s', key, results[key])
 
 
 @app.task(queue='extract')
@@ -182,14 +182,14 @@ def task_identify_facilities(message):
             if key in r:
                 facs = ner.get_facilities(model, r[key])
                 if len(facs) > 0:
-                    logger.debug("Adding %s as facilities found in %s using spacy ner model" % (str(facs), key))
+                    logger.debug("Adding %s as facilities found in %s using spacy ner model", str(facs), key)
                     out[elem_str] = list(set(facs)) # remove duplicates
 
                 else:
-                    logger.info("No facilities found in the %s for bibcode: %s." % (key, r['bibcode']))
+                    logger.info("No facilities found in the %s for bibcode: %s.", key, r['bibcode'])
 
             else:
-                logger.info("The %s field is empty for bibcode: %s" % (key, r['bibcode']))
+                logger.info("The %s field is empty for bibcode: %s", key, r['bibcode'])
 
         writer.write_file(output_file_path, out)
 

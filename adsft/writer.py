@@ -65,17 +65,16 @@ def write_to_temp_file(payload, temp_path='/tmp/', json_format=True):
                         shutil.copyfileobj(file_in, file_out)
                     os.chmod(temp_file_name_compress, 0o640)
                 except Exception as err:
-                    logger.error('Unexpected error from shutil in copying temp file to '
-                                 'compressed temp file: {0}'.format(err))
+                    logger.error('Unexpected error from shutil in copying temp file to compressed temp file: %s', err)
 
             try:
                 os.remove(temp_file_name)
             except Exception as err:
-                logger.error('Unexpected error from os in removing non-compressed temp file: {0}'.format(err))
+                logger.error('Unexpected error from os in removing non-compressed temp file: %s', err)
 
             temp_file_name = temp_file_name_compress
 
-    logger.debug('Temp file name: {0}'.format(temp_file_name))
+    logger.debug('Temp file name: %s', temp_file_name)
 
     return temp_file_name
 
@@ -95,18 +94,14 @@ def move_temp_file_to_file(temp_file_name, new_file_name):
         # protect full-text from world access but keep it group-readable
         os.chmod(new_file_name, 0o640)
     except Exception as err:
-        logger.error('Unexpected error from shutil in copying temporary file to'
-                     ' new file: {0}'.format(err))
+        logger.error('Unexpected error from shutil in copying temporary file to new file: %s', err)
 
     try:
         os.remove(temp_file_name)
     except Exception as err:
-        logger.error(
-            'Unexpected error from os removing a file: {0}'.format(err))
+        logger.error('Unexpected error from os removing a file: %s', err)
 
-    logger.debug(
-        'Succeeded to copy: {0} to {1}'.format(temp_file_name, new_file_name)
-    )
+    logger.debug('Succeeded to copy: %s to %s', temp_file_name, new_file_name)
 
 def write_file(file_name, payload, json_format=True):
     """
@@ -172,7 +167,7 @@ def write_content(payload_dictionary):
     for const in ('meta_path', 'ft_source', 'bibcode', 'provider', 'UPDATE', 'file_format', 'index_date', 'dataset', 'facility'):
         try:
             meta_dict[const] = payload_dictionary[const]
-            logger.debug('Adding meta content: {0}'.format(const))
+            logger.debug('Adding meta content: %s', const)
         except KeyError:
             #print('Missing meta content: {0}'.format(const))
             continue
@@ -191,19 +186,16 @@ def write_content(payload_dictionary):
             try:
                 meta_constant_file_path = os.path.join(bibcode_pair_tree_path,
                                                        meta_key_word) + '.txt.gz'
-                logger.debug('Writing {0} to file at: {1}'.format(
-                    meta_key_word, meta_constant_file_path))
+                logger.debug('Writing %s to file at: %s', meta_key_word, meta_constant_file_path)
                 write_file(meta_constant_file_path, meta_key_word_value,
                            json_format=False)
-                logger.info('WriteMetaFile: completed bibcode: {0}'.format(
-                    payload_dictionary['bibcode']))
+                logger.info('WriteMetaFile: completed bibcode: %s', payload_dictionary['bibcode'])
             except IOError:
                 logger.error('IO Error when writing to file.')
                 raise IOError
 
         except KeyError:
-            logger.debug('Does not contain the following meta data: {0}'
-                         .format(meta_key_word))
+            logger.debug('Does not contain the following meta data: %s', meta_key_word)
             continue
 
     # Write the full text content to its own file fulltext.txt.gz
@@ -211,12 +203,12 @@ def write_content(payload_dictionary):
 
     if 'fulltext' in payload_dictionary and payload_dictionary['fulltext'] != "":
         try:
-            logger.debug('Writing to file: {0}'.format(full_text_output_file_path))
-            logger.debug('Content has length: {0}'.format(len(payload_dictionary['fulltext'])))
+            logger.debug('Writing to file: %s', full_text_output_file_path)
+            logger.debug('Content has length: %s', len(payload_dictionary['fulltext']))
             write_file(full_text_output_file_path, payload_dictionary['fulltext'], json_format=False)
             logger.debug('Writing complete.')
         except IOError:
-            logger.exception('IO Error when writing to file {0}'.format(payload_dictionary['bibcode']))
+            logger.exception('IO Error when writing to file %s', payload_dictionary['bibcode'])
             raise IOError
     #else:
         #logger.warning('No fulltext found for dictionary {0}'.format(payload_dictionary['bibcode']))
@@ -225,8 +217,8 @@ def write_content(payload_dictionary):
         # Do not write meta-data if it is a grobid extraction, only grobid_fulltext.xml is required
         # and we avoid over-writting valid meta-data from the regular PDF extraction
         try:
-            logger.debug('Writing to file: {0}'.format(meta_output_file_path))
-            logger.debug('Content has keys: {0}'.format((meta_dict.keys())))
+            logger.debug('Writing to file: %s', meta_output_file_path)
+            logger.debug('Content has keys: %s', meta_dict.keys())
             write_file(meta_output_file_path, meta_dict, json_format=True)
             logger.debug('Writing complete.')
         except IOError:
@@ -246,8 +238,7 @@ def extract_content(input_list, **kwargs):
     :return: list of bibcodes written to disk and converted to json format
     """
 
-    logger.debug(
-        'WriteMetaFile: Beginning list with type: {0}'.format(input_list))
+    logger.debug('WriteMetaFile: Beginning list with type: %s', input_list)
     bibcode_list = []
     for dict_item in input_list:
         try:
@@ -256,8 +247,7 @@ def extract_content(input_list, **kwargs):
         except Exception:
             import traceback
 
-            logger.error('Failed on dict item: {0} ({1})'.format((
-                dict_item, traceback.format_exc())))
+            logger.error('Failed on dict item: %s (%s)', dict_item, traceback.format_exc())
             raise Exception
 
     return json.dumps(bibcode_list)
