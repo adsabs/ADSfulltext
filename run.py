@@ -50,7 +50,7 @@ def run(full_text_links, **kwargs):
     :return: no return
     """
 
-    logger.info('Loading records from: {0}'.format(full_text_links))
+    logger.info('Loading records from: %s', full_text_links)
 
     if 'force_extract' in kwargs:
         force_extract = kwargs['force_extract']
@@ -74,8 +74,10 @@ def run(full_text_links, **kwargs):
 
 
     if diagnose:
-        print("Calling 'read_links_from_file' with filename '{}', force_extract set to '{}' and force_send set to '{}'".format(full_text_links, str(force_extract), str(force_send)))
-    logger.debug("Calling 'read_links_from_file' with filename '%s', force_extract set to '%s' and force_send set to '%s'" , (full_text_links, str(force_extract), str(force_send)))
+        print("Calling 'read_links_from_file' with filename '{}', force_extract set to '{}' and force_send "
+              "set to '{}'".format(full_text_links, str(force_extract), str(force_send)))
+    logger.debug("Calling 'read_links_from_file' with filename '%s', force_extract set to '%s' and force_send "
+                 "set to '%s'", full_text_links, str(force_extract), str(force_send))
     records = read_links_from_file(
         full_text_links,
         force_extract=force_extract,
@@ -86,7 +88,7 @@ def run(full_text_links, **kwargs):
     logger.info('Setting variables')
     if 'max_queue_size' in kwargs:
         max_queue_size = kwargs['max_queue_size']
-        logger.info('Max queue size overridden: %d' , kwargs['max_queue_size'])
+        logger.info('Max queue size overridden: %d', kwargs['max_queue_size'])
     else:
         max_queue_size = 0
 
@@ -95,15 +97,12 @@ def run(full_text_links, **kwargs):
     else:
         task_str = 'task_check_if_extract'
 
-    logger.info('Publishing records to: %s' , task_str)
+    logger.info('Publishing records to: %s', task_str)
 
     i = 0
     total = len(records.payload)
     for record in records.payload:
-        logger.info(
-            'Publishing [{0:d}/{1:d}]: [{2}]'.format(
-                i+1, total, record['bibcode'])
-        )
+        logger.debug('Publishing [%i/%i]: [%s]', i+1, total, record['bibcode'])
 
         if max_queue_size and i >= max_queue_size:
             logger.info('Max_queue_size reached, stopping...')
@@ -111,7 +110,9 @@ def run(full_text_links, **kwargs):
 
         if diagnose:
             print("[{}/{}] Calling '{}' with '{}'".format(i+1, total, task_str, str(record)))
-        logger.info("[%i/%i] Calling '%s' with '%s'" , (i+1, total, task_str, str(record)))
+        logger.debug("[%i/%i] Calling '%s' with '%s'", i+1, total, task_str, str(record))
+        if i % 100000 == 0:
+            logger.info("[%i/%i] Calling '%s'", i+1, total, task_str)
         getattr(tasks, task_str).delay(record)
         i += 1
 

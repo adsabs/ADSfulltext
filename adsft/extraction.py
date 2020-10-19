@@ -208,7 +208,7 @@ class StandardExtractorHTML(object):
         else:
             parsed_html = lxml.html.document_fromstring(in_html)
 
-        logger.debug('Parsed HTML. {0}'.format(parsed_html))
+        logger.debug('Parsed HTML. %s', parsed_html)
 
         return parsed_html
 
@@ -234,8 +234,7 @@ class StandardExtractorHTML(object):
 
         self.dictionary_of_tables = dictionary_of_tables
 
-        logger.debug('Collated {0} tables'.format(
-            len(self.dictionary_of_tables)))
+        logger.debug('Collated %s tables', len(self.dictionary_of_tables))
 
         return self.dictionary_of_tables
 
@@ -266,8 +265,7 @@ class StandardExtractorHTML(object):
                 print(Exception(traceback.format_exc()))
 
         if removed_content is None:
-            logger.debug('Could not find intro for {0} (last xpath: {1})'
-                         .format(self.dict_item['bibcode'], xpath))
+            logger.debug('Could not find intro for %s (last xpath: %s)', self.dict_item['bibcode'], xpath)
         else:
             first_position_index = removed_content.getparent().index(
                 removed_content)
@@ -288,9 +286,7 @@ class StandardExtractorHTML(object):
                 break
 
             except Exception:
-                logger.debug('Could not find references for {0} (last xpath: '
-                             '{1})'.format(self.dict_item['bibcode'],
-                                           xpath))
+                logger.debug('Could not find references for %s (last xpath: %s)', self.dict_item['bibcode'], xpath)
 
         # Insert tables from external files
         first_parsed_html = self.parsed_html
@@ -298,8 +294,7 @@ class StandardExtractorHTML(object):
         for table_name, table_root_node in self.dictionary_of_tables.items():
 
             table_node_to_insert = None
-            logger.debug(
-                'Attempting to find table contents: {0}'.format(table_name))
+            logger.debug('Attempting to find table contents: %s', table_name)
 
             for xpath in META_CONTENT[self.meta_name]['table']:
 
@@ -315,8 +310,7 @@ class StandardExtractorHTML(object):
                     raise Exception('Could not find table content for %s (last '
                                     'xpath: %s)'.format((table_name, xpath)))
 
-            logger.debug(
-                'Attempting to find table links: {0}'.format(table_name))
+            logger.debug('Attempting to find table links: %s', table_name)
 
             for xpath in META_CONTENT[self.meta_name]['table_links']:
                 try:
@@ -338,8 +332,7 @@ class StandardExtractorHTML(object):
                             xpath.replace('TABLE_NAME', table_name)
                         ))
 
-            logger.debug('Attempting to replace table at table links: {0}'
-                         .format(table_name))
+            logger.debug('Attempting to replace table at table links: %s', table_name)
 
             if table_nodes_in_file_source:
                 parent_node_of_table_link = \
@@ -420,7 +413,7 @@ class StandardExtractorXML(object):
         raw_xml = None
 
         try:
-            logger.debug('Opening the file: {0}'.format(self.file_input))
+            logger.debug('Opening the file: %s', self.file_input)
 
             with open(self.file_input, 'rb') as fp:
                 raw_xml = fp.read()
@@ -442,7 +435,7 @@ class StandardExtractorXML(object):
             self.raw_xml = raw_xml
 
         except Exception as err:
-            logger.error('Error: {0}'.format(err))
+            logger.error('Error: %s', err)
             raise Exception(err)
 
         return raw_xml
@@ -637,7 +630,7 @@ class StandardExtractorXML(object):
         for parser_name in preferred_parser_names:
             parsed_xml = self._parse_xml(parser_name)
 
-            logger.debug("Checking if the parser '{}' succeeded".format(parser_name))
+            logger.debug("Checking if the parser '%s' succeeded", parser_name)
             success = False
             content_found = []
             for content_name in META_CONTENT[self.meta_name]:
@@ -648,10 +641,10 @@ class StandardExtractorXML(object):
                         content_found.append(content_name)
                         break
             if success:
-                logger.debug("The parser '{}' succeeded extracting the following fields '{}'".format(parser_name, ", ".join(content_found)))
+                logger.debug("The parser '%s' succeeded extracting the following fields '%s'", parser_name, ", ".join(content_found))
                 break
             else:
-                logger.debug("The parser '{}' did not extract any of the following fields '{}'".format(parser_name, ", ".join(META_CONTENT[self.meta_name].keys())))
+                logger.debug("The parser '%s' did not extract any of the following fields '%s'", parser_name, ", ".join(META_CONTENT[self.meta_name].keys()))
 
         self.parsed_xml = parsed_xml
         return parsed_xml
@@ -807,8 +800,7 @@ class StandardExtractorXML(object):
         try:
             span_content = kwargs['info']
         except KeyError:
-            logger.error('You did not supply the info kwarg,'
-                         ' returning an empty list')
+            logger.error('You did not supply the info kwarg, returning an empty list')
             return data_inner
 
         text_content = self.parsed_xml.xpath(static_xpath)
@@ -841,8 +833,7 @@ class StandardExtractorXML(object):
 
                 data_inner.append(text_content)
             except KeyError:
-                logger.debug('Content of type {0} not found in this span'
-                             .format(span_content))
+                logger.debug('Content of type %s not found in this span', span_content)
                 pass
             except Exception:
                 logger.error('Unexpected error, skipping')

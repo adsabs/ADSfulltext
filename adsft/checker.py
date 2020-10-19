@@ -68,7 +68,7 @@ def create_meta_path(dict_input, extract_path):
 
     ptr = ptree.id2ptree(dict_input['bibcode'])
     extract_path = extract_path + ptr + 'meta.json'
-    logger.debug('extract_path: {0}'.format(extract_path))
+    logger.debug('extract_path: %s', extract_path)
 
     return extract_path
 
@@ -110,8 +110,7 @@ def load_meta_file(file_input, extract_path):
         logger.debug('Meta file already exists')
 
     except IOError:
-        logger.warning('IOError: Json content could not be loaded: \n{0}, \n{1}'
-                       .format(meta_full_path, file_input))
+        logger.warning('IOError: Json content could not be loaded: \n%s, \n%s', meta_full_path, file_input)
         raise IOError
 
     except Exception:
@@ -150,7 +149,7 @@ def meta_needs_update(dict_input, meta_content,
         return 'STALE_META'
         #raise KeyError
     except Exception:
-        logger.warning('Unexpected error {0}'.format(sys.exc_info()))
+        logger.warning('Unexpected error %s', sys.exc_info())
         raise Exception
 
     logger.debug('Opened existing meta to determine if an update is required.')
@@ -179,9 +178,8 @@ def meta_needs_update(dict_input, meta_content,
     meta_json_last_modified = file_last_modified_time(meta_path)
 
     # If the source content is newer than the last time it was extracted
-    logger.debug(
-        'FILE_SOUCE last modified: {0}'.format(ft_source_last_modified))
-    logger.debug('META_PATH last modified: {0}'.format(meta_json_last_modified))
+    logger.debug('FILE_SOUCE last modified: %s', ft_source_last_modified)
+    logger.debug('META_PATH last modified: %s', meta_json_last_modified)
     if ft_source_last_modified > meta_json_last_modified:
         return 'STALE_CONTENT'
 
@@ -189,7 +187,7 @@ def meta_needs_update(dict_input, meta_content,
     fulltext_path = meta_path.replace('meta.json', 'fulltext.txt.gz')
     fulltext_last_modified = file_last_modified_time(fulltext_path)
 
-    logger.debug('FULLTEXT_PATH last modified: {0}'.format(fulltext_last_modified))
+    logger.debug('FULLTEXT_PATH last modified: %s', fulltext_last_modified)
     if meta_json_last_modified > fulltext_last_modified:
         return 'STALE_CONTENT'
 
@@ -264,19 +262,17 @@ def check_if_extract(message_list, extract_path):
                 format_ = 'http'
             message['file_format'] = format_
 
-            logger.debug('Format found: %s' % format_)
+            logger.debug('Format found: %s', format_)
             if format_ == 'pdf':
                 message['UPDATE'] = update
 
-                logger.info('CheckIfExtract: needs update because {0}: {1}'.format(
-                    update, message['bibcode']))
+                logger.info('CheckIfExtract: needs update because %s: %s', update, message['bibcode'])
 
                 publish_list_of_pdf_dictionaries.append(message)
             else:
                 message['UPDATE'] = update
 
-                logger.info('CheckIfExtract: needs update because {0}: {1}'.format(
-                    update, message['bibcode']))
+                logger.info('CheckIfExtract: needs update because %s: %s', update, message['bibcode'])
 
                 publish_list_of_standard_dictionaries.append(message)
 
