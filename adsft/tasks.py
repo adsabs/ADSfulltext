@@ -47,7 +47,11 @@ def task_check_if_extract(message):
 
     logger.debug("Calling 'check_if_extract' with message '%s' and path '%s'", message, app.conf['FULLTEXT_EXTRACT_PATH'])
 
-    results = checker.check_if_extract(message, app.conf['FULLTEXT_EXTRACT_PATH'])
+    try:
+        results = checker.check_if_extract(message, app.conf['FULLTEXT_EXTRACT_PATH'])
+    except OSError as err:
+        logger.error('Task failed at check_if_extract because of missing file. Error: %s', err)
+        return
     logger.debug('Results: %s', results)
     if results:
         for key in results:
