@@ -753,6 +753,11 @@ class StandardExtractorXML(object):
         else:
             translate = False
 
+        if 'extract_all' in kwargs:
+            extract_all = kwargs['extract_all']
+        else:
+            extract_all = False
+
         s = self.parsed_xml.xpath(static_xpath)
 
         if s:
@@ -763,10 +768,14 @@ class StandardExtractorXML(object):
                 space_string = u" "
                 str_type = unicode
 
-            text_content_list = []
-            for si in s:
-                text_content_list.append(space_string.join(map(str_type.strip, map(str_type, si.itertext()))))
-            text_content = space_string.join(text_content_list)
+            if extract_all:
+                text_content_list = []
+                for si in s:
+                    text_content_list.append(space_string.join(map(str_type.strip, map(str_type, si.itertext()))))
+                text_content = space_string.join(text_content_list)
+            else:
+                text_content = space_string.join(map(str_type.strip, map(str_type, s[0].itertext())))
+
         old = text_content
         text_content = TextCleaner(text=text_content).run(
             decode=decode,
@@ -874,6 +883,11 @@ class StandardExtractorXML(object):
             all_text_content = []
             unique = True
 
+            if content_name == 'fulltext':
+                extract_all = True
+            else:
+                extract_all = False
+
             for static_xpath \
                     in META_CONTENT[self.meta_name][content_name]['xpath']:
 
@@ -899,6 +913,7 @@ class StandardExtractorXML(object):
                         info=extractor_info,
                         decode=decode,
                         translate=translate,
+                        extract_all=extract_all,
                     )
 
                     if text_content:
