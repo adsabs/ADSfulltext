@@ -763,7 +763,10 @@ class StandardExtractorXML(object):
                 space_string = u" "
                 str_type = unicode
 
-            text_content = space_string.join(map(str_type.strip, map(str_type, s[0].itertext())))
+            text_content_list = []
+            for si in s:
+                text_content_list.append(space_string.join(map(str_type.strip, map(str_type, si.itertext()))))
+            text_content = space_string.join(text_content_list)
         old = text_content
         text_content = TextCleaner(text=text_content).run(
             decode=decode,

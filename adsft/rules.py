@@ -8,7 +8,8 @@ META_CONTENT = {
                       '//section[@type="body"]',
                       '//journalarticle-body',
                       '//bdy',
-                      '//app-group'
+                      '//app-group',
+                      '//section[not(@type="acknowledgments" or @type="dataAccess" or @type="dataAvailability" or @type="superSection")]'
                       ],
             'type': 'string',
             'info': '',
