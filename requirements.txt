@@ -7,4 +7,3 @@ html5lib==1.1
 ptree==0.2
 spacy==2.2.3
 portalocker==1.7.1
-psycopg2==2.8.6
