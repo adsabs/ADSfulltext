@@ -28,11 +28,3 @@ RUN_NER_FACILITIES_AFTER_EXTRACTION = False
 #CELERY_ALWAYS_EAGER = True
 #CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
 
-### Monitoring
-# For master pipeline - monitoring only
-SQLALCHEMY_URL = 'sqlite:///'
-SQLALCHEMY_ECHO = False
-STDDEV_CUTOFF = 1.5
-COUNT_ERR = 5
-SOURCES_DIR = '/proj/ads/fulltext/sources'
-PDF_SOURCES_DIR = '/proj/ads/articles/bitmaps/seri'
