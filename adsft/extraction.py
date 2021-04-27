@@ -642,6 +642,8 @@ class StandardExtractorXML(object):
                         break
             if success:
                 logger.debug("The parser '%s' succeeded extracting the following fields '%s'", parser_name, ", ".join(content_found))
+                if 'fulltext' not in content_found:
+                    logger.debug('Fulltext body not extracted for %s though overall extraction succeeded', self.dict_item['bibcode'])
                 break
             else:
                 logger.debug("The parser '%s' did not extract any of the following fields '%s'", parser_name, ", ".join(META_CONTENT[self.meta_name].keys()))
