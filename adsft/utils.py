@@ -27,7 +27,20 @@ import unicodedata
 import re
 import json
 
+# ============================= INITIALIZATION ==================================== #
+# - Use app logger:
+#import logging
+#logger = logging.getLogger('ads-fulltext')
+# - Or individual logger for this file:
+from adsputils import setup_logging, load_config
+proj_home = os.path.realpath(os.path.join(os.path.dirname(__file__), '../'))
+config = load_config(proj_home=proj_home)
+logger = setup_logging(__name__, proj_home=proj_home,
+                        level=config.get('LOGGING_LEVEL', 'INFO'),
+                        attach_stdout=config.get('LOG_STDOUT', False))
 
+
+# ================================ CLASSES ======================================== #
 
 class FileInputStream(object):
     """
@@ -73,39 +86,41 @@ class FileInputStream(object):
         try:
             with open(in_file, 'r') as f:
 
-                raw = []
-                bibcode, full_text_path, provider = [], [], []
-                for line in f:
+                    raw = []
+                    bibcode, full_text_path, provider = [], [], []
+                    for line in f:
+                        try:
+                            l = [i for i in line.strip().split('\t') if i != '']
+                            if len(l) == 0:
+                                continue
+                            bibcode.append(l[0])
+                            full_text_path.append(l[1])
+                            provider.append(l[2])
+                            payload_dictionary = {
+                                'bibcode': bibcode[-1],
+                                'ft_source': full_text_path[-1],
+                                'provider': provider[-1]
+                            }
 
-                    l = [i for i in line.strip().split('\t') if i != '']
-                    if len(l) == 0:
-                        continue
-                    bibcode.append(l[0])
-                    full_text_path.append(l[1])
-                    provider.append(l[2])
-                    payload_dictionary = {
-                        'bibcode': bibcode[-1],
-                        'ft_source': full_text_path[-1],
-                        'provider': provider[-1]
-                    }
+                            if force_extract:
+                                payload_dictionary['UPDATE'] = \
+                                    'FORCE_TO_EXTRACT'
 
-                    if force_extract:
-                        payload_dictionary['UPDATE'] = \
-                            'FORCE_TO_EXTRACT'
+                            if force_send and not force_extract:
+                                payload_dictionary['UPDATE'] = \
+                                    'FORCE_TO_SEND'
 
-                    if force_send and not force_extract:
-                        payload_dictionary['UPDATE'] = \
-                            'FORCE_TO_SEND'
-
-                    raw.append(payload_dictionary)
-
+                            raw.append(payload_dictionary)
+                        except Exception as err:
+                            logger.warning('Extraction failed for file %s, line: %s. Skipping', in_file, line)
+                            continue
             self.bibcode = bibcode
             self.full_text_path = full_text_path
             self.provider = provider
             self.payload = raw
 
-        except IOError:
-            print(in_file, sys.exc_info())
+        except IOError as err:
+            logger.warning('Exception in extracting file %s. Stacktrace: %s', in_file, sys.exc_info())
 
         return self.bibcode, self.full_text_path, self.provider, self.payload
 
