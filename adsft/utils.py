@@ -198,39 +198,42 @@ class TextCleaner(object):
 
         self.text = text
 
-        translated_control_characters = ''.join(
-            [chr(i) if i in [9, 10] else ' ' for i in range(0, 32)])
-
-        input_control_characters = "".join([chr(i) for i in range(0, 32)])
-
-        if sys.version_info > (3,):
-            maketrans = str.maketrans
-        else:
-            maketrans = string.maketrans
-
-        self.ASCII_translation_map = maketrans(
-            input_control_characters, translated_control_characters)
-
-        unicode_control_numbers = [(0x00, 0x08), (0x0B, 0x1F), (0x7F, 0x84),
-                                   (0x86, 0x9F), (0xD800, 0xDFFF), (0xFDD0,
-                                                                    0xFDDF),
-                                   (0xFFFE, 0xFFFF),
-                                   (0x1FFFE, 0x1FFFF), (0x2FFFE, 0x2FFFF),
-                                   (0x3FFFE, 0x3FFFF), (0x4FFFE, 0x4FFFF),
-                                   (0x5FFFE, 0x5FFFF), (0x6FFFE, 0x6FFFF),
-                                   (0x7FFFE, 0x7FFFF), (0x8FFFE, 0x8FFFF),
-                                   (0x9FFFE, 0x9FFFF), (0xAFFFE, 0xAFFFF),
-                                   (0xBFFFE, 0xBFFFF), (0xCFFFE, 0xCFFFF),
-                                   (0xDFFFE, 0xDFFFF), (0xEFFFE, 0xEFFFF),
-                                   (0xFFFFE, 0xFFFFF), (0x10FFFE, 0x10FFFF)]
-
-        self.Unicode_translation_map = dict.fromkeys(
-            unicode_number
-            for starting_unicode_number, ending_unicode_number
-            in unicode_control_numbers
-            for unicode_number
-            in range(starting_unicode_number, ending_unicode_number+1)
+        # WHITE_SPACE category here: http://www.unicode.org/Public/UCD/latest/ucd/PropList.txt
+        replace_with_space = [(0x0B, 0x0D), (0xA0, 0xA0),
+                              (0x1680, 0x1680), (0x2000, 0x200A),
+                              (0x202F, 0x202F), (0x205F, 0x205F),
+                              (0x3000, 0x3000)]
+        map_replace_with_space = dict.fromkeys(
+            (n for start, end in replace_with_space
+             for n in range(start, end+1)),
+            ' '
         )
+
+        # guidance from here: http://unicode.org/faq/unsup_char.html
+        replace_with_none = [(0x00, 0x08), (0x0E, 0x1F),
+                             (0x7F, 0x84), (0x86, 0x9F),
+                             (0xAD, 0xAD),
+                             (0x200B, 0x200E), (0x202A, 0x202E),
+                             (0x2060, 0x2064), (0x206A, 0x206F),
+                             (0xD800, 0xDFFF), (0xE000, 0xF8FF),
+                             (0xFDD0, 0xFDDF), (0xFEFF, 0xFEFF),
+                             (0xFFFE, 0xFFFF), (0x1FFFE, 0x1FFFF),
+                             (0x2FFFE, 0x2FFFF), (0x3FFFE, 0x3FFFF),
+                             (0x4FFFE, 0x4FFFF), (0x5FFFE, 0x5FFFF),
+                             (0x6FFFE, 0x6FFFF), (0x7FFFE, 0x7FFFF),
+                             (0x8FFFE, 0x8FFFF), (0x9FFFE, 0x9FFFF),
+                             (0xAFFFE, 0xAFFFF), (0xBFFFE, 0xBFFFF),
+                             (0xCFFFE, 0xCFFFF), (0xDFFFE, 0xDFFFF),
+                             (0xEFFFE, 0xEFFFF), (0xFFFFE, 0xFFFFF),
+                             (0x10FFFE, 0x10FFFF)]
+
+        self.master_translate_map = dict.fromkeys(
+            (n for start, end in replace_with_none
+             for n in range(start, end + 1))
+        )
+
+        # merge the two translation maps, prioritizing the map to space translations
+        t = self.master_translate_map.update(map_replace_with_space)
 
     def translate(self):
         """
@@ -238,10 +241,7 @@ class TextCleaner(object):
         :return: no return
         """
 
-        if type(self.text) == str:
-            self.text = self.text.translate(self.ASCII_translation_map)
-        else:
-            self.text = self.text.translate(self.Unicode_translation_map)
+        self.text = self.text.translate(self.master_translate_map)
 
     def decode(self):
         """
