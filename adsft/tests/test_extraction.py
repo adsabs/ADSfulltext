@@ -916,41 +916,47 @@ class TestOCRandTXTExtractor(test_base.TestUnit):
 
         self.assertEqual(new_instring, expected_out_string)
 
-    def test_ASCII_translation_map_works(self):
+    def test_translation_map_works(self):
         """
-        Tests the ASCII translation maps from the utils.py module. Ensures that
-        escape characters are removed from the ASCII encoded string.
+        Tests the translation map from the utils.py module. Ensures that
+        escape characters are removed from the string.
 
         :return: no return
         """
 
+        # test replace with spaces
         instring = \
             'Tab\t CarriageReturn\r New line\n Random Escape characters:'\
-            + chr(1) + chr(4) + chr(8)
+            + chr(0x0B) + chr(0xA0) + chr(0x1680)
 
         expected_out_string = \
             'Tab\t CarriageReturn  New line\n Random Escape characters:   '
 
-        new_instring = instring.translate(self.TC.ASCII_translation_map)
+        new_instring = instring.translate(self.TC.master_translate_map)
 
         self.assertEqual(new_instring, expected_out_string)
 
-    def test_Unicode_translation_map_works(self):
-        """
-        Tests the unicode translation maps from the utils.py module. Ensures
-        that escape characters are removed from the ASCII encoded string.
-
-        :return: no return
-        """
-
+        # test replace with None
         instring = \
-            u'Tab\t CarriageReturn\r New line\n Random Escape characters:' \
-            + u'\u0000'
+            'Tab\t CarriageReturn\r New line\n Random Escape characters:' \
+            + chr(0x00) + chr(0xAD) + chr(0xE000)
 
         expected_out_string = \
-            u'Tab\t CarriageReturn New line\n Random Escape characters:'
+            'Tab\t CarriageReturn  New line\n Random Escape characters:'
 
-        new_instring = instring.translate(self.TC.Unicode_translation_map)
+        new_instring = instring.translate(self.TC.master_translate_map)
+
+        self.assertEqual(new_instring, expected_out_string)
+
+        # test both
+        instring = \
+            'Tab\t CarriageReturn\r New line\n Random Escape characters:' \
+            + chr(0x202F) + chr(0xFDD0)
+
+        expected_out_string = \
+            'Tab\t CarriageReturn  New line\n Random Escape characters: '
+
+        new_instring = instring.translate(self.TC.master_translate_map)
 
         self.assertEqual(new_instring, expected_out_string)
 

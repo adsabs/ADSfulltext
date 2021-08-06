@@ -129,7 +129,51 @@ class FileInputStream(object):
 class TextCleaner(object):
     """
     Class that contains methods to clean text.
+
+    For Unicode character translation, the input is a dict where
+    the keys are the code points to be replaced and the value is
+    what to replace them with. Best practice is that some code
+    points are replaced with spaces, some are deleted (replaced
+    with '').
+
     """
+
+    # WHITE_SPACE category here: http://www.unicode.org/Public/UCD/latest/ucd/PropList.txt
+    replace_with_space = [(0x0B, 0x0D), (0xA0, 0xA0),
+                          (0x1680, 0x1680), (0x2000, 0x200A),
+                          (0x202F, 0x202F), (0x205F, 0x205F),
+                          (0x3000, 0x3000)]
+    map_replace_with_space = dict.fromkeys(
+        (n for start, end in replace_with_space
+         for n in range(start, end + 1)),
+        ' '
+    )
+
+    # guidance from here: http://unicode.org/faq/unsup_char.html
+    replace_with_none = [(0x00, 0x08), (0x0E, 0x1F),
+                         (0x7F, 0x84), (0x86, 0x9F),
+                         (0xAD, 0xAD),
+                         (0x200B, 0x200E), (0x202A, 0x202E),
+                         (0x2060, 0x2064), (0x206A, 0x206F),
+                         (0xD800, 0xDFFF), (0xE000, 0xF8FF),
+                         (0xFDD0, 0xFDDF), (0xFEFF, 0xFEFF),
+                         (0xFFFE, 0xFFFF), (0x1FFFE, 0x1FFFF),
+                         (0x2FFFE, 0x2FFFF), (0x3FFFE, 0x3FFFF),
+                         (0x4FFFE, 0x4FFFF), (0x5FFFE, 0x5FFFF),
+                         (0x6FFFE, 0x6FFFF), (0x7FFFE, 0x7FFFF),
+                         (0x8FFFE, 0x8FFFF), (0x9FFFE, 0x9FFFF),
+                         (0xAFFFE, 0xAFFFF), (0xBFFFE, 0xBFFFF),
+                         (0xCFFFE, 0xCFFFF), (0xDFFFE, 0xDFFFF),
+                         (0xEFFFE, 0xEFFFF), (0xFFFFE, 0xFFFFF),
+                         (0x10FFFE, 0x10FFFF)]
+
+    master_translate_map = dict.fromkeys(
+        (n for start, end in replace_with_none
+         for n in range(start, end + 1))
+    )
+
+    # merge the two translation maps, prioritizing the map to space translations
+    tmp = master_translate_map.update(map_replace_with_space)
 
     def __init__(self, text):
         """
@@ -138,59 +182,18 @@ class TextCleaner(object):
         For those interested:
         http://www.joelonsoftware.com/articles/Unicode.html
 
-        Translation map (ASCII):
-            This is used to replace the escape characters. There are 32 escape
-            characters listed for example
-            here: http://www.robelle.com/smugbook/ascii.html
+        unicodedata.normalize(unicode_string, 'NFKC'):
 
-            input_control_characters:
-            This is a string that contains all the escape characters
+        https://docs.python.org/2/library/
+            unicodedata.html#unicodedata.normalize
 
-            translated_control_characters:
-            This is a string that is equal in length to input_control
-            characters, where all the escape characters
-            are replaced by an empty string ' '. The only escape characters
-            kept are \n, \t, \r, (9, 10, 13)
+        http://stackoverflow.com/questions/14682397/can-somone-
+            explain-how-unicodedata-normalizeform-unistr-work-with-examples
 
-            This map can then be given to the string.translate as the map for
-            a string (ASCII encoded)
-            e.g.,
+        NFKC = Normal Form K Composition
 
-            'jonny\x40myemail.com\n'.translate(dict.fromkeys(filter(lambda x:
-             x not in [9,10,13], range(32))))
-            'jonny@myemail.com\n'
-
-        Translation map (Unicode):
-            This has the same purpose as the previous map, except it works on
-            text that is encoded in utf-8, or some other unicode encoding. The
-            unicode_control_number array contains a list of tuples, that
-            contain the range of numbers that want to be removed. i.e., 0x00,
-            0x08 in unicode form is U+00 00 to U+00 08, which is just removing
-            the e.g., Null characters, see
-            http://www.fileformat.info/info/charset/UTF-8/list.htm
-            for a list of unicode numberings.
-            e.g.,
-
-            This map can then be given to the string.translate as the map for
-            a unicode type (e.g., UTF-8 encoded)
-
-            u'jonny\x40myemail.com\n'.translate(dict.fromkeys(filter(lambda x:
-            x not in [9,10,13], range(32))))
-            u'jonny@myemail.com\n'
-
-
-            unicodedata.normalize(unicode_string, 'NFKC'):
-
-                https://docs.python.org/2/library/
-        unicodedata.html#unicodedata.normalize
-
-                http://stackoverflow.com/questions/14682397/can-somone-
-        explain-how-unicodedata-normalizeform-unistr-work-with-examples
-
-                NFKC = Normal Form K Composition
-
-                'K' converts characters such as circle(1) to 1
-                'C' composes characters such as C, to C+,
+        'K' converts characters such as circle(1) to 1
+        'C' composes characters such as C, to C+,
 
         :param text: input text to clean
         :return: no return
@@ -198,50 +201,13 @@ class TextCleaner(object):
 
         self.text = text
 
-        translated_control_characters = ''.join(
-            [chr(i) if i in [9, 10] else ' ' for i in range(0, 32)])
-
-        input_control_characters = "".join([chr(i) for i in range(0, 32)])
-
-        if sys.version_info > (3,):
-            maketrans = str.maketrans
-        else:
-            maketrans = string.maketrans
-
-        self.ASCII_translation_map = maketrans(
-            input_control_characters, translated_control_characters)
-
-        unicode_control_numbers = [(0x00, 0x08), (0x0B, 0x1F), (0x7F, 0x84),
-                                   (0x86, 0x9F), (0xD800, 0xDFFF), (0xFDD0,
-                                                                    0xFDDF),
-                                   (0xFFFE, 0xFFFF),
-                                   (0x1FFFE, 0x1FFFF), (0x2FFFE, 0x2FFFF),
-                                   (0x3FFFE, 0x3FFFF), (0x4FFFE, 0x4FFFF),
-                                   (0x5FFFE, 0x5FFFF), (0x6FFFE, 0x6FFFF),
-                                   (0x7FFFE, 0x7FFFF), (0x8FFFE, 0x8FFFF),
-                                   (0x9FFFE, 0x9FFFF), (0xAFFFE, 0xAFFFF),
-                                   (0xBFFFE, 0xBFFFF), (0xCFFFE, 0xCFFFF),
-                                   (0xDFFFE, 0xDFFFF), (0xEFFFE, 0xEFFFF),
-                                   (0xFFFFE, 0xFFFFF), (0x10FFFE, 0x10FFFF)]
-
-        self.Unicode_translation_map = dict.fromkeys(
-            unicode_number
-            for starting_unicode_number, ending_unicode_number
-            in unicode_control_numbers
-            for unicode_number
-            in range(starting_unicode_number, ending_unicode_number+1)
-        )
-
     def translate(self):
         """
         Removes escape characters whether the text is unicode or ASCII
         :return: no return
         """
 
-        if type(self.text) == str:
-            self.text = self.text.translate(self.ASCII_translation_map)
-        else:
-            self.text = self.text.translate(self.Unicode_translation_map)
+        self.text = self.text.translate(self.master_translate_map)
 
     def decode(self):
         """
