@@ -857,7 +857,7 @@ class StandardExtractorXML(object):
 
         return data_inner
 
-    def extract_multi_content(self, translate=False, decode=False, preferred_parser_names=None):
+    def extract_multi_content(self, translate=False, decode=True, preferred_parser_names=None):
         """
         Extracts full text content from the XML article specified. It also
         extracts any content specified in settings.py. It expects that the user
