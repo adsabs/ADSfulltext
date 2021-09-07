@@ -23,6 +23,9 @@ if [ $? -eq 124 ]
 then
    VECTOR_FREE="$(mktemp)"
    gs -q -o $VECTOR_FREE -sDEVICE=pdfwrite -dFILTERVECTOR "$1"
+
+   # try reprocessing, this time without vector graphics. If it still hangs after some time, error out with a note!
+   # (don't leave it stuck)
    timeout -s SIGINT $PDFTOTEXT_TIMEOUT /usr/bin/pdftotext -enc UTF-8 -eol unix -q "$VECTOR_FREE" - > $STD_OUT
    EXITCODE=$?
 
