@@ -85,10 +85,10 @@ def run(full_text_links, **kwargs):
     )
 
 
-    logger.info('Setting variables')
+    logger.debug('Setting variables')
     if 'max_queue_size' in kwargs:
         max_queue_size = kwargs['max_queue_size']
-        logger.info('Max queue size overridden: %d', kwargs['max_queue_size'])
+        logger.debug('Max queue size overridden: %d', kwargs['max_queue_size'])
     else:
         max_queue_size = 0
 
@@ -105,7 +105,7 @@ def run(full_text_links, **kwargs):
         logger.debug('Publishing [%i/%i]: [%s]', i+1, total, record['bibcode'])
 
         if max_queue_size and i >= max_queue_size:
-            logger.info('Max_queue_size reached, stopping...')
+            logger.info('Max_queue_size reached, stopping. (Max queue size = %d)', max_queue_size)
             break
 
         if diagnose:
