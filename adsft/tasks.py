@@ -58,7 +58,6 @@ def task_check_if_extract(message):
             if key == 'PDF' or key == 'Standard':
                 for msg in results[key]:
                     logger.debug("Calling 'task_extract' with message '%s'", msg)
-                    logger.info("Calling task_extract...")
                     task_extract.delay(msg)
                     if app.conf['GROBID_SERVICE'] is not None and key == 'PDF':
                         logger.debug("Calling 'task_extract_grobid' with message '%s'", msg)
@@ -97,7 +96,6 @@ def task_extract(message):
         # Call task without checking if fulltext is empty
         # to ensure other components (acks, etc) are output/sent to master
         logger.debug("Calling 'task_output_results' with '%s'", msg)
-        logger.info("Calling task_output_results...")
         task_output_results.delay(msg)
 
     if app.conf['RUN_NER_FACILITIES_AFTER_EXTRACTION']:
@@ -154,7 +152,7 @@ def task_output_results(msg):
 
     logger.debug('Will forward this record: %s', msg)
     rec = FulltextUpdate(**msg)
-    logger.info("Calling app.forward_message...")
+    logger.info("Forwarding extracted fulltext to master for bibcode: %s", msg['bibcode'])
     if not app.conf['CELERY_ALWAYS_EAGER']:
         app.forward_message(rec)
 
