@@ -1,9 +1,9 @@
-adsputils==v1.5.1
+adsputils==1.5.1
 beautifulsoup4==4.8.0
 dateutils==0.6.6
 httpretty==0.8.14
 lxml==4.4.1
 html5lib==1.1
 ptree==0.2
-spacy==2.2.3
+spacy==2.2.4
 portalocker==1.7.1
