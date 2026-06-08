@@ -90,6 +90,31 @@ class TestWorkers(unittest.TestCase):
                     self.assertEqual([u'ADS/Sa.CXO#Obs/11458'], actual['dataset'])
                     self.assertTrue(task_output_results.called)
 
+                    output_msg = task_output_results.call_args[0][0]
+                    self.assertNotIn('das', output_msg)
+
+    def test_task_extract_forwards_das(self):
+        with patch('adsft.writer.write_content', return_value=None) as task_write_text:
+            msg = {'bibcode': 'fta', 'file_format': 'xml',
+                        'index_date': '2017-06-30T22:45:47.800112Z',
+                        'UPDATE': 'NOT_EXTRACTED_BEFORE',
+                        'meta_path': u'{}/ft/a/meta.json'.format(self.app.conf['FULLTEXT_EXTRACT_PATH']),
+                        'ft_source': '{}/tests/test_unit/stub_data/test_das.xml'.format(self.proj_home),
+                        'provider': 'MNRAS'}
+            with patch.object(tasks.task_output_results, 'delay', return_value=None) as task_output_results:
+                with patch.object(tasks.task_identify_facilities, 'delay', return_value=None) as identify_facilities:
+                    tasks.task_extract(msg)
+                    self.assertTrue(task_write_text.called)
+                    self.assertTrue(identify_facilities.called)
+                    self.assertTrue(task_output_results.called)
+
+                    actual = task_write_text.call_args[0][0]
+                    self.assertIn('DAS from section type dataAvailability.', actual['das'])
+                    self.assertNotIn('DAS from section type dataAvailability.', actual['fulltext'])
+
+                    output_msg = task_output_results.call_args[0][0]
+                    self.assertIn('das', output_msg)
+                    self.assertIn('DAS from section type dataAvailability.', output_msg['das'])
 
     def test_task_extract_pdf(self):
         if self.grobid_service is not None:

@@ -359,6 +359,33 @@ class TestXMLExtractor(TestXMLExtractorBase):
                                                             "FacilityName2 , FacilityName3 , FacilityName4 , FacilityName5 , "
                                                             "FacilityName6 , FacilityName7\nACK INSIDE BODY TAG.")
 
+    def test_extraction_of_das(self):
+        """
+        This tests the common DAS XML shapes and verifies that DAS content is
+        extracted separately instead of being duplicated in fulltext.
+        """
+
+        self.dict_item['ft_source'] = self.test_stub_das
+        self.extractor = extraction.EXTRACTOR_FACTORY['xml'](self.dict_item)
+        self.extractor.open_xml()
+
+        expected_das = [
+            'Data Availability Statement DAS from section type dataAvailability.',
+            'Data Access DAS from dataAccess section.',
+            'Data Availability DAS from sec-type data-availability.',
+            'Data Availability Statement DAS from title match.',
+        ]
+
+        for parser_name in self.preferred_parser_names:
+            content = self.extractor.extract_multi_content(preferred_parser_names=(parser_name,))
+
+            self.assertIn('Main body text.', content['fulltext'])
+            self.assertEqual('Acknowledgement text.', content['acknowledgements'])
+
+            for expected in expected_das:
+                self.assertIn(expected, content['das'])
+                self.assertNotIn(expected, content['fulltext'])
+
     def test_extraction_of_facilities(self):
 
         """
@@ -598,11 +625,27 @@ class TestXMLElsevierExtractor(TestXMLExtractorBase):
                 func = self.assertCountEqual
             else:
                 func = self.assertItemsEqual
-            func(['fulltext', 'acknowledgements', 'dataset'],
+            func(['fulltext', 'acknowledgements', 'das', 'dataset'],
                  content.keys(),
                  content.keys())
 
             self.assertIn('JOURNAL CONTENT', content['fulltext'])
+
+    def test_extraction_of_elsevier_das(self):
+        """
+        This tests Elsevier data-availability tags after namespace cleanup.
+        """
+
+        self.dict_item['ft_source'] = self.test_stub_das_elsevier
+        self.extractor = extraction.EXTRACTOR_FACTORY['elsevier'](self.dict_item)
+        self.extractor.open_xml()
+
+        for parser_name in self.preferred_parser_names:
+            content = self.extractor.extract_multi_content(preferred_parser_names=(parser_name,))
+
+            self.assertIn('Elsevier body text.', content['fulltext'])
+            self.assertIn('DAS from Elsevier data availability tag.', content['das'])
+            self.assertNotIn('DAS from Elsevier data availability tag.', content['fulltext'])
 
     def test_that_the_correct_extraction_is_used_for_the_datatype(self):
         """

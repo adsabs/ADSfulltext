@@ -733,6 +733,11 @@ class StandardExtractorXML(object):
         for e in parsed_xml.xpath(" | ".join(META_CONTENT['xml']['acknowledgements']['xpath'])):
             self._append_tag_outside_parent(e)
 
+        # move data availability statements after body so they can be extracted
+        # separately without being duplicated in the fulltext body
+        for e in parsed_xml.xpath(" | ".join(META_CONTENT['xml']['das']['xpath'])):
+            self._append_tag_outside_parent(e)
+
         return parsed_xml
 
     def extract_string(self, static_xpath, **kwargs):

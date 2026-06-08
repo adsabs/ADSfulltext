@@ -23,6 +23,20 @@ META_CONTENT = {
             'type': 'string',
             'info': '',
             },
+        'das': {
+            'xpath': ['//section[@type="dataAvailability"]',
+                      '//section[@type="dataAccess"]',
+                      '//data-availability',
+                      '//*[local-name()="data-availability"]',
+                      '//sec[@sec-type="data-availability"]',
+                      '//sec[normalize-space(translate(title, '
+                      '"ABCDEFGHIJKLMNOPQRSTUVWXYZ", '
+                      '"abcdefghijklmnopqrstuvwxyz")) = '
+                      '"data availability statement"]'
+                      ],
+            'type': 'string',
+            'info': '',
+            },
         'dataset': {
             'xpath': ['//named-content[@content-type="dataset"]'],
             'type': 'list',
@@ -64,6 +78,20 @@ META_CONTENT = {
                       '//subsection[@type="acknowledgement" '
                       'or @type="acknowledgment"]',
                       '//*[local-name()="acknowledgment"]'
+                      ],
+            'type': 'string',
+            'info': '',
+            },
+        'das': {
+            'xpath': ['//data-availability',
+                      '//*[local-name()="data-availability"]',
+                      '//section[@type="dataAvailability"]',
+                      '//section[@type="dataAccess"]',
+                      '//sec[@sec-type="data-availability"]',
+                      '//sec[normalize-space(translate(title, '
+                      '"ABCDEFGHIJKLMNOPQRSTUVWXYZ", '
+                      '"abcdefghijklmnopqrstuvwxyz")) = '
+                      '"data availability statement"]'
                       ],
             'type': 'string',
             'info': '',

@@ -46,6 +46,8 @@ class TestWriteMetaFileWorker(test_base.TestUnit):
         self.acknowledgement_file = \
             self.bibcode_pair_tree + 'acknowledgements.txt.gz'
 
+        self.das_file = self.bibcode_pair_tree + 'das.txt.gz'
+
     def tearDown(self):
         """
         Generic tear down of the test class. It deletes the meta.json file, the
@@ -65,6 +67,11 @@ class TestWriteMetaFileWorker(test_base.TestUnit):
 
         try:
             os.remove(self.acknowledgement_file)
+        except OSError:
+            pass
+
+        try:
+            os.remove(self.das_file)
         except OSError:
             pass
 
@@ -256,6 +263,26 @@ class TestWriteMetaFileWorker(test_base.TestUnit):
                         msg=os.path.exists(self.full_text_file))
         self.assertTrue(os.path.exists(self.acknowledgement_file),
                         msg=os.path.exists(self.acknowledgement_file))
+
+    def test_das_file_is_created_and_read(self):
+        """
+        Tests that DAS is persisted as an auxiliary text file and recovered by
+        the reader, mirroring acknowledgements.
+        """
+
+        self.dict_item['das'] = "Data are available in the archive."
+        writer.extract_content([self.dict_item])
+
+        self.assertTrue(os.path.exists(self.das_file),
+                        msg=os.path.exists(self.das_file))
+
+        with open(self.meta_file, 'r') as meta_file:
+            meta_dict = json.load(meta_file)
+
+        self.assertEqual(self.dict_item['das'], meta_dict['das'])
+
+        content = reader.read_content(self.dict_item)
+        self.assertEqual(self.dict_item['das'], content['das'])
 
     def test_temporary_file_is_made_and_moved(self):
         """
