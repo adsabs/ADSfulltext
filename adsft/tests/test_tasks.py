@@ -116,6 +116,30 @@ class TestWorkers(unittest.TestCase):
                     self.assertIn('das', output_msg)
                     self.assertIn('DAS from section type dataAvailability.', output_msg['das'])
 
+    def test_task_extract_forwards_mast_dataset_doi_from_das(self):
+        with patch('adsft.writer.write_content', return_value=None) as task_write_text:
+            msg = {'bibcode': '2026AJ....171..191M', 'file_format': 'xml',
+                        'index_date': '2026-03-01T00:00:00.000000Z',
+                        'UPDATE': 'NOT_EXTRACTED_BEFORE',
+                        'meta_path': u'{}/20/26/meta.json'.format(self.app.conf['FULLTEXT_EXTRACT_PATH']),
+                        'ft_source': '{}/tests/test_unit/stub_data/test_das_mast.xml'.format(self.proj_home),
+                        'provider': 'IOP'}
+            with patch.object(tasks.task_output_results, 'delay', return_value=None) as task_output_results:
+                with patch.object(tasks.task_identify_facilities, 'delay', return_value=None) as identify_facilities:
+                    tasks.task_extract(msg)
+                    self.assertTrue(task_write_text.called)
+                    self.assertTrue(identify_facilities.called)
+                    self.assertTrue(task_output_results.called)
+
+                    expected_dataset = u'https://doi.org/10.17909/qk5z-7p30'
+                    actual = task_write_text.call_args[0][0]
+                    self.assertIn(expected_dataset, actual['dataset'])
+                    self.assertIn('MAST data are available at', actual['das'])
+
+                    output_msg = task_output_results.call_args[0][0]
+                    self.assertIn(expected_dataset, output_msg['dataset'])
+                    self.assertIn('MAST data are available at', output_msg['das'])
+
     def test_task_extract_pdf(self):
         if self.grobid_service is not None:
             httpretty.enable()

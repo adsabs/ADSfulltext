@@ -185,6 +185,9 @@ class TestUnit(unittest.TestCase):
         self.test_stub_das = \
             os.path.join(PROJ_HOME,
                          'tests/test_unit/stub_data/test_das.xml')
+        self.test_stub_das_mast = \
+            os.path.join(PROJ_HOME,
+                         'tests/test_unit/stub_data/test_das_mast.xml')
         self.test_stub_das_elsevier = \
             os.path.join(PROJ_HOME,
                          'tests/test_unit/stub_data/test_das_elsevier.xml')
