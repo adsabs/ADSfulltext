@@ -396,14 +396,16 @@ class TestXMLExtractor(TestXMLExtractorBase):
         self.extractor.open_xml()
 
         expected_dataset = u'https://doi.org/10.17909/qk5z-7p30'
-        expected_das = u'MAST data are available at 10 .17909/qk5z-7p30.'
+        expected_das_text = u'MAST data are available at'
+        expected_das_doi = u'10 .17909/qk5z-7p30'
 
         for parser_name in self.preferred_parser_names:
             content = self.extractor.extract_multi_content(preferred_parser_names=(parser_name,))
 
             self.assertIn(expected_dataset, content['dataset'])
-            self.assertIn(expected_das, content['das'])
-            self.assertNotIn(expected_das, content['fulltext'])
+            self.assertIn(expected_das_text, content['das'])
+            self.assertIn(expected_das_doi, content['das'])
+            self.assertNotIn(expected_das_text, content['fulltext'])
 
     def test_extraction_of_facilities(self):
 
