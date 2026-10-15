@@ -1,0 +1,27 @@
+<article>
+  <body>
+    <sec>
+      <title>Introduction</title>
+      <p>Main body text.</p>
+    </sec>
+    <ack>
+      <p>Acknowledgement text.</p>
+    </ack>
+    <section type="dataAvailability">
+      <title>Data Availability Statement</title>
+      <p>DAS from section type dataAvailability.</p>
+    </section>
+    <section type="dataAccess">
+      <title>Data Access</title>
+      <p>DAS from dataAccess section.</p>
+    </section>
+    <sec sec-type="data-availability">
+      <title>Data Availability</title>
+      <p>DAS from sec-type data-availability.</p>
+    </sec>
+    <sec>
+      <title>Data Availability Statement</title>
+      <p>DAS from title match.</p>
+    </sec>
+  </body>
+</article>
