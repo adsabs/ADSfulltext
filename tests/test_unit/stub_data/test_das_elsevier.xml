@@ -1,0 +1,11 @@
+<article xmlns:ce="http://www.elsevier.com/xml/common/dtd">
+  <body>
+    <sec>
+      <title>Introduction</title>
+      <p>Elsevier body text.</p>
+    </sec>
+    <ce:data-availability>
+      <ce:para>DAS from Elsevier data availability tag.</ce:para>
+    </ce:data-availability>
+  </body>
+</article>
