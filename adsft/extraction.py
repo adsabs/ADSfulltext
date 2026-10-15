@@ -733,10 +733,21 @@ class StandardExtractorXML(object):
         for e in parsed_xml.xpath(" | ".join(META_CONTENT['xml']['acknowledgements']['xpath'])):
             self._append_tag_outside_parent(e)
 
-        # move data availability statements after body so they can be extracted
-        # separately without being duplicated in the fulltext body
-        for e in parsed_xml.xpath(" | ".join(META_CONTENT['xml']['das']['xpath'])):
-            self._append_tag_outside_parent(e)
+        # Move data availability statements after their outermost fulltext node.
+        # Reversing preserves document order when several follow the same node.
+        fulltext_nodes = parsed_xml.xpath(
+            " | ".join(META_CONTENT[self.meta_name]['fulltext']['xpath']))
+        das_nodes = parsed_xml.xpath(
+            " | ".join(META_CONTENT['xml']['das']['xpath']))
+        for e in reversed(das_nodes):
+            fulltext_parent = None
+            for parent in e.iterancestors():
+                if parent in fulltext_nodes:
+                    fulltext_parent = parent
+
+            if fulltext_parent is not None:
+                e.getparent().remove(e)
+                fulltext_parent.addnext(e)
 
         return parsed_xml
 

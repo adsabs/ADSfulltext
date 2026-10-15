@@ -386,6 +386,25 @@ class TestXMLExtractor(TestXMLExtractorBase):
                 self.assertIn(expected, content['das'])
                 self.assertNotIn(expected, content['fulltext'])
 
+    def test_extraction_of_nested_das(self):
+        """
+        This tests that a DAS below an intermediate element is moved fully
+        outside the fulltext body.
+        """
+
+        self.dict_item['ft_source'] = os.path.join(
+            self.proj_home, 'tests/test_unit/stub_data/test_das_nested.xml')
+        self.extractor = extraction.EXTRACTOR_FACTORY['xml'](self.dict_item)
+        self.extractor.open_xml()
+
+        for parser_name in self.preferred_parser_names:
+            content = self.extractor.extract_multi_content(preferred_parser_names=(parser_name,))
+
+            self.assertEqual('Nested DAS statement.', content['das'])
+            self.assertNotIn('Nested DAS statement.', content['fulltext'])
+            self.assertIn('Body text before the nested DAS.', content['fulltext'])
+            self.assertIn('Body text after the nested DAS.', content['fulltext'])
+
     def test_mast_dataset_doi_from_named_content_in_das(self):
         """
         This tests the MAST dataset DOI shape from 2026AJ....171..191M.
