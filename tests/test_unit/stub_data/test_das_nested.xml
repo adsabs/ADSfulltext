@@ -1,0 +1,12 @@
+<article>
+  <body>
+    <sec>
+      <title>Results</title>
+      <p>Body text before the nested DAS.</p>
+      <data-availability>
+        <p>Nested DAS statement.</p>
+      </data-availability>
+      <p>Body text after the nested DAS.</p>
+    </sec>
+  </body>
+</article>

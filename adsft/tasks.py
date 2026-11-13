@@ -89,7 +89,7 @@ def task_extract(message):
                 'bibcode': r['bibcode'],
                 'body': r['fulltext'],
                 }
-        for x in ('acknowledgements', 'dataset', 'facility'):
+        for x in ('acknowledgements', 'dataset', 'facility', 'das'):
             if x in r and r[x]:
                 msg[x] = r[x]
 

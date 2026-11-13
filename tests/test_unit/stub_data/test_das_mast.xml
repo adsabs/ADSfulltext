@@ -1,0 +1,25 @@
+<article xmlns:xlink="http://www.w3.org/1999/xlink">
+  <front>
+    <article-meta>
+      <article-id pub-id-type="doi">10.3847/1538-3881/ae40f1</article-id>
+      <article-id pub-id-type="bibcode">2026AJ....171..191M</article-id>
+      <title-group>
+        <article-title>Discovery of Seven Cold and Distant Brown Dwarfs with JWST RUBIES</article-title>
+      </title-group>
+    </article-meta>
+  </front>
+  <body>
+    <sec>
+      <title>Introduction</title>
+      <p>Main body text for the SciX record fixture.</p>
+    </sec>
+    <sec sec-type="data-availability">
+      <title>Data Availability Statement</title>
+      <p>
+        MAST data are available at
+        <named-content content-type="dataset" xlink:href="https://doi.org/10.17909/qk5z-7p30">10
+        .17909/qk5z-7p30</named-content>.
+      </p>
+    </sec>
+  </body>
+</article>
