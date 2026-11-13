@@ -331,9 +331,11 @@ class TestGeneric(unittest.TestCase):
                 grobid_fulltext = os.path.join(path, 'grobid_fulltext.xml')
                 dataset = os.path.join(path, 'dataset.txt')
                 acknowledgements = os.path.join(path, 'acknowledgements.txt.gz')
+                das = os.path.join(path, 'das.txt.gz')
                 facility = os.path.join(path, 'facility_ner.json')
 
-                file_list = [meta, fulltext, grobid_fulltext, dataset, acknowledgements, facility]
+                file_list = [meta, fulltext, grobid_fulltext, dataset,
+                             acknowledgements, das, facility]
                 for file_ in file_list:
                     if os.path.exists(file_):
                         os.remove(file_)
